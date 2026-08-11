@@ -75,25 +75,12 @@ export const BATCH_SIZE = Number.parseInt(__env__('BC_BATCH_SIZE', false, '1000'
 export const PORT = Number.parseInt(__env__('BC_PORT', false, '4002'), 10)
 
 /**
- * Indicate whether HTTPS is enabled or not.
+ * Indicate whether the public site is served over HTTPS (reverse proxy / CDN).
+ * Used for secure cookies and absolute http(s) links — the Node server itself always runs HTTP.
  *
  * @type {boolean}
  */
-export const HTTPS = helper.StringToBoolean(__env__('BC_HTTPS'))
-
-/**
- * Private SSL key filepath.
- *
- * @type {string}
- */
-export const PRIVATE_KEY = __env__('BC_PRIVATE_KEY', HTTPS)
-
-/**
- * Private SSL certificate filepath.
- *
- * @type {string}
- */
-export const CERTIFICATE = __env__('BC_CERTIFICATE', HTTPS)
+export const HTTPS = helper.StringToBoolean(__env__('BC_HTTPS', false, 'false'))
 
 /**
  * MongoDB database URI. Default is: mongodb://127.0.0.1:27017/bookcars?authSource=admin&appName=bookcars
