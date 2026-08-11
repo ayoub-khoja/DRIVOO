@@ -1,0 +1,248 @@
+/* Signin — DRIVOO (fond blanc, accents bleu/orange) */
+div.signin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 28px 0 40px;
+  padding: 0 16px;
+  transform: translate3d(0, 0, 0);
+  min-height: 0;
+  background: #ffffff;
+}
+
+div.signin .signin-form {
+  width: min(420px, 100%);
+  height: fit-content;
+  padding: 36px 32px 28px;
+  background: #ffffff !important;
+  border: 1px solid var(--drivoo-border);
+  border-radius: var(--drivoo-radius);
+  box-shadow: 0 12px 40px rgb(10 22 40 / 8%) !important;
+  color: var(--drivoo-text);
+  animation: signin-fade-up 0.45s var(--drivoo-ease) both;
+}
+
+div.signin .signin-form form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+div.signin .signin-form-title {
+  margin: 0;
+  text-align: center;
+  text-transform: none;
+  font-family: var(--drivoo-font-display);
+  font-weight: 800;
+  font-size: clamp(1.55rem, 3vw, 1.9rem);
+  color: var(--drivoo-black) !important;
+  letter-spacing: -0.02em;
+}
+
+div.signin .signin-form-subtitle {
+  margin: 8px 0 28px;
+  text-align: center;
+  color: var(--drivoo-muted) !important;
+  font-family: var(--drivoo-font-body);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+div.signin .signin-form-subtitle::after {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 3px;
+  margin: 18px auto 0;
+  border-radius: 999px;
+  background: var(--drivoo-yellow);
+}
+
+div.signin .MuiFormControl-root {
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+div.signin .MuiInputLabel-root {
+  color: var(--drivoo-muted) !important;
+  font-family: var(--drivoo-font-body) !important;
+}
+
+div.signin .MuiInputLabel-root.Mui-focused {
+  color: var(--drivoo-yellow) !important;
+}
+
+div.signin .MuiInput-root,
+div.signin .MuiInput-underline {
+  color: var(--drivoo-black) !important;
+  font-family: var(--drivoo-font-body) !important;
+}
+
+div.signin .MuiInput-underline::before {
+  border-bottom-color: var(--drivoo-border) !important;
+}
+
+div.signin .MuiInput-underline:hover:not(.Mui-disabled)::before {
+  border-bottom-color: rgb(255 107 26 / 45%) !important;
+}
+
+div.signin .MuiInput-underline::after {
+  border-bottom-color: var(--drivoo-yellow) !important;
+}
+
+div.signin .MuiInputAdornment-root .MuiIconButton-root,
+div.signin .MuiInputAdornment-root .MuiSvgIcon-root {
+  color: var(--drivoo-muted) !important;
+}
+
+div.signin .MuiInputAdornment-root .MuiIconButton-root:hover {
+  color: var(--drivoo-yellow) !important;
+  background: var(--drivoo-yellow-dim) !important;
+}
+
+div.signin .MuiFormHelperText-root {
+  color: #e53935 !important;
+}
+
+div.signin div.stay-connected {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+div.signin div.stay-connected input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--drivoo-yellow);
+  cursor: pointer;
+}
+
+div.signin div.stay-connected label {
+  cursor: pointer;
+  color: var(--drivoo-black);
+  font-family: var(--drivoo-font-body);
+  font-size: 0.92rem;
+  user-select: none;
+}
+
+div.signin div.forgot-password-wrapper {
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+div.signin div.forgot-password-wrapper .btn-lnk {
+  color: var(--drivoo-yellow) !important;
+  font-size: 0.9rem !important;
+}
+
+div.signin .social-login {
+  margin-top: 4px;
+}
+
+div.signin .social-login div.separator {
+  margin: 22px 0;
+  align-items: center;
+}
+
+div.signin .social-login div.separator hr {
+  border: 0;
+  border-bottom: 1px solid var(--drivoo-border);
+  width: 100%;
+  top: 0;
+}
+
+div.signin .social-login div.separator span {
+  margin: 0 14px;
+  color: var(--drivoo-muted);
+  font-size: 0.85rem;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+div.signin .social-login div.login-buttons {
+  margin: 8px 0 4px;
+}
+
+div.signin .social-login img.social {
+  transition: transform 0.25s var(--drivoo-ease);
+}
+
+div.signin .social-login img.social:hover {
+  transform: scale(1.08);
+}
+
+div.signin div.signin-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+  float: none;
+}
+
+div.signin div.signin-buttons .btn-signin-secondary {
+  flex: 1 1 auto;
+  min-width: 120px;
+  border-color: var(--drivoo-yellow) !important;
+  color: var(--drivoo-yellow) !important;
+  font-family: var(--drivoo-font-body) !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  border-radius: 999px !important;
+  padding: 10px 18px !important;
+  background: transparent !important;
+  transition: background 0.25s ease, transform 0.25s var(--drivoo-ease) !important;
+}
+
+div.signin div.signin-buttons .btn-signin-secondary:hover {
+  background: var(--drivoo-yellow-dim) !important;
+  transform: translateY(-1px);
+}
+
+div.signin div.signin-buttons .btn-primary {
+  flex: 1 1 auto;
+  min-width: 140px;
+  margin: 0 !important;
+  padding: 10px 18px !important;
+}
+
+div.signin .form-error {
+  clear: both;
+  min-height: 0;
+  height: auto;
+  padding-top: 12px;
+  text-align: center;
+}
+
+@keyframes signin-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media only screen and (width <=960px) {
+  div.signin {
+    margin: 20px 0 32px;
+  }
+
+  div.signin .signin-form {
+    padding: 28px 20px 22px;
+  }
+
+  div.signin div.signin-buttons {
+    flex-direction: column;
+  }
+
+  div.signin div.signin-buttons .btn-signin-secondary,
+  div.signin div.signin-buttons .btn-primary {
+    width: 100%;
+  }
+}

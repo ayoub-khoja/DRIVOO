@@ -1,0 +1,382 @@
+:root {
+  --toastify-color-progress-info: #fff !important;
+  --toastify-color-progress-bgo: .6 !important;
+  --toastify-icon-color-info: #fff !important;
+
+  --drivoo-black: #243853;
+  --drivoo-surface: #2c4565;
+  --drivoo-surface-2: #345070;
+  --drivoo-elevated: #3d5c80;
+  --drivoo-yellow: #ff6b1a;
+  --drivoo-yellow-hot: #ff8534;
+  --drivoo-yellow-dim: rgb(255 107 26 / 14%);
+  --drivoo-page: #ffffff;
+  --drivoo-text: #243853;
+  --drivoo-muted: #4a5568;
+  --drivoo-on-blue: #ffffff;
+  --drivoo-border: rgb(36 56 83 / 12%);
+  --drivoo-font-display: 'Syne', 'Cairo', sans-serif;
+  --drivoo-font-body: 'Outfit', 'Cairo', sans-serif;
+  --drivoo-radius: 14px;
+  --drivoo-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[dir='rtl'] {
+  --drivoo-font-display: 'Cairo', sans-serif;
+  --drivoo-font-body: 'Cairo', sans-serif;
+}
+
+html[dir='rtl'] body {
+  font-family: var(--drivoo-font-body);
+}
+
+body,
+div.content {
+  color: var(--drivoo-text);
+  background-color: var(--drivoo-page);
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#root,
+.app,
+div.content {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Orange accents */
+.section-eyebrow,
+.home-title,
+.btn-lnk,
+a.btn-lnk,
+.btn-signin-secondary,
+.MuiInputLabel-root.Mui-focused,
+.MuiCheckbox-root.Mui-checked,
+.header .btn:hover,
+.header .MuiIconButton-root:hover {
+  color: var(--drivoo-yellow) !important;
+}
+
+.btn-primary,
+.btn-primary span,
+.MuiButton-containedPrimary,
+.MuiButton-containedPrimary span {
+  color: #ffffff !important;
+}
+
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
+
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+#nprogress .bar {
+  background: var(--drivoo-yellow) !important;
+}
+
+.buttons button {
+  margin-right: 15px;
+  margin-left: 0 !important;
+}
+
+.btn-primary {
+  background-color: var(--drivoo-yellow) !important;
+  color: #ffffff !important;
+  font-family: var(--drivoo-font-body) !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  transition: transform 0.25s var(--drivoo-ease), background-color 0.25s ease !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--drivoo-yellow-hot) !important;
+  transform: translateY(-1px);
+}
+
+.btn-primary.Mui-disabled,
+.btn-primary:disabled {
+  color: #ffffff !important;
+  opacity: 0.55 !important;
+}
+
+/* Ensure outlined orange buttons stay readable on white */
+.MuiButton-outlinedPrimary {
+  color: var(--drivoo-yellow) !important;
+  border-color: var(--drivoo-yellow) !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* .btn-secondary {
+  background-color: #999 !important;
+  color: #fff !important;
+} */
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-orange:hover {
+  opacity: 0.95;
+}
+
+.btn-margin {
+  margin-right: 10px !important;
+}
+
+.btn-margin-bottom {
+  margin-bottom: 10px !important;
+}
+
+.btn-lnk {
+  background-color: transparent !important;
+  color: var(--drivoo-yellow) !important;
+  font-weight: 400 !important;
+  text-decoration: underline !important;
+  font-size: 16px !important;
+  text-transform: none !important;
+  padding: 0 !important;
+}
+
+.btn-lnk:hover {
+  opacity: 0.8;
+}
+
+.bold {
+  font-weight: 500 !important;
+}
+
+.validate-email {
+  margin: 15px;
+}
+
+.btn-resend {
+  margin: 0 10px !important;
+}
+
+.required::after {
+  content: ' *';
+}
+
+.form-error {
+  clear: both;
+  height: 65px;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.msg {
+  margin: 15px;
+}
+
+.msg h2 {
+  color: var(--drivoo-text);
+  margin: 0;
+}
+
+.msg p {
+  color: var(--drivoo-muted);
+}
+
+.msg .msg-link {
+  margin-top: 16px;
+  display: block;
+}
+
+/* Avatar */
+
+.avatar,
+.avatar-large {
+  width: 170px !important;
+  height: 170px !important;
+}
+
+.avatar-medium {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+.avatar-small {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.avatar-action-box {
+  width: 46px;
+  height: 46px;
+  background: #ddd;
+  cursor: pointer;
+}
+
+.avatar-action-icon {
+  width: 32px !important;
+  height: 32px !important;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+}
+
+.supplier-avatar {
+  width: 150px;
+  height: 75px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar-ctn {
+  position: relative;
+  margin: 20px 0;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar-verified-small,
+.user-avatar-verified-medium,
+.user-avatar-verified-large {
+  color: #ffff;
+  background: #07ac51;
+}
+
+.user-avatar-verified-small {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.user-avatar-verified-icon-small {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.user-avatar-verified-medium {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.user-avatar-verified-icon-medium {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.user-avatar-verified-large {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.user-avatar-verified-icon-large {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 15px 0;
+}
+
+.info span {
+  color: #a8a8a8;
+  display: inline-block;
+  font-size: 0.9em;
+  line-height: 1em;
+  white-space: nowrap;
+  margin-left: 5px;
+}
+
+.dialog-header {
+  text-align: center;
+}
+
+.dialog-content {
+  margin: 0;
+  width: 410px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-actions {
+  margin-right: 5px;
+  margin-bottom: 10px;
+}
+
+.d-adornment {
+  margin-right: -13px;
+}
+
+.d-adornment-icon {
+  color: rgb(0 0 0 / 54%);
+  width: 20px !important;
+  height: 20px !important;
+}
+
+div.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  margin: 0;
+  padding: 0;
+  background-color: var(--drivoo-page);
+}
+
+@media only screen and (width <=550px) {
+  .search-dialog-content {
+    width: auto;
+    max-width: 480px;
+  }
+}
+
+@media only screen and (width <=960px) and (width >550px) {
+  .search-dialog-content {
+    width: 480px;
+    overflow-x: hidden;
+  }
+}
+
+@media only screen and (width <=960px) {
+
+  .buttons {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    display: grid;
+    width: 100%;
+  }
+
+  .buttons button {
+    margin-right: 0 !important;
+  }
+
+  .btn-margin {
+    margin-right: 0 !important;
+  }
+
+  .d-adornment {
+    margin-right: -3px;
+  }
+
+  .dialog-content {
+    width: 350px;
+  }
+}
+
+@media only screen and (width >=960px) {
+  .buttons {
+    float: right;
+    margin-top: 15px;
+    margin-bottom: 5px;
+  }
+}

@@ -1,0 +1,169 @@
+/* Search form — default + DRIVOO book banner (maquette) */
+
+form.home-search-form .btn-search,
+form.home-search-form .btn-cancel {
+  font-size: 16px;
+  font-weight: 700;
+  height: 52px;
+  min-width: 160px;
+}
+
+form.home-search-form .btn-search {
+  color: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  margin: 0;
+  white-space: nowrap;
+  background: var(--drivoo-yellow, #ff6b1a);
+  text-transform: none;
+  box-shadow: none;
+}
+
+form.home-search-form .btn-search:hover,
+form.home-search-form .btn-cancel:hover {
+  opacity: 0.92;
+  background: var(--drivoo-yellow, #ff6b1a);
+}
+
+form.home-search-form .chk-same-location {
+  display: table-row;
+  color: var(--drivoo-black);
+  font-weight: 400;
+  line-height: 1.4em;
+  font-size: 0.85em;
+  user-select: none;
+}
+
+form.home-search-form .chk-same-location label {
+  cursor: pointer;
+  padding: 2px;
+  vertical-align: top;
+}
+
+form.home-search-form .chk-same-location input[type='checkbox'] {
+  cursor: pointer;
+}
+
+form.home-search-form .chk-same-location .MuiCheckbox-root {
+  color: var(--drivoo-yellow, #f5d000) !important;
+  padding: 4px 8px !important;
+}
+
+form.home-search-form .chk-same-location .Mui-checked {
+  color: var(--drivoo-yellow, #f5d000) !important;
+}
+
+@media only screen and (width <=960px) {
+  form.home-search-form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  form.home-search-form .pickup-location,
+  form.home-search-form .drop-off-location,
+  form.home-search-form .from,
+  form.home-search-form .to {
+    width: 100%;
+    padding: 8px 0;
+  }
+
+  form.home-search-form .chk-same-location {
+    align-self: flex-start;
+    margin: 4px 0 8px;
+  }
+
+  form.home-search-form .btn-search,
+  form.home-search-form .btn-cancel {
+    width: 100%;
+  }
+
+  form.home-search-form .btn-search {
+    margin: 8px 0 0;
+  }
+}
+
+@media only screen and (width >=960px) {
+  form.home-search-form {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr auto;
+    grid-template-areas:
+      'pickup from to action'
+      'same from to action';
+    gap: 10px 12px;
+    align-items: start;
+    width: 100%;
+  }
+
+  form.home-search-form .pickup-location {
+    grid-area: pickup;
+    width: 100%;
+    padding: 0;
+  }
+
+  form.home-search-form .from {
+    grid-area: from;
+    width: 100%;
+    padding: 0;
+  }
+
+  form.home-search-form .to {
+    grid-area: to;
+    width: 100%;
+    padding: 0;
+  }
+
+  form.home-search-form .btn-search {
+    grid-area: action;
+    align-self: stretch;
+    height: 56px;
+    min-width: 150px;
+    margin: 0;
+  }
+
+  form.home-search-form .btn-cancel {
+    display: none;
+  }
+
+  form.home-search-form .chk-same-location {
+    grid-area: same;
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  form.home-search-form .drop-off-location {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  form.home-search-form .drop-off-location > .multiple-select {
+    width: 100%;
+  }
+}
+
+/* Accents DRIVOO sur le bloc recherche home */
+div.home .drivoo-book-banner .home-search .MuiSvgIcon-root {
+  color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiInputLabel-root {
+  color: #4a5568 !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiInputLabel-root.Mui-focused {
+  color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(10 22 40 / 28%) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-trust-icon {
+  color: var(--drivoo-yellow) !important;
+}

@@ -1,0 +1,23 @@
+/**/*.key
+/**/*.crt
+/**/*.pem
+/**/*.pem-chain
+/**/*.ca.pem
+/**/.DS_Store
+/**/dist
+/node_modules
+.eslintcache
+
+# Local env secrets
+**/.env
+!**/.env.example
+!**/.env.docker.example
+
+# Uploaded / generated media
+/cdn/
+**/cdn/
+
+# Large local installers / tools
+/tools/*.zip
+/tools/mongodb-*/
+*.zip

@@ -1,0 +1,19 @@
+import React from 'react'
+import { strings } from '@/agency/lang/agency'
+
+const AgencyPlaceholder = ({ title }: { title: string }) => (
+  <div className="agency-page">
+    <div className="agency-page-head">
+      <h2>{title}</h2>
+      <p>{strings.COMING_SOON}</p>
+    </div>
+    <div className="agency-empty-stage">
+      <div className="agency-empty-ring" aria-hidden />
+      <p>{strings.COMING_SOON}</p>
+    </div>
+  </div>
+)
+
+export const AgencyFleet = () => <AgencyPlaceholder title={strings.FLEET} />
+export const AgencyBookings = () => <AgencyPlaceholder title={strings.BOOKINGS} />
+export const AgencyProfile = () => <AgencyPlaceholder title={strings.PROFILE} />

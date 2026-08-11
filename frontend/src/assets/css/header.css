@@ -1,0 +1,136 @@
+/* Header — DRIVOO */
+.header {
+  transform: translate3d(0, 0, 0);
+}
+
+.header .toolbar {
+  min-height: 60px !important;
+  height: 60px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.menu {
+  z-index: 1401 !important;
+}
+
+.menu div.language,
+.btn div.language {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flag {
+  width: 24px;
+  margin-right: 10px;
+}
+
+.menu .menu-lnk {
+  color: var(--drivoo-black);
+}
+
+.side-menu li {
+  cursor: pointer;
+}
+
+.side-menu li:hover {
+  background-color: rgb(255 107 26 / 12%);
+}
+
+.header-action {
+  margin-right: 20px;
+}
+
+.header-desktop {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-mobile {
+  display: none;
+}
+
+.header .btn {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  text-transform: none !important;
+  font-family: var(--drivoo-font-body) !important;
+}
+
+.header .btn:hover {
+  background-color: var(--drivoo-yellow-dim) !important;
+  color: var(--drivoo-yellow) !important;
+}
+
+.header .btn-auth span.btn-auth-txt {
+  white-space: nowrap;
+}
+
+.header .logo {
+  text-decoration: none;
+  text-transform: none;
+  background: transparent !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px !important;
+  min-width: 0 !important;
+  height: 100%;
+}
+
+.header .logo .logo-img {
+  height: 68px;
+  width: auto;
+  max-width: 280px;
+  object-fit: contain;
+  display: block;
+}
+
+.header .MuiIconButton-root {
+  color: #ffffff !important;
+}
+
+.header .MuiIconButton-root:hover {
+  background-color: var(--drivoo-yellow-dim) !important;
+  color: var(--drivoo-yellow) !important;
+}
+
+@media only screen and (width >=960px) {
+  .header {
+    min-height: 60px;
+  }
+}
+
+@media only screen and (width <=960px) {
+  .header {
+    min-height: 56px;
+  }
+
+  .header .toolbar {
+    min-height: 56px !important;
+    height: 56px;
+  }
+
+  .header .logo .logo-img {
+    height: 56px;
+    max-width: 220px;
+  }
+
+  header .btn {
+    padding: 0 8px;
+    min-width: 0;
+  }
+
+  .header-desktop {
+    display: none;
+  }
+
+  .header-mobile {
+    display: flex;
+  }
+}

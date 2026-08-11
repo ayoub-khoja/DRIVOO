@@ -1,0 +1,659 @@
+/* DRIVOO Admin panel */
+.admin-loading,
+.admin-inline-loading {
+  min-height: 40vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--drivoo-yellow);
+  background: var(--drivoo-black);
+}
+
+.admin-app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  background: var(--drivoo-black);
+  color: #ffffff;
+  font-family: var(--drivoo-font-body);
+}
+
+.admin-app h1,
+.admin-app h2,
+.admin-app h3,
+.admin-app h4,
+.admin-app p,
+.admin-app span,
+.admin-app strong,
+.admin-app label,
+.admin-app a {
+  color: inherit;
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 18px;
+  background: var(--drivoo-surface);
+  border-right: 1px solid rgb(255 255 255 / 12%);
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 16px;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+}
+
+.admin-brand img {
+  height: 36px;
+  width: auto;
+}
+
+.admin-brand span {
+  font-family: var(--drivoo-font-display);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  color: #ffffff !important;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.admin-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #ffffff !important;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.admin-nav a:hover {
+  color: #ffffff !important;
+  background: var(--drivoo-yellow-dim);
+}
+
+.admin-nav a.active {
+  color: #ffffff !important;
+  background: var(--drivoo-yellow);
+}
+
+.admin-nav a .MuiSvgIcon-root {
+  font-size: 20px;
+  color: #ffffff !important;
+}
+
+.admin-nav-external {
+  position: relative;
+}
+
+.admin-nav-ext-icon {
+  margin-left: auto !important;
+  font-size: 16px !important;
+  opacity: 0.7;
+}
+
+.admin-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+}
+
+.admin-signout {
+  color: #ffffff !important;
+  text-transform: none !important;
+  justify-content: flex-start !important;
+  font-weight: 600 !important;
+}
+
+.admin-signout .MuiSvgIcon-root {
+  color: #ffffff !important;
+}
+
+.admin-back-site {
+  color: #d7dde8 !important;
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 0 8px;
+}
+
+.admin-back-site:hover {
+  color: var(--drivoo-yellow) !important;
+}
+
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-topbar {
+  padding: 22px 28px;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+  background: linear-gradient(180deg, #1a2d45 0%, var(--drivoo-black) 100%);
+}
+
+.admin-topbar-label {
+  margin: 0;
+  color: var(--drivoo-yellow) !important;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-topbar h1 {
+  margin: 4px 0 0;
+  font-family: var(--drivoo-font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff !important;
+}
+
+.admin-content {
+  padding: 28px;
+  flex: 1;
+}
+
+.admin-page-head {
+  margin-bottom: 24px;
+}
+
+.admin-page-head h2 {
+  margin: 0 0 6px;
+  font-family: var(--drivoo-font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff !important;
+}
+
+.admin-page-head p,
+.admin-muted,
+.admin-empty {
+  margin: 0;
+  color: #d7dde8 !important;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.admin-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--drivoo-radius);
+  border: 1px solid rgb(255 255 255 / 12%);
+  background: var(--drivoo-surface);
+  color: #ffffff;
+}
+
+.admin-stat-card.accent {
+  border-color: rgb(255 107 26 / 45%);
+  background: var(--drivoo-yellow-dim);
+}
+
+.admin-stat-card .MuiSvgIcon-root {
+  color: var(--drivoo-yellow);
+  font-size: 28px;
+}
+
+.admin-stat-card span {
+  display: block;
+  color: #d7dde8 !important;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.admin-stat-card strong {
+  font-family: var(--drivoo-font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff !important;
+}
+
+.admin-panel {
+  padding: 22px;
+  border-radius: var(--drivoo-radius);
+  border: 1px solid rgb(255 255 255 / 12%);
+  background: var(--drivoo-surface);
+  margin-bottom: 18px;
+  color: #ffffff;
+}
+
+.admin-panel h3 {
+  margin: 0 0 6px;
+  font-family: var(--drivoo-font-display);
+  color: #ffffff !important;
+}
+
+.admin-panel p {
+  margin: 0 0 16px;
+  color: #d7dde8 !important;
+}
+
+.admin-toolbar {
+  margin-bottom: 16px;
+}
+
+.admin-search {
+  width: min(360px, 100%);
+  background: var(--drivoo-surface-2);
+  color: #ffffff !important;
+}
+
+.admin-search .MuiOutlinedInput-input {
+  color: #ffffff !important;
+}
+
+.admin-search .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(255 255 255 / 18%) !important;
+}
+
+.admin-search .MuiIconButton-root,
+.admin-search .MuiSvgIcon-root {
+  color: #ffffff !important;
+}
+
+.admin-table-wrap {
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: var(--drivoo-radius);
+  background: var(--drivoo-surface);
+  overflow: auto;
+  padding: 8px;
+}
+
+.admin-table {
+  min-width: 720px;
+}
+
+.admin-table .MuiTableCell-root {
+  color: #ffffff !important;
+  border-color: rgb(255 255 255 / 12%);
+  font-family: var(--drivoo-font-body);
+}
+
+.admin-table .MuiTableCell-head {
+  color: #d7dde8 !important;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-row-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.admin-empty {
+  padding: 32px;
+  text-align: center;
+}
+
+.admin-request-paper {
+  background: #ffffff !important;
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 35%) !important;
+}
+
+.admin-request-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 16px;
+  background:
+    linear-gradient(135deg, rgb(255 107 26 / 10%) 0%, transparent 45%),
+    #ffffff;
+  border-bottom: 1px solid rgb(36 56 83 / 10%);
+}
+
+.admin-request-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(255 107 26 / 14%);
+  color: #ff6b1a !important;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-request-header h2 {
+  margin: 0 0 4px;
+  font-family: var(--drivoo-font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #243853 !important;
+  line-height: 1.25;
+}
+
+.admin-request-header p {
+  margin: 0;
+  color: #4a5568 !important;
+  font-size: 0.88rem;
+}
+
+.admin-request-close {
+  color: #4a5568 !important;
+}
+
+.admin-request-content {
+  padding: 18px 24px 8px !important;
+  background: #f7f9fc;
+}
+
+.admin-detail-section {
+  background: #ffffff;
+  border: 1px solid rgb(36 56 83 / 10%);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.admin-detail-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgb(36 56 83 / 8%);
+}
+
+.admin-detail-section-title .MuiSvgIcon-root {
+  color: #ff6b1a;
+  font-size: 22px;
+}
+
+.admin-detail-section-title h3 {
+  margin: 0;
+  font-family: var(--drivoo-font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #243853 !important;
+}
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.admin-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-detail-item-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-detail-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b778c !important;
+}
+
+.admin-detail-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #243853 !important;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.admin-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin-top: 2px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgb(255 107 26 / 10%);
+  border: 1px solid rgb(255 107 26 / 28%);
+  color: #ff6b1a !important;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.admin-doc-link:hover {
+  background: rgb(255 107 26 / 16%);
+  transform: translateY(-1px);
+}
+
+.admin-doc-link .MuiSvgIcon-root {
+  font-size: 18px;
+}
+
+.admin-doc-ext {
+  opacity: 0.7;
+  font-size: 16px !important;
+}
+
+.admin-request-actions {
+  padding: 14px 24px 20px !important;
+  gap: 10px;
+  background: #ffffff;
+  border-top: 1px solid rgb(36 56 83 / 10%);
+}
+
+.admin-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.admin-status-pill.is-active {
+  background: rgb(34 197 94 / 18%);
+  color: #4ade80 !important;
+}
+
+.admin-status-pill.is-inactive {
+  background: rgb(248 113 113 / 18%);
+  color: #f87171 !important;
+}
+
+.admin-request-header .admin-status-pill.is-active {
+  background: rgb(34 197 94 / 14%);
+  color: #15803d !important;
+}
+
+.admin-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  color: #d7dde8;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-pager-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-pager-actions .MuiIconButton-root {
+  color: #ffffff !important;
+}
+
+.admin-pager-actions .MuiIconButton-root.Mui-disabled {
+  color: rgb(255 255 255 / 30%) !important;
+}
+
+.admin-pager-page {
+  min-width: 64px;
+  text-align: center;
+  color: #ffffff;
+}
+
+@media only screen and (width <=720px) {
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sign-in */
+.admin-signin {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #ffffff;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgb(255 107 26 / 14%) 0%, transparent 45%),
+    radial-gradient(ellipse at 80% 90%, rgb(255 107 26 / 8%) 0%, transparent 40%),
+    var(--drivoo-black);
+}
+
+.admin-signin-panel {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.admin-signin-brand {
+  text-align: center;
+}
+
+.admin-signin-brand img {
+  height: 96px;
+  width: auto;
+  margin-bottom: 18px;
+}
+
+.admin-signin-brand h1 {
+  margin: 0 0 8px;
+  font-family: var(--drivoo-font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff !important;
+}
+
+.admin-signin-brand p {
+  margin: 0;
+  color: #d7dde8 !important;
+}
+
+.admin-signin-card {
+  width: 100%;
+  padding: 28px 24px;
+  background: #ffffff !important;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: var(--drivoo-radius);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 28%) !important;
+  color: var(--drivoo-black);
+}
+
+.admin-signin-card .MuiInputLabel-root {
+  color: #4a5568 !important;
+}
+
+.admin-signin-card .MuiInputLabel-root.Mui-focused {
+  color: var(--drivoo-yellow) !important;
+}
+
+.admin-signin-card .MuiOutlinedInput-root {
+  color: var(--drivoo-black) !important;
+  background: #ffffff !important;
+}
+
+.admin-signin-card .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(36 56 83 / 22%) !important;
+}
+
+.admin-signin-card .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(36 56 83 / 40%) !important;
+}
+
+.admin-signin-card .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--drivoo-yellow) !important;
+}
+
+.admin-signin-card .MuiIconButton-root {
+  color: #4a5568 !important;
+}
+
+.admin-signin-card .MuiFormHelperText-root {
+  color: #4a5568;
+}
+
+.admin-signin-card .MuiFormHelperText-root.Mui-error {
+  color: #d32f2f;
+}
+
+.admin-signin-actions {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.admin-signin .admin-back-site {
+  color: #d7dde8 !important;
+}
+
+.admin-signin .admin-back-site:hover {
+  color: var(--drivoo-yellow) !important;
+}
+
+@media only screen and (width <=960px) {
+  .admin-app {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--drivoo-border);
+  }
+
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .admin-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-content {
+    padding: 18px;
+  }
+}

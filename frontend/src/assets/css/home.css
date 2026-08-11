@@ -1,0 +1,1372 @@
+/* Home — DRIVOO showcase */
+
+@keyframes drivoo-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drivoo-pulse-line {
+  0%,
+  100% {
+    transform: translateX(-50%) scaleY(0.6);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translateX(-50%) scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes drivoo-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+div.home {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y: visible;
+  width: 100%;
+  max-width: 100%;
+  background-color: #ffffff;
+  color: var(--drivoo-black);
+  font-family: var(--drivoo-font-body);
+}
+
+div.home .drivoo-reveal.is-visible {
+  animation: drivoo-fade-up 0.7s var(--drivoo-ease) both;
+}
+
+div.home .section-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  margin-bottom: 40px;
+  padding: 0 20px;
+}
+
+div.home .section-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--drivoo-yellow);
+}
+
+div.home .section-heading h1,
+div.home .section-heading h2 {
+  margin: 0;
+  font-family: var(--drivoo-font-display);
+  font-weight: 800;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  letter-spacing: -0.02em;
+  color: var(--drivoo-black) !important;
+}
+
+div.home .section-heading p {
+  margin: 0;
+  max-width: 560px;
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+/* —— Hero —— */
+div.home div.home-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: calc(100vh - 64px);
+  z-index: 1;
+  overflow: hidden;
+}
+
+div.home div.home-content .video {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+div.home div.home-content video {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  position: relative;
+  z-index: 2;
+}
+
+div.home div.home-content div.video-background {
+  position: absolute;
+  inset: 0;
+  background-image: url('/cover.webp');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 50%;
+  z-index: 1;
+}
+
+div.home div.home-content::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgb(11 11 11 / 55%) 0%, rgb(11 11 11 / 72%) 45%, rgb(11 11 11 / 92%) 100%),
+    linear-gradient(90deg, rgb(245 197 24 / 12%) 0%, transparent 40%);
+  z-index: 0;
+}
+
+div.home div.home-hero-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 0 24px;
+  max-width: 920px;
+  animation: drivoo-fade-up 0.9s var(--drivoo-ease) both;
+}
+
+div.home .home-brand {
+  line-height: 0;
+}
+
+div.home .home-brand-logo {
+  width: min(420px, 78vw);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 40px rgb(245 197 24 / 25%));
+  animation: drivoo-fade-up 0.9s var(--drivoo-ease) both;
+}
+
+div.home div.home-title {
+  color: var(--drivoo-yellow);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+div.home div.home-cover {
+  z-index: 2;
+  color: #ffffff !important;
+  text-align: center;
+  font-family: var(--drivoo-font-display);
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  -webkit-font-smoothing: antialiased;
+}
+
+div.home div.home-subtitle {
+  color: #ffffff !important;
+  font-size: 17px;
+  max-width: 480px;
+  line-height: 1.55;
+}
+
+div.home .home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+div.home .home-hero-cta {
+  min-width: 180px;
+  height: 48px;
+  border-radius: 999px !important;
+}
+
+div.home .home-hero-cta-ghost {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid rgb(255 255 255 / 70%) !important;
+  border-radius: 999px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  min-width: 160px;
+  height: 48px;
+}
+
+div.home .home-hero-cta-ghost:hover {
+  border-color: var(--drivoo-yellow) !important;
+  color: var(--drivoo-yellow) !important;
+  background: var(--drivoo-yellow-dim) !important;
+}
+
+div.home .home-scroll-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: 2px;
+  height: 42px;
+  background: var(--drivoo-yellow);
+  opacity: 0.7;
+  transform-origin: center top;
+  animation: drivoo-pulse-line 2s ease-in-out infinite;
+}
+
+/* —— Search —— */
+div.home div.search {
+  z-index: 2;
+  background: transparent;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -48px;
+  padding: 0 16px 48px;
+}
+
+div.home div.search div.home-search {
+  box-shadow: 0 16px 40px rgb(10 22 40 / 10%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: var(--drivoo-radius);
+  z-index: 2;
+  background-color: #ffffff;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--drivoo-black);
+  border: 1px solid rgb(10 22 40 / 14%);
+}
+
+div.home div.search div.home-search .MuiInputBase-root,
+div.home div.search div.home-search .MuiFormLabel-root,
+div.home div.search div.home-search .MuiSvgIcon-root {
+  color: var(--drivoo-black) !important;
+}
+
+div.home div.search div.home-search .MuiInputBase-input {
+  color: var(--drivoo-black) !important;
+  -webkit-text-fill-color: var(--drivoo-black) !important;
+}
+
+div.home div.search div.home-search .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(10 22 40 / 28%) !important;
+}
+
+div.home div.search div.home-search .MuiInput-underline::before {
+  border-bottom-color: rgb(10 22 40 / 35%) !important;
+}
+
+/* —— Why —— */
+div.home div.why {
+  background: #ffffff;
+  width: 100%;
+  padding: 72px 0 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+div.home div.why div.why-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: min(920px, calc(100% - 40px));
+}
+
+div.home div.why div.why-boxes div.why-box {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid var(--drivoo-border);
+  border-radius: var(--drivoo-radius);
+  background: var(--drivoo-surface);
+  color: #ffffff;
+  transition: border-color 0.3s ease, transform 0.3s var(--drivoo-ease), background 0.3s ease;
+}
+
+div.home div.why div.why-boxes div.why-box:hover {
+  border-color: rgb(245 197 24 / 45%);
+  background: var(--drivoo-surface-2);
+  transform: translateY(-3px);
+}
+
+div.home div.why div.why-boxes div.why-box div.why-icon-wrapper {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--drivoo-yellow-dim);
+}
+
+div.home div.why div.why-boxes div.why-box div.why-icon-wrapper .why-icon {
+  font-size: 28px !important;
+  color: var(--drivoo-yellow);
+}
+
+div.home div.why div.why-boxes div.why-box div.why-text-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+div.home div.why div.why-boxes div.why-box div.why-text-wrapper span.why-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #ffffff;
+}
+
+div.home div.why div.why-boxes div.why-box div.why-text-wrapper span.why-text {
+  color: #d7dde8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* —— How it works —— */
+div.home div.how {
+  width: 100%;
+  padding: 64px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+}
+
+div.home div.how .how-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: min(1000px, calc(100% - 40px));
+}
+
+div.home div.how .how-step {
+  position: relative;
+  padding: 28px 24px;
+  border-radius: var(--drivoo-radius);
+  border: 1px solid var(--drivoo-border);
+  background: var(--drivoo-surface);
+  color: #ffffff;
+  transition: transform 0.3s var(--drivoo-ease), border-color 0.3s ease;
+}
+
+div.home div.how .how-step:hover {
+  transform: translateY(-4px);
+  border-color: rgb(245 197 24 / 40%);
+}
+
+div.home div.how .how-step-num {
+  font-family: var(--drivoo-font-display);
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--drivoo-yellow);
+  line-height: 1;
+  margin-bottom: 16px;
+  opacity: 0.9;
+}
+
+div.home div.how .how-step h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+div.home div.how .how-step p {
+  margin: 0;
+  color: #d7dde8;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* —— Services —— */
+div.home div.services {
+  background: #ffffff;
+  width: 100%;
+  padding: 72px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+div.home div.services div.services-boxes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: min(1100px, calc(100% - 40px));
+}
+
+div.home div.services div.services-boxes div.services-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 28px;
+  background: var(--drivoo-black);
+  border: 1px solid var(--drivoo-border);
+  border-radius: var(--drivoo-radius);
+  text-align: left;
+  transition: border-color 0.3s ease, transform 0.3s var(--drivoo-ease);
+}
+
+div.home div.services div.services-boxes div.services-box:hover {
+  border-color: rgb(245 197 24 / 40%);
+  transform: translateY(-4px);
+}
+
+div.home div.services div.services-boxes div.services-box div.services-icon-wrapper {
+  margin-bottom: 16px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--drivoo-yellow-dim);
+}
+
+div.home div.services div.services-boxes div.services-box div.services-icon-wrapper .services-icon {
+  font-size: 26px !important;
+  color: var(--drivoo-yellow);
+}
+
+div.home div.services div.services-boxes div.services-box div.services-text-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+div.home div.services div.services-boxes div.services-box div.services-text-wrapper span.services-title {
+  font-weight: 700;
+  font-size: 17px;
+  color: #ffffff;
+}
+
+div.home div.services div.services-boxes div.services-box div.services-text-wrapper span.services-text {
+  color: #d7dde8;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* —— Suppliers —— */
+div.home div.home-suppliers {
+  width: min(1100px, 90%);
+  margin: 48px 0;
+}
+
+div.home div.home-suppliers h1 {
+  text-align: center;
+  margin-bottom: 40px;
+  font-family: var(--drivoo-font-display);
+  font-weight: 800;
+  color: var(--drivoo-black) !important;
+}
+
+/* —— Destinations —— */
+div.home div.destinations {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 72px 0;
+}
+
+div.home div.destinations h1 {
+  width: fit-content;
+  font-family: var(--drivoo-font-display);
+  font-weight: 800;
+  margin-bottom: 24px;
+  color: var(--drivoo-black) !important;
+}
+
+div.home div.destinations div.tabs {
+  width: 100%;
+}
+
+div.home div.destinations .MuiTab-root {
+  color: #4a5568 !important;
+  font-family: var(--drivoo-font-body) !important;
+  font-weight: 600 !important;
+}
+
+div.home div.destinations .Mui-selected {
+  color: var(--drivoo-yellow) !important;
+}
+
+div.home div.destinations .MuiTabs-indicator {
+  background-color: var(--drivoo-yellow) !important;
+}
+
+/* —— Car sizes —— */
+div.home div.car-size {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 72px 0;
+}
+
+div.home div.car-size h1 {
+  font-family: var(--drivoo-font-display);
+  font-weight: 800;
+  padding: 0 10px;
+  text-align: center;
+  color: var(--drivoo-black) !important;
+}
+
+div.home div.car-size > p {
+  max-width: 560px;
+  text-align: center;
+  line-height: 1.6;
+  color: #4a5568;
+  margin: 12px 0 0;
+  padding: 0 20px;
+}
+
+div.home div.car-size div.boxes {
+  margin: 36px 0 0;
+  gap: 24px;
+}
+
+div.home div.car-size div.boxes div.box {
+  width: 300px;
+  min-height: 300px;
+  background: var(--drivoo-surface);
+  border: 1px solid var(--drivoo-border);
+  border-radius: var(--drivoo-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.3s ease, transform 0.3s var(--drivoo-ease);
+}
+
+div.home div.car-size div.boxes div.box:hover {
+  border-color: rgb(245 197 24 / 45%);
+  transform: translateY(-4px);
+}
+
+div.home div.car-size div.boxes div.box div.box-img {
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(180deg, var(--drivoo-elevated), var(--drivoo-surface));
+}
+
+div.home div.car-size div.boxes div.box img {
+  max-width: 90%;
+  max-height: 120px;
+  filter: drop-shadow(0 8px 16px rgb(0 0 0 / 40%));
+  transition: transform 0.35s var(--drivoo-ease);
+}
+
+div.home div.car-size div.boxes div.box:hover img {
+  transform: scale(1.05);
+}
+
+div.home div.car-size div.boxes div.box div.box-content {
+  padding: 16px 18px 8px;
+  user-select: none;
+  flex: 1;
+  color: #ffffff;
+}
+
+div.home div.car-size div.boxes div.box div.box-content > span {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+}
+
+div.home div.car-size div.boxes div.box div.box-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  color: #d7dde8;
+}
+
+div.home div.car-size div.boxes div.box div.box-content span.price {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--drivoo-yellow);
+}
+
+div.home div.car-size div.boxes div.box div.box-content span.unit {
+  font-size: 13px;
+  color: #d7dde8;
+}
+
+div.home div.car-size div.boxes div.box div.car-size-action {
+  width: 100%;
+  display: flex;
+  padding: 0 12px 16px;
+}
+
+div.home div.car-size div.boxes div.box div.car-size-action .btn-car-size {
+  width: 100%;
+  margin: 0;
+}
+
+/* —— FAQ / Map / Care —— */
+div.home div.home-map {
+  width: min(1100px, 90%);
+  margin: 24px 0 48px;
+  border-radius: var(--drivoo-radius);
+  overflow: hidden;
+  border: 1px solid var(--drivoo-border);
+}
+
+div.home div.faq {
+  width: 100%;
+  background-color: var(--drivoo-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ffffff;
+}
+
+div.home div.customer-care {
+  background:
+    linear-gradient(135deg, var(--drivoo-surface) 0%, var(--drivoo-black) 100%);
+  width: 100%;
+  padding: 100px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-top: 1px solid var(--drivoo-border);
+}
+
+div.home div.customer-care div.customer-care-wrapper {
+  width: min(1100px, calc(100% - 40px));
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 40px;
+}
+
+div.home div.customer-care div.customer-care-text {
+  flex: 1;
+  padding: 0;
+}
+
+div.home div.customer-care div.customer-care-text h1 {
+  font-family: var(--drivoo-font-display);
+  font-weight: 800;
+  margin: 0 0 8px;
+  color: #ffffff !important;
+}
+
+div.home div.customer-care div.customer-care-text h2 {
+  color: var(--drivoo-yellow);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+div.home div.customer-care div.customer-care-text div.customer-care-content {
+  margin-bottom: 28px;
+  color: #d7dde8;
+  line-height: 1.6;
+}
+
+div.home div.customer-care div.customer-care-text div.customer-care-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
+  margin-bottom: 36px;
+}
+
+div.home div.customer-care div.customer-care-text div.customer-care-boxes div.customer-care-box {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+div.home div.customer-care div.customer-care-text div.customer-care-boxes .customer-care-icon {
+  color: var(--drivoo-yellow) !important;
+}
+
+div.home div.customer-care div.customer-care-img {
+  flex: 0 0 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+div.home div.customer-care div.customer-care-img img {
+  height: 180px;
+  display: block;
+  filter: drop-shadow(0 12px 30px rgb(245 197 24 / 20%));
+}
+
+@media only screen and (width <=960px) {
+  div.home div.home-content {
+    min-height: 72vh;
+    padding: 100px 0 120px;
+    justify-content: center;
+  }
+
+  div.home .home-scroll-hint {
+    display: none;
+  }
+
+  div.home div.search:not(.drivoo-book-banner) {
+    margin-top: -36px;
+  }
+
+  div.home div.search:not(.drivoo-book-banner) div.home-search {
+    padding: 16px 10px;
+    width: calc(100% - 8px);
+    max-width: 480px;
+  }
+
+  div.home div.search.drivoo-book-banner div.home-search {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  div.home div.why div.why-boxes,
+  div.home div.services div.services-boxes,
+  div.home div.how .how-steps {
+    grid-template-columns: 1fr;
+  }
+
+  div.home div.car-size div.boxes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  div.home div.car-size div.boxes div.box {
+    margin-bottom: 16px;
+  }
+
+  div.home div.home-map {
+    width: 100%;
+    padding: 5px;
+    border: none;
+  }
+
+  div.home div.home-map .map {
+    min-height: 0;
+    height: 340px;
+  }
+
+  div.home div.customer-care {
+    padding: 64px 0;
+  }
+
+  div.home div.customer-care div.customer-care-wrapper {
+    flex-direction: column;
+  }
+
+  div.home div.customer-care div.customer-care-text div.customer-care-boxes {
+    grid-template-columns: 1fr;
+  }
+
+  div.home div.customer-care div.customer-care-img {
+    flex: none;
+  }
+}
+
+@media only screen and (width >=960px) {
+  div.home div.search div.home-search {
+    padding: 20px;
+  }
+
+  div.home div.car-size div.boxes {
+    display: grid;
+    grid-auto-rows: 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+/* —— Book banner (white page, blue form card) —— */
+div.home div.search.drivoo-book-banner {
+  position: relative;
+  margin-top: 0;
+  padding: 72px 20px 40px;
+  width: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid rgb(10 22 40 / 10%);
+}
+
+div.home .drivoo-book-banner-bg {
+  display: none;
+}
+
+div.home .drivoo-book-banner-content {
+  position: relative;
+  z-index: 1;
+  width: min(1100px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+div.home .drivoo-book-banner-intro {
+  text-align: center;
+  max-width: 760px;
+}
+
+div.home .drivoo-book-banner-intro .section-eyebrow {
+  display: inline-flex;
+  margin-bottom: 12px;
+  color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner-intro h2 {
+  margin: 0 0 12px;
+  font-family: var(--drivoo-font-display);
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  color: var(--drivoo-black) !important;
+  line-height: 1.15;
+  text-shadow: none;
+}
+
+div.home .drivoo-book-banner-intro p {
+  margin: 0;
+  color: #4a5568 !important;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  line-height: 1.55;
+  text-shadow: none;
+}
+
+div.home .drivoo-book-banner .home-search {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 8px 0 4px !important;
+  background: #ffffff !important;
+  border: 1px solid rgb(10 22 40 / 14%);
+  border-radius: var(--drivoo-radius);
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgb(10 22 40 / 10%);
+  position: relative;
+  z-index: 2;
+  color: var(--drivoo-black) !important;
+}
+
+div.home .drivoo-book-form-head {
+  display: none;
+}
+
+div.home .drivoo-book-banner .home-search form {
+  padding: 16px 22px 26px;
+}
+
+div.home .drivoo-book-banner .home-search .MuiInputBase-root {
+  color: var(--drivoo-black) !important;
+  background: transparent;
+  border-radius: 10px;
+}
+
+div.home .drivoo-book-banner .home-search .MuiInputBase-input {
+  color: var(--drivoo-black) !important;
+  -webkit-text-fill-color: var(--drivoo-black) !important;
+  opacity: 1 !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiFormLabel-root,
+div.home .drivoo-book-banner .home-search .MuiInputLabel-root {
+  color: #4a5568 !important;
+  opacity: 1 !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiFormLabel-root.Mui-focused,
+div.home .drivoo-book-banner .home-search .MuiInputLabel-root.Mui-focused {
+  color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiSvgIcon-root {
+  color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiInput-underline::before {
+  border-bottom-color: rgb(10 22 40 / 35%) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiInput-underline:hover:not(.Mui-disabled)::before {
+  border-bottom-color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiInput-underline::after {
+  border-bottom-color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(10 22 40 / 28%) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .chk-same-location {
+  color: var(--drivoo-black) !important;
+}
+
+div.home .drivoo-book-banner .home-search .chk-same-location .MuiFormControlLabel-label {
+  color: var(--drivoo-black) !important;
+}
+
+div.home .drivoo-book-banner .home-search .chk-same-location .MuiCheckbox-root,
+div.home .drivoo-book-banner .home-search .chk-same-location .Mui-checked {
+  color: var(--drivoo-yellow) !important;
+}
+
+div.home .drivoo-book-banner .home-search .btn-search {
+  background: var(--drivoo-yellow) !important;
+  color: #ffffff !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}
+
+div.home .drivoo-trust-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  margin-top: 0;
+  z-index: 1;
+  background: #ffffff;
+  border: 1px solid rgb(10 22 40 / 12%);
+  border-radius: var(--drivoo-radius);
+  padding: 14px 8px;
+  box-shadow: none;
+  max-width: 100%;
+  width: 100%;
+}
+
+div.home .drivoo-trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  color: var(--drivoo-black) !important;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  border-right: 1px solid rgb(10 22 40 / 12%);
+}
+
+div.home .drivoo-trust-item:last-child {
+  border-right: none;
+}
+
+div.home .drivoo-trust-icon {
+  color: var(--drivoo-yellow) !important;
+  font-size: 20px !important;
+}
+
+/* —— About —— */
+section.drivoo-about {
+  width: 100%;
+  padding: 40px 20px 80px;
+  background: #ffffff;
+}
+
+section.drivoo-about .drivoo-about-inner {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+section.drivoo-about .drivoo-about-visual {
+  position: relative;
+}
+
+section.drivoo-about .drivoo-about-badge {
+  position: absolute;
+  z-index: 3;
+  top: -8px;
+  left: -8px;
+  max-width: 160px;
+  padding: 14px 16px;
+  border-radius: 18px 18px 18px 4px;
+  background: var(--drivoo-yellow);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.3;
+  box-shadow: 0 12px 30px rgb(245 197 24 / 30%);
+}
+
+section.drivoo-about .drivoo-about-collage {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  grid-template-rows: 180px 140px;
+  gap: 14px;
+}
+
+section.drivoo-about .drivoo-about-img {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--drivoo-border);
+  background:
+    radial-gradient(circle at 30% 20%, rgb(245 197 24 / 18%), transparent 55%),
+    var(--drivoo-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+section.drivoo-about .drivoo-about-img-a {
+  grid-column: 1 / -1;
+}
+
+section.drivoo-about .drivoo-about-img img {
+  max-width: 85%;
+  max-height: 85%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgb(0 0 0 / 35%));
+}
+
+section.drivoo-about .section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+section.drivoo-about h2 {
+  margin: 0 0 12px;
+  font-family: var(--drivoo-font-display);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--drivoo-black) !important;
+}
+
+section.drivoo-about h2 span {
+  color: var(--drivoo-yellow);
+}
+
+section.drivoo-about .drivoo-about-lead {
+  margin: 0 0 10px;
+  color: var(--drivoo-yellow);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+section.drivoo-about .drivoo-about-text {
+  margin: 0 0 24px;
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+section.drivoo-about .drivoo-about-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+section.drivoo-about .drivoo-stat-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--drivoo-muted);
+}
+
+section.drivoo-about .drivoo-stat-top strong {
+  color: var(--drivoo-yellow);
+}
+
+section.drivoo-about .drivoo-stat-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--drivoo-elevated);
+  overflow: hidden;
+}
+
+section.drivoo-about .drivoo-stat-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--drivoo-yellow), var(--drivoo-yellow-hot));
+}
+
+section.drivoo-about .drivoo-about-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+section.drivoo-about .drivoo-call {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--drivoo-text);
+}
+
+section.drivoo-about .drivoo-call-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--drivoo-yellow);
+  color: #ffffff;
+}
+
+section.drivoo-about .drivoo-call small {
+  display: block;
+  color: var(--drivoo-muted);
+  font-size: 12px;
+}
+
+section.drivoo-about .drivoo-call strong {
+  font-size: 15px;
+}
+
+/* —— Offerings —— */
+section.drivoo-offerings {
+  width: 100%;
+  padding: 80px 20px;
+  background: #ffffff;
+}
+
+section.drivoo-offerings .section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+section.drivoo-offerings .drivoo-offerings-grid {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+section.drivoo-offerings .drivoo-offer-card {
+  position: relative;
+  padding: 28px 22px 24px;
+  border-radius: 16px;
+  background: var(--drivoo-surface);
+  border: 1px solid var(--drivoo-border);
+  border-bottom: 3px solid var(--drivoo-yellow);
+  transition: transform 0.3s var(--drivoo-ease), border-color 0.3s ease;
+  overflow: hidden;
+}
+
+section.drivoo-offerings .drivoo-offer-card:hover {
+  transform: translateY(-4px);
+  border-color: rgb(245 197 24 / 45%);
+}
+
+section.drivoo-offerings .drivoo-offer-num {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  padding: 6px 12px 6px 14px;
+  border-radius: 999px 0 0 999px;
+  background: var(--drivoo-yellow);
+  color: #ffffff;
+  font-family: var(--drivoo-font-display);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+section.drivoo-offerings .drivoo-offer-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--drivoo-yellow-dim);
+  color: var(--drivoo-yellow);
+  margin-bottom: 16px;
+}
+
+section.drivoo-offerings .drivoo-offer-card h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--drivoo-yellow);
+  padding-right: 36px;
+}
+
+section.drivoo-offerings .drivoo-offer-card p {
+  margin: 0;
+  color: #d7dde8;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* —— Why choose —— */
+section.drivoo-choose {
+  width: 100%;
+  padding: 80px 20px 96px;
+  background: #ffffff;
+}
+
+section.drivoo-choose .section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+section.drivoo-choose .drivoo-choose-grid {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+section.drivoo-choose .drivoo-choose-card {
+  position: relative;
+  padding: 36px 24px 28px;
+  border-radius: 18px;
+  background: var(--drivoo-black);
+  border: 1px solid var(--drivoo-border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform 0.3s var(--drivoo-ease), border-color 0.3s ease;
+}
+
+section.drivoo-choose .drivoo-choose-card:hover {
+  transform: translateY(-4px);
+  border-color: rgb(245 197 24 / 40%);
+}
+
+section.drivoo-choose .drivoo-choose-icon {
+  position: absolute;
+  top: -18px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--drivoo-yellow);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgb(245 197 24 / 35%);
+}
+
+section.drivoo-choose .drivoo-choose-card h3 {
+  margin: 8px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  padding-right: 40px;
+}
+
+section.drivoo-choose .drivoo-choose-card p {
+  margin: 0;
+  color: #d7dde8;
+  font-size: 14px;
+  line-height: 1.55;
+  flex: 1;
+}
+
+section.drivoo-choose .drivoo-choose-card .btn-primary {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+@media only screen and (width <=960px) {
+  div.home .drivoo-book-banner {
+    padding: 48px 14px 40px;
+  }
+
+  div.home .drivoo-trust-bar {
+    margin-top: 0;
+    border-radius: var(--drivoo-radius);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 12px;
+  }
+
+  div.home .drivoo-trust-item {
+    border-right: none;
+    border-bottom: 1px solid var(--drivoo-border);
+    padding: 10px 8px;
+    white-space: normal;
+  }
+
+  div.home .drivoo-trust-item:last-child {
+    border-bottom: none;
+  }
+
+  section.drivoo-about .drivoo-about-inner,
+  section.drivoo-offerings .drivoo-offerings-grid,
+  section.drivoo-choose .drivoo-choose-grid {
+    grid-template-columns: 1fr;
+  }
+
+  section.drivoo-about .drivoo-about-badge {
+    left: 0;
+    top: -12px;
+  }
+}
+
+html[dir='rtl'] section.drivoo-offerings .drivoo-offer-num {
+  right: auto;
+  left: 0;
+  border-radius: 0 999px 999px 0;
+}
+
+html[dir='rtl'] section.drivoo-offerings .drivoo-offer-card h3,
+html[dir='rtl'] section.drivoo-choose .drivoo-choose-card h3 {
+  padding-right: 0;
+  padding-left: 36px;
+}
+
+html[dir='rtl'] section.drivoo-choose .drivoo-choose-icon {
+  right: auto;
+  left: 20px;
+}
