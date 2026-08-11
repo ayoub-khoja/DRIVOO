@@ -10,8 +10,10 @@
 
 # Local env secrets
 **/.env
+**/.env.production
 !**/.env.example
 !**/.env.docker.example
+!**/.env.production.example
 
 # Uploaded / generated media
 /cdn/
