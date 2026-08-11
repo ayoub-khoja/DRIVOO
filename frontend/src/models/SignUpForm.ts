@@ -51,29 +51,12 @@ export const supplierContactSchema = z.object({
   tos: z.boolean().refine((value) => value, { message: commonStrings.TOS_ERROR }),
 })
 
-export const supplierAccountSchema = z.object({
-  password: z.string().min(env.PASSWORD_MIN_LENGTH, { message: commonStrings.PASSWORD_ERROR }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  path: ['confirmPassword'],
-  message: commonStrings.PASSWORDS_DONT_MATCH,
-})
-
-/** Full agency / supplier self-registration payload. */
+/** Full agency / supplier self-registration payload (password set after admin approval). */
 export const supplierSchema = supplierCompanySchema
   .merge(supplierAddressBankSchema)
   .merge(supplierContactSchema)
-  .merge(z.object({
-    password: z.string().min(env.PASSWORD_MIN_LENGTH, { message: commonStrings.PASSWORD_ERROR }),
-    confirmPassword: z.string(),
-  }))
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ['confirmPassword'],
-    message: commonStrings.PASSWORDS_DONT_MATCH,
-  })
 
 export type SupplierFormFields = z.infer<typeof supplierSchema>
 export type SupplierCompanyFields = z.infer<typeof supplierCompanySchema>
 export type SupplierAddressBankFields = z.infer<typeof supplierAddressBankSchema>
 export type SupplierContactFields = z.infer<typeof supplierContactSchema>
-export type SupplierAccountFields = z.infer<typeof supplierAccountSchema>

@@ -33,6 +33,11 @@ const strings = new LocalizedStrings({
     TIP_TEXT: 'Préparez les photos, tarifs et disponibilités de votre flotte pour démarrer dès la validation.',
     COMING_SOON: 'Bientôt disponible',
     LOADING: 'Chargement…',
+    ACTIVATE_TITLE: 'Activez votre espace agence',
+    ACTIVATE_SUBTITLE: 'Créez votre mot de passe pour finaliser votre première connexion partenaire.',
+    ACTIVATE_SUBMIT: 'Enregistrer et accéder',
+    ACTIVATE_INVALID: 'Ce lien d’activation est invalide ou a déjà été utilisé.',
+    ACTIVATE_ERROR: 'Impossible d’activer le compte. Réessayez.',
   },
   en: {
     BRAND: 'DRIVOO Agency',
@@ -65,6 +70,11 @@ const strings = new LocalizedStrings({
     TIP_TEXT: 'Prepare photos, rates and availability so you can launch as soon as you are approved.',
     COMING_SOON: 'Coming soon',
     LOADING: 'Loading…',
+    ACTIVATE_TITLE: 'Activate your agency workspace',
+    ACTIVATE_SUBTITLE: 'Create your password to complete your first partner sign-in.',
+    ACTIVATE_SUBMIT: 'Save and continue',
+    ACTIVATE_INVALID: 'This activation link is invalid or has already been used.',
+    ACTIVATE_ERROR: 'Unable to activate the account. Please try again.',
   },
   ar: {
     BRAND: 'DRIVOO وكالة',
@@ -97,6 +107,11 @@ const strings = new LocalizedStrings({
     TIP_TEXT: 'جهّز الصور والأسعار والتوفر لتبدأ فور الموافقة.',
     COMING_SOON: 'قريبًا',
     LOADING: 'جارٍ التحميل…',
+    ACTIVATE_TITLE: 'فعّل مساحة وكالتك',
+    ACTIVATE_SUBTITLE: 'أنشئ كلمة المرور لإكمال أول تسجيل دخول كشريك.',
+    ACTIVATE_SUBMIT: 'حفظ والدخول',
+    ACTIVATE_INVALID: 'رابط التفعيل غير صالح أو تم استخدامه مسبقًا.',
+    ACTIVATE_ERROR: 'تعذر تفعيل الحساب. حاول مرة أخرى.',
   },
 })
 

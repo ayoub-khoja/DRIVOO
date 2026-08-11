@@ -66,10 +66,15 @@ export const deleteTempSupplierDoc = (fileName: string): Promise<number> =>
  * @param {string} token
  * @returns {Promise<number>}
  */
-export const checkToken = (userId: string, email: string, token: string): Promise<number> =>
+export const checkToken = (
+  userId: string,
+  email: string,
+  token: string,
+  appType: bookcarsTypes.AppType = env.APP_TYPE,
+): Promise<number> =>
   axiosInstance
     .get(
-      `/api/check-token/${env.APP_TYPE}/${encodeURIComponent(userId)}/${encodeURIComponent(email)}/${encodeURIComponent(token)}`
+      `/api/check-token/${appType}/${encodeURIComponent(userId)}/${encodeURIComponent(email)}/${encodeURIComponent(token)}`
     )
     .then((res) => res.status)
 
