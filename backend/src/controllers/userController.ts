@@ -43,7 +43,12 @@ const getStatusMessage = (lang: string, msg: string) => (
  * @param {bookcarsTypes.UserType} userType
  * @returns {unknown}
  */
-const _signup = async (req: Request, res: Response, userType: bookcarsTypes.UserType, options?: { active?: boolean }) => {
+const _signup = async (
+  req: Request,
+  res: Response,
+  userType: bookcarsTypes.UserType,
+  options?: { active?: boolean, agencyRequestReceived?: boolean },
+) => {
   const { body }: { body: bookcarsTypes.SignUpPayload } = req
 
   //
@@ -57,7 +62,9 @@ const _signup = async (req: Request, res: Response, userType: bookcarsTypes.User
     body.verified = userType === bookcarsTypes.UserType.User ? true : false
     body.blacklisted = false
     body.type = userType
-
+    if (typeof body.agencyApproved !== 'boolean' && userType === bookcarsTypes.UserType.Supplier) {
+      body.agencyApproved = false
+    }
     const { password } = body
     if (!password) {
       throw new Error('Password is required')
@@ -185,9 +192,44 @@ const _signup = async (req: Request, res: Response, userType: bookcarsTypes.User
   }
 
   //
-  // Send confirmation email (skipped for agencies — password already set at signup)
+  // Agency application: confirmation email (review pending)
   //
-  if (user.active === false || userType === bookcarsTypes.UserType.Supplier) {
+  if (options?.agencyRequestReceived) {
+    try {
+      i18n.locale = user.language
+      const mailOptions: nodemailer.SendMailOptions = {
+        from: env.SMTP_FROM,
+        to: user.email,
+        subject: i18n.t('AGENCY_REQUEST_SUBJECT'),
+        html:
+          `<div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; border: 1px solid #e6eaf0; border-radius: 12px; background: #ffffff;">
+            <div style="height: 4px; width: 72px; background: #f5a623; border-radius: 999px; margin-bottom: 18px;"></div>
+            <p style="font-size: 16px; line-height: 1.6; color: #243853; margin: 0 0 14px;">
+              ${i18n.t('HELLO')}${user.fullName},
+            </p>
+            <p style="font-size: 15px; line-height: 1.7; color: #4a5b73; margin: 0 0 14px;">
+              ${i18n.t('AGENCY_REQUEST_BODY')}
+            </p>
+            <p style="font-size: 14px; line-height: 1.6; color: #6b7c93; margin: 0 0 18px;">
+              ${i18n.t('AGENCY_REQUEST_NEXT')}
+            </p>
+            <p style="font-size: 14px; color: #243853; margin: 0;">
+              ${i18n.t('REGARDS')}
+            </p>
+          </div>`,
+      }
+      await mailHelper.sendMail(mailOptions)
+    } catch (err) {
+      logger.error(`[user.supplierSignup] ${i18n.t('SMTP_ERROR')}`, err)
+    }
+    res.sendStatus(200)
+    return
+  }
+
+  //
+  // Inactive accounts: no activation email here
+  //
+  if (user.active === false) {
     res.sendStatus(200)
     return
   }
@@ -284,16 +326,11 @@ export const supplierSignup = async (req: Request, res: Response) => {
     return
   }
 
-  // Password is chosen by the agency during signup
-  if (!String(body.password || '').trim()) {
-    res.status(400).send('Password is required')
-    return
-  }
-
+  // Password set later via activation email after admin approval
+  body.password = helper.generateToken()
   body.agencyApproved = false
 
-  // Account is usable in the agency portal; admin still reviews (agencyApproved)
-  await _signup(req, res, bookcarsTypes.UserType.Supplier, { active: true })
+  await _signup(req, res, bookcarsTypes.UserType.Supplier, { active: false, agencyRequestReceived: true })
 }
 
 /**
@@ -574,11 +611,17 @@ export const checkToken = async (req: Request, res: Response) => {
 
     if (user) {
       const type = req.params.type.toLowerCase() as bookcarsTypes.AppType
+      const allowedAppTypes = [
+        bookcarsTypes.AppType.Frontend,
+        bookcarsTypes.AppType.Admin,
+        bookcarsTypes.AppType.Agency,
+      ]
 
       if (
-        ![bookcarsTypes.AppType.Frontend, bookcarsTypes.AppType.Admin].includes(type)
+        !allowedAppTypes.includes(type)
         || (type === bookcarsTypes.AppType.Admin && user.type === bookcarsTypes.UserType.User)
         || (type === bookcarsTypes.AppType.Frontend && user.type !== bookcarsTypes.UserType.User)
+        || (type === bookcarsTypes.AppType.Agency && user.type !== bookcarsTypes.UserType.Supplier)
         || user.active
       ) {
         res.sendStatus(204)
@@ -738,6 +781,9 @@ export const activate = async (req: Request, res: Response) => {
         user.active = true
         user.verified = true
         user.expireAt = undefined
+        if (user.type === bookcarsTypes.UserType.Supplier) {
+          user.agencyApproved = true
+        }
         await user.save()
 
         res.sendStatus(200)
@@ -2469,15 +2515,15 @@ export const approveAccountRequest = async (req: Request, res: Response) => {
 
     const user = await User.findById(id)
     const alreadyApproved = user?.agencyApproved === true
-      || (user?.agencyApproved == null && user?.active === true)
 
     if (!user || user.type !== bookcarsTypes.UserType.Supplier || alreadyApproved) {
       res.sendStatus(204)
       return
     }
 
-    user.active = true
     user.agencyApproved = true
+    // Stay inactive until the agency sets its password via activation link
+    user.active = false
     await user.save()
 
     // Invite agency to set its own password
@@ -2486,18 +2532,30 @@ export const approveAccountRequest = async (req: Request, res: Response) => {
     await token.save()
 
     i18n.locale = user.language
-    const activationLink = `${helper.joinURL(env.ADMIN_HOST, 'activate')}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}`
+    const activationLink = `${helper.joinURL(env.FRONTEND_HOST, 'agency/activate')}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}`
     const mailOptions: nodemailer.SendMailOptions = {
       from: env.SMTP_FROM,
       to: user.email,
-      subject: i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
+      subject: i18n.t('AGENCY_APPROVED_SUBJECT'),
       html:
-        `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-          <p style="font-size: 16px; color: #555;">
-            ${i18n.t('HELLO')} ${user.fullName},<br><br>
-            ${i18n.t('ACCOUNT_ACTIVATION_LINK')}<br><br>
-            <a href="${activationLink}" target="_blank">${activationLink}</a><br><br>
-            ${i18n.t('REGARDS')}<br>
+        `<div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; border: 1px solid #e6eaf0; border-radius: 12px; background: #ffffff;">
+          <div style="height: 4px; width: 72px; background: #f5a623; border-radius: 999px; margin-bottom: 18px;"></div>
+          <p style="font-size: 16px; line-height: 1.6; color: #243853; margin: 0 0 14px;">
+            ${i18n.t('HELLO')}${user.fullName},
+          </p>
+          <p style="font-size: 15px; line-height: 1.7; color: #4a5b73; margin: 0 0 14px;">
+            ${i18n.t('AGENCY_APPROVED_BODY')}
+          </p>
+          <p style="margin: 0 0 18px;">
+            <a href="${activationLink}" target="_blank" style="display: inline-block; background: #f5a623; color: #101820; text-decoration: none; font-weight: 700; padding: 12px 18px; border-radius: 10px;">
+              ${i18n.t('AGENCY_APPROVED_CTA')}
+            </a>
+          </p>
+          <p style="font-size: 13px; line-height: 1.6; color: #6b7c93; margin: 0 0 18px; word-break: break-all;">
+            ${activationLink}
+          </p>
+          <p style="font-size: 14px; color: #243853; margin: 0;">
+            ${i18n.t('REGARDS')}
           </p>
         </div>`,
     }
@@ -2527,7 +2585,6 @@ export const rejectAccountRequest = async (req: Request, res: Response) => {
 
     const user = await User.findById(id)
     const alreadyApproved = user?.agencyApproved === true
-      || (user?.agencyApproved == null && user?.active === true)
 
     if (!user || user.type !== bookcarsTypes.UserType.Supplier || alreadyApproved) {
       res.sendStatus(204)
