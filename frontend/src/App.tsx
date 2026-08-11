@@ -51,6 +51,7 @@ const AdminClients = lazy(() => import('@/admin/pages/AdminClients'))
 const AgencyProvider = lazy(() => import('@/agency/context/AgencyContext').then((m) => ({ default: m.AgencyProvider })))
 const AgencyLayout = lazy(() => import('@/agency/components/AgencyLayout'))
 const AgencySignIn = lazy(() => import('@/agency/pages/AgencySignIn'))
+const AgencyActivate = lazy(() => import('@/agency/pages/AgencyActivate'))
 const AgencyDashboard = lazy(() => import('@/agency/pages/AgencyDashboard'))
 const AgencyFleet = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyFleet })))
 const AgencyBookings = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyBookings })))
@@ -123,6 +124,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'sign-in', element: <AgencySignIn /> },
+      { path: 'activate', element: <AgencyActivate /> },
       { path: 'dashboard', element: <AgencyDashboard /> },
       { path: 'fleet', element: <AgencyFleet /> },
       { path: 'bookings', element: <AgencyBookings /> },

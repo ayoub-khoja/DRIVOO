@@ -1,15 +1,14 @@
 /* DRIVOO Agency partner workspace */
 
-.agency-loading {
-  min-height: 100vh;
+.agency-inline-loading {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+  min-height: 120px;
   color: #f5a623;
-  background: #0b1626;
-  font-family: var(--drivoo-font-body, 'Segoe UI', sans-serif);
 }
+
 
 .agency-app {
   min-height: 100vh;

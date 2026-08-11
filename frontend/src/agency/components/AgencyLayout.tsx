@@ -21,21 +21,23 @@ const AgencyShell = () => {
   const location = useLocation()
   const { agency, agencyLoaded } = useAgencyContext()
   const isSignIn = location.pathname.endsWith('/sign-in')
+  const isActivate = location.pathname.includes('/activate')
+  const isPublic = isSignIn || isActivate
 
   React.useEffect(() => {
-    if (!agencyLoaded || isSignIn) {
+    if (!agencyLoaded || isPublic) {
       return
     }
     if (!agency) {
       navigate('/agency/sign-in', { replace: true })
     }
-  }, [agency, agencyLoaded, isSignIn, navigate])
+  }, [agency, agencyLoaded, isPublic, navigate])
 
   const onSignOut = async () => {
     await AgencyAuthService.signout(true)
   }
 
-  if (!agencyLoaded && !isSignIn) {
+  if (!agencyLoaded && !isPublic) {
     return (
       <div className="agency-loading">
         <CircularProgress size={32} />
@@ -44,7 +46,7 @@ const AgencyShell = () => {
     )
   }
 
-  if (isSignIn) {
+  if (isPublic) {
     return <Outlet />
   }
 

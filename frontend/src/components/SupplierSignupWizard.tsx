@@ -19,22 +19,18 @@ import {
 } from '@mui/icons-material'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/sign-up'
 import * as UserService from '@/services/UserService'
-import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
 import * as helper from '@/utils/helper'
 import Error from '@/components/Error'
-import PasswordInput from '@/components/PasswordInput'
 import {
   supplierSchema,
   SupplierFormFields,
   supplierCompanySchema,
   supplierAddressBankSchema,
   supplierContactSchema,
-  supplierAccountSchema,
 } from '@/models/SignUpForm'
 
 type SupplierSignupWizardProps = {
@@ -59,8 +55,7 @@ const contactFields = [
   'email',
   'tos',
 ] as const
-const accountFields = ['password', 'confirmPassword'] as const
-const LAST_STEP = 3
+const LAST_STEP = 2
 
 const SupplierSignupWizard = ({
   verifyRecaptcha,
@@ -70,7 +65,6 @@ const SupplierSignupWizard = ({
   recaptchaError,
   completed = false,
 }: SupplierSignupWizardProps) => {
-  const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [uploading, setUploading] = useState(false)
   const [fileLabel, setFileLabel] = useState('')
@@ -109,8 +103,6 @@ const SupplierSignupWizard = ({
       whatsapp: '',
       email: '',
       tos: false,
-      password: '',
-      confirmPassword: '',
     },
   })
 
@@ -183,24 +175,6 @@ const SupplierSignupWizard = ({
       return true
     }
 
-    if (step === 3) {
-      const parsed = supplierAccountSchema.safeParse({
-        password: getValues('password'),
-        confirmPassword: getValues('confirmPassword'),
-      })
-      accountFields.forEach((field) => clearErrors(field))
-      if (!parsed.success) {
-        parsed.error.issues.forEach((issue) => {
-          const field = issue.path[0] as typeof accountFields[number]
-          if (accountFields.includes(field)) {
-            setError(field, { message: issue.message })
-          }
-        })
-        return false
-      }
-      return true
-    }
-
     return trigger()
   }
 
@@ -263,9 +237,13 @@ const SupplierSignupWizard = ({
     setFileLabel('')
   }
 
-  const enterAgencySpace = () => {
+  const goHome = () => {
     setSuccessOpen(false)
-    navigate('/agency/dashboard')
+    window.location.href = '/'
+  }
+
+  const closeSuccess = () => {
+    setSuccessOpen(false)
   }
 
   const onSubmit = async (data: SupplierFormFields) => {
@@ -288,7 +266,6 @@ const SupplierSignupWizard = ({
       const payload: bookcarsTypes.SignUpPayload = {
         email: data.email,
         phone: data.phone,
-        password: data.password,
         fullName: data.fullName,
         language: UserService.getLanguage(),
         taxId: data.taxId,
@@ -308,16 +285,9 @@ const SupplierSignupWizard = ({
 
       const status = await UserService.supplierSignup(payload)
       if (status === 200) {
-        const signInResult = await AgencyAuthService.signin({
-          email: data.email,
-          password: data.password,
-        })
-
-        if (signInResult.status === 200) {
-          onDone()
-          setSuccessOpen(true)
-          return
-        }
+        onDone()
+        setSuccessOpen(true)
+        return
       }
 
       setError('root', { message: strings.SIGN_UP_ERROR })
@@ -510,33 +480,6 @@ const SupplierSignupWizard = ({
           </div>
         )}
 
-        {step === 3 && (
-          <div className="signup-panel">
-            <div className="signup-panel-intro">
-              <h3>{strings.ACCOUNT_SECTION}</h3>
-              <p>{strings.ACCOUNT_SECTION_HINT}</p>
-            </div>
-            <div className="signup-grid-2">
-              <PasswordInput
-                label={commonStrings.PASSWORD}
-                variant="outlined"
-                {...register('password')}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-                formControlProps={{ fullWidth: true, margin: 'dense', required: true }}
-              />
-              <PasswordInput
-                label={commonStrings.CONFIRM_PASSWORD}
-                variant="outlined"
-                {...register('confirmPassword')}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
-                formControlProps={{ fullWidth: true, margin: 'dense', required: true }}
-              />
-            </div>
-          </div>
-        )}
-
         <div className="buttons signup-step-actions">
           {step < LAST_STEP ? (
             <Button type="button" variant="contained" className="btn-primary" onClick={goNext} disabled={uploading}>
@@ -561,7 +504,7 @@ const SupplierSignupWizard = ({
 
       <Dialog
         open={successOpen}
-        onClose={enterAgencySpace}
+        onClose={closeSuccess}
         className="signup-success-dialog"
         PaperProps={{ className: 'signup-success-paper' }}
       >
@@ -572,7 +515,10 @@ const SupplierSignupWizard = ({
           <p>{strings.SUPPLIER_SUCCESS_TEXT}</p>
         </DialogContent>
         <DialogActions className="signup-success-actions">
-          <Button variant="contained" className="btn-primary" onClick={enterAgencySpace}>
+          <Button variant="outlined" color="primary" onClick={closeSuccess}>
+            {strings.SUPPLIER_SUCCESS_CLOSE}
+          </Button>
+          <Button variant="contained" className="btn-primary" onClick={goHome}>
             {strings.SUPPLIER_SUCCESS_CTA}
           </Button>
         </DialogActions>
@@ -588,5 +534,4 @@ export const supplierStepLabels = () => [
   strings.STEP_COMPANY,
   strings.STEP_ADDRESS_BANK,
   strings.STEP_CONTACT,
-  strings.STEP_ACCOUNT,
 ]
