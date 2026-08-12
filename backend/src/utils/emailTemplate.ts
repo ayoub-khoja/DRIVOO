@@ -1,4 +1,6 @@
+import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import nodemailer from 'nodemailer'
 import * as env from '../config/env.config'
 import * as helper from './helper'
@@ -59,18 +61,43 @@ export interface EmailTemplateOptions {
   audience?: EmailAudience
 }
 
+const here = path.dirname(fileURLToPath(import.meta.url))
+
+/** Resolve backend/media whether running from src/utils or dist/src/utils. */
+const resolveMediaDir = (): string => {
+  const candidates = [
+    path.join(process.cwd(), 'media'),
+    path.join(here, '..', '..', 'media'), // src/utils → backend/media
+    path.join(here, '..', '..', '..', 'media'), // dist/src/utils → backend/media
+  ]
+  return candidates.find((dir) => fs.existsSync(dir)) || candidates[0]
+}
+
 const bannerFilenameFor = (audience: EmailAudience = 'client'): string => (
   audience === 'agency' ? 'agency-hero-banner.png' : 'client-hero-banner.png'
 )
 
-/** Nodemailer inline attachment for the email hero banner. */
-export const getBannerAttachment = (audience: EmailAudience = 'client'): NonNullable<nodemailer.SendMailOptions['attachments']>[number] => ({
-  filename: bannerFilenameFor(audience),
-  path: path.join(env.CDN_ROOT, 'bookcars', 'email', bannerFilenameFor(audience)),
-  cid: EMAIL_BANNER_CID,
-})
+export const bannerFilePath = (audience: EmailAudience = 'client'): string => (
+  path.join(resolveMediaDir(), bannerFilenameFor(audience))
+)
 
-/** Attach inline banner to mail options (works in webmail; no public URL required). */
+/** Nodemailer inline attachment for the email hero banner (from backend/media). */
+export const getBannerAttachment = (
+  audience: EmailAudience = 'client',
+): NonNullable<nodemailer.SendMailOptions['attachments']>[number] | null => {
+  const filePath = bannerFilePath(audience)
+  if (!fs.existsSync(filePath)) {
+    return null
+  }
+
+  return {
+    filename: bannerFilenameFor(audience),
+    path: filePath,
+    cid: EMAIL_BANNER_CID,
+  }
+}
+
+/** Attach inline banner to mail options when the media file exists. */
 export const withBanner = (
   audience: EmailAudience | undefined,
   mailOptions: nodemailer.SendMailOptions,
@@ -79,9 +106,14 @@ export const withBanner = (
     return mailOptions
   }
 
+  const attachment = getBannerAttachment(audience)
+  if (!attachment) {
+    return mailOptions
+  }
+
   return {
     ...mailOptions,
-    attachments: [...(mailOptions.attachments || []), getBannerAttachment(audience)],
+    attachments: [...(mailOptions.attachments || []), attachment],
   }
 }
 
@@ -232,7 +264,10 @@ export const renderEmail = (options: EmailTemplateOptions): string => {
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(preheader)}</div>`
     : ''
 
-  const bannerBlock = hideBanner
+  const audience = options.audience || 'client'
+  const canAttachBanner = !hideBanner && fs.existsSync(bannerFilePath(audience))
+
+  const bannerBlock = !canAttachBanner
     ? `<tr><td style="padding:24px 32px 0;background:${COLORS.card};">
         <p style="font-size:22px;font-weight:800;color:${COLORS.text};margin:0 0 8px;letter-spacing:0.02em;">${escapeHtml(env.WEBSITE_NAME)}</p>
       </td></tr>`

@@ -40,7 +40,7 @@ describe('emailTemplate', () => {
     expect(html).toContain('cid:drivoo-email-banner')
   })
 
-  it('attaches inline banner for webmail delivery', () => {
+  it('attaches inline banner from backend/media for webmail delivery', () => {
     const mailOptions = withBanner('agency', {
       from: 'test@test.com',
       to: 'user@test.com',
@@ -53,6 +53,7 @@ describe('emailTemplate', () => {
       filename: 'agency-hero-banner.png',
       cid: 'drivoo-email-banner',
     })
+    expect(String(mailOptions.attachments?.[0]?.path || '')).toMatch(/media[/\\]agency-hero-banner\.png$/)
   })
 
   it('renders link email without CTA when ctaText omitted', () => {
