@@ -18,6 +18,7 @@ import PushToken from '../models/PushToken'
 import AdditionalDriver from '../models/AdditionalDriver'
 import * as helper from '../utils/helper'
 import * as mailHelper from '../utils/mailHelper'
+import * as emailTemplate from '../utils/emailTemplate'
 import * as env from '../config/env.config'
 import * as logger from '../utils/logger'
 import stripeAPI from '../payment/stripe'
@@ -87,15 +88,20 @@ export const notify = async (driver: env.User, bookingId: string, user: env.User
       from: env.SMTP_FROM,
       to: user.email,
       subject: message,
-      html: `<p>
-    ${i18n.t('HELLO')}${user.fullName},<br><br>
-    ${message}<br><br>
-    ${helper.joinURL(env.ADMIN_HOST, `update-booking?b=${bookingId}`)}<br><br>
-    ${i18n.t('REGARDS')}<br>
-    </p>`,
+      html: emailTemplate.renderNotificationEmail({
+        hello: i18n.t('HELLO'),
+        greeting: user.fullName,
+        messageHtml: message,
+        actionUrl: helper.joinURL(env.ADMIN_HOST, `update-booking?b=${bookingId}`),
+        regardsHtml: i18n.t('REGARDS'),
+        audience: user.type === bookcarsTypes.UserType.Supplier ? 'agency' : 'client',
+      }),
     }
 
-    await mailHelper.sendMail(mailOptions)
+    await mailHelper.sendMail(emailTemplate.withBanner(
+      user.type === bookcarsTypes.UserType.Supplier ? 'agency' : 'client',
+      mailOptions,
+    ))
   }
 }
 
@@ -149,24 +155,34 @@ export const confirm = async (user: env.User, supplier: env.User, booking: env.B
     }
   }
 
+  const bookingBodyHtml = [
+    !payLater
+      ? `${i18n.t('BOOKING_CONFIRMED_PART1')} ${booking._id} ${i18n.t('BOOKING_CONFIRMED_PART2')}`
+      : '',
+    `${i18n.t('BOOKING_CONFIRMED_PART3')}${car.supplier.fullName}${i18n.t('BOOKING_CONFIRMED_PART4')}${pickupLocationName}${i18n.t('BOOKING_CONFIRMED_PART5')}`
+    + `${from} ${i18n.t('BOOKING_CONFIRMED_PART6')}`
+    + `${car.name}${i18n.t('BOOKING_CONFIRMED_PART7')}`,
+    i18n.t('BOOKING_CONFIRMED_PART8'),
+    `${i18n.t('BOOKING_CONFIRMED_PART9')}${car.supplier.fullName}${i18n.t('BOOKING_CONFIRMED_PART10')}${dropOffLocationName}${i18n.t('BOOKING_CONFIRMED_PART11')}`
+    + `${to} ${i18n.t('BOOKING_CONFIRMED_PART12')}`,
+    i18n.t('BOOKING_CONFIRMED_PART13'),
+    `${i18n.t('BOOKING_CONFIRMED_PART14')}${env.FRONTEND_HOST}`,
+  ]
+    .filter(Boolean)
+    .map((line) => `<p style="font-size:15px;line-height:1.7;color:#4a5b73;margin:0 0 14px;">${line}</p>`)
+    .join('')
+
   const mailOptions: nodemailer.SendMailOptions = {
     from: env.SMTP_FROM,
     to: user.email,
     subject: `${i18n.t('BOOKING_CONFIRMED_SUBJECT_PART1')} ${booking._id} ${i18n.t('BOOKING_CONFIRMED_SUBJECT_PART2')}`,
-    html:
-      `<p>
-        ${i18n.t('HELLO')}${user.fullName},<br><br>
-        ${!payLater ? `${i18n.t('BOOKING_CONFIRMED_PART1')} ${booking._id} ${i18n.t('BOOKING_CONFIRMED_PART2')}`
-        + '<br><br>' : ''}
-        ${i18n.t('BOOKING_CONFIRMED_PART3')}${car.supplier.fullName}${i18n.t('BOOKING_CONFIRMED_PART4')}${pickupLocationName}${i18n.t('BOOKING_CONFIRMED_PART5')}`
-      + `${from} ${i18n.t('BOOKING_CONFIRMED_PART6')}`
-      + `${car.name}${i18n.t('BOOKING_CONFIRMED_PART7')}`
-      + `<br><br>${i18n.t('BOOKING_CONFIRMED_PART8')}<br><br>`
-      + `${i18n.t('BOOKING_CONFIRMED_PART9')}${car.supplier.fullName}${i18n.t('BOOKING_CONFIRMED_PART10')}${dropOffLocationName}${i18n.t('BOOKING_CONFIRMED_PART11')}`
-      + `${to} ${i18n.t('BOOKING_CONFIRMED_PART12')}`
-      + `<br><br>${i18n.t('BOOKING_CONFIRMED_PART13')}<br><br>${i18n.t('BOOKING_CONFIRMED_PART14')}${env.FRONTEND_HOST}<br><br>
-        ${i18n.t('REGARDS')}<br>
-        </p>`,
+    html: emailTemplate.renderEmail({
+      hello: i18n.t('HELLO'),
+      greeting: user.fullName,
+      audience: 'client',
+      bodyHtml: bookingBodyHtml,
+      regardsHtml: i18n.t('REGARDS'),
+    }),
   }
 
   if (contractFile) {
@@ -176,7 +192,7 @@ export const confirm = async (user: env.User, supplier: env.User, booking: env.B
     }
   }
 
-  await mailHelper.sendMail(mailOptions)
+  await mailHelper.sendMail(emailTemplate.withBanner('client', mailOptions))
 
   return true
 }
@@ -248,18 +264,22 @@ export const checkout = async (req: Request, res: Response) => {
 
       i18n.locale = user.language
 
+      const activationLink = `${helper.joinURL(env.FRONTEND_HOST, 'activate')}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}`
+
       const mailOptions: nodemailer.SendMailOptions = {
         from: env.SMTP_FROM,
         to: user.email,
         subject: i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
-        html: `<p>
-        ${i18n.t('HELLO')}${user.fullName},<br><br>
-        ${i18n.t('ACCOUNT_ACTIVATION_LINK')}<br><br>
-        ${helper.joinURL(env.FRONTEND_HOST, 'activate')}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}<br><br>
-        ${i18n.t('REGARDS')}<br>
-        </p>`,
+        html: emailTemplate.renderLinkEmail({
+          hello: i18n.t('HELLO'),
+          greeting: user.fullName,
+          introHtml: i18n.t('ACCOUNT_ACTIVATION_LINK'),
+          link: activationLink,
+          regardsHtml: i18n.t('REGARDS'),
+          audience: 'client',
+        }),
       }
-      await mailHelper.sendMail(mailOptions)
+      await mailHelper.sendMail(emailTemplate.withBanner('client', mailOptions))
 
       body.booking.driver = user._id.toString()
     } else {
@@ -430,14 +450,16 @@ const notifyDriver = async (booking: env.Booking) => {
       from: env.SMTP_FROM,
       to: driver.email,
       subject: message,
-      html: `<p>
-    ${i18n.t('HELLO')}${driver.fullName},<br><br>
-    ${message}<br><br>
-    ${helper.joinURL(env.FRONTEND_HOST, `booking?b=${booking._id}`)}<br><br>
-    ${i18n.t('REGARDS')}<br>
-    </p>`,
+      html: emailTemplate.renderNotificationEmail({
+        hello: i18n.t('HELLO'),
+        greeting: driver.fullName,
+        messageHtml: message,
+        actionUrl: helper.joinURL(env.FRONTEND_HOST, `booking?b=${booking._id}`),
+        regardsHtml: i18n.t('REGARDS'),
+        audience: 'client',
+      }),
     }
-    await mailHelper.sendMail(mailOptions)
+    await mailHelper.sendMail(emailTemplate.withBanner('client', mailOptions))
   }
 
   // push notification

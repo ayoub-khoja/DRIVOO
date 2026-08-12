@@ -342,6 +342,60 @@ export const ADMIN_HOST = __env__('BC_ADMIN_HOST', true)
 export const FRONTEND_HOST = __env__('BC_FRONTEND_HOST', true)
 
 /**
+ * Backend public host (API + CDN). Used for absolute URLs in emails.
+ * Local: http://localhost:4002 — Prod: https://api.drivoo.net
+ *
+ * @type {string}
+ */
+export const BACKEND_HOST = __env__('BC_BACKEND_HOST', false, `http://localhost:${PORT}`)
+
+/**
+ * Client email header banner URL.
+ *
+ * @type {string}
+ */
+export const EMAIL_CLIENT_BANNER_URL = __env__(
+  'BC_EMAIL_CLIENT_BANNER_URL',
+  false,
+  `${helper.trimEnd(BACKEND_HOST, '/')}/cdn/bookcars/email/client-hero-banner.png`,
+)
+
+/**
+ * Agency (supplier) email header banner URL.
+ *
+ * @type {string}
+ */
+export const EMAIL_AGENCY_BANNER_URL = __env__(
+  'BC_EMAIL_AGENCY_BANNER_URL',
+  false,
+  `${helper.trimEnd(BACKEND_HOST, '/')}/cdn/bookcars/email/agency-hero-banner.png`,
+)
+
+/**
+ * Support email shown in transactional email footers.
+ *
+ * @type {string}
+ */
+export const EMAIL_SUPPORT = __env__('BC_EMAIL_SUPPORT', false, SMTP_FROM || 'contact@drivoo.net')
+
+/**
+ * Physical address shown in transactional email footers.
+ *
+ * @type {string}
+ */
+export const EMAIL_ADDRESS = __env__('BC_EMAIL_ADDRESS', false, '')
+
+/**
+ * Social profile URLs for email footer (leave empty to hide an icon).
+ *
+ * @type {string}
+ */
+export const EMAIL_FACEBOOK_URL = __env__('BC_EMAIL_FACEBOOK_URL', false, '')
+export const EMAIL_INSTAGRAM_URL = __env__('BC_EMAIL_INSTAGRAM_URL', false, '')
+export const EMAIL_LINKEDIN_URL = __env__('BC_EMAIL_LINKEDIN_URL', false, '')
+export const EMAIL_YOUTUBE_URL = __env__('BC_EMAIL_YOUTUBE_URL', false, '')
+
+/**
  * Default language. Default is en. Available options: en, fr, es.
  *
  * @type {string}
@@ -690,6 +744,16 @@ export interface Car extends Document {
   supplier: Types.ObjectId
   minimumAge: number
   locations: Types.ObjectId[]
+
+  brand?: string
+  model?: string
+  year?: number
+  chassisNumber?: string
+  registrationDoc?: string | null
+  insuranceExpiry?: Date
+  technicalVisitExpiry?: Date
+  nextOilChange?: Date
+  deliveryType?: bookcarsTypes.DeliveryType
 
   hourlyPrice: number | null
   discountedHourlyPrice: number | null
