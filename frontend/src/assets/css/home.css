@@ -145,6 +145,8 @@ div.home div.home-hero-copy {
   gap: 16px;
   padding: 0 24px;
   max-width: 920px;
+  /* Optical lift: keep flex center, nudge copy toward the top */
+  margin-top: -28vh;
   animation: drivoo-fade-up 0.9s var(--drivoo-ease) both;
 }
 
@@ -350,7 +352,7 @@ div.home div.why div.why-boxes div.why-box div.why-text-wrapper span.why-text {
 /* —— How it works —— */
 div.home div.how {
   width: 100%;
-  padding: 64px 0;
+  padding: 28px 0 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -528,7 +530,7 @@ div.home div.car-size {
   flex-direction: column;
   align-items: center;
   background-color: #ffffff;
-  padding: 72px 0;
+  padding: 28px 0 64px;
 }
 
 div.home div.car-size h1 {
@@ -732,6 +734,10 @@ div.home div.customer-care div.customer-care-img img {
     min-height: 72vh;
     padding: 100px 0 120px;
     justify-content: center;
+  }
+
+  div.home div.home-hero-copy {
+    margin-top: -18vh;
   }
 
   div.home .home-scroll-hint {
@@ -1002,7 +1008,7 @@ div.home .drivoo-trust-icon {
 /* —— About —— */
 section.drivoo-about {
   width: 100%;
-  padding: 40px 20px 80px;
+  padding: 40px 20px 28px;
   background: #ffffff;
 }
 
@@ -1012,7 +1018,7 @@ section.drivoo-about .drivoo-about-inner {
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   gap: 48px;
-  align-items: center;
+  align-items: start;
 }
 
 section.drivoo-about .drivoo-about-visual {
@@ -1170,7 +1176,7 @@ section.drivoo-about .drivoo-call strong {
 /* —— Offerings —— */
 section.drivoo-offerings {
   width: 100%;
-  padding: 80px 20px;
+  padding: 28px 20px 28px;
   background: #ffffff;
 }
 
@@ -1247,7 +1253,7 @@ section.drivoo-offerings .drivoo-offer-card p {
 /* —— Why choose —— */
 section.drivoo-choose {
   width: 100%;
-  padding: 80px 20px 96px;
+  padding: 28px 20px 28px;
   background: #ffffff;
 }
 
@@ -1346,6 +1352,26 @@ section.drivoo-choose .drivoo-choose-card .btn-primary {
   section.drivoo-offerings .drivoo-offerings-grid,
   section.drivoo-choose .drivoo-choose-grid {
     grid-template-columns: 1fr;
+  }
+
+  section.drivoo-about {
+    padding: 28px 16px 20px;
+  }
+
+  section.drivoo-offerings {
+    padding: 20px 16px 20px;
+  }
+
+  section.drivoo-choose {
+    padding: 20px 16px 20px;
+  }
+
+  div.home div.how {
+    padding: 20px 0 20px;
+  }
+
+  div.home div.car-size {
+    padding: 20px 0 48px;
   }
 
   section.drivoo-about .drivoo-about-badge {
