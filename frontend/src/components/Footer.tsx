@@ -25,67 +25,82 @@ const Footer = () => {
 
   return (
     <div className="footer">
-      <div className="header footer-logo" onClick={() => navigate('/')} role="button" tabIndex={0}>
-        <img src={Logo} alt={env.WEBSITE_NAME} className="footer-logo-img" />
-      </div>
-      <section className="main">
-        <div className="main-section">
-          <div className="title">{strings.CORPORATE}</div>
-          <ul className="links">
-            <li onClick={() => navigate('/about')}>{strings.ABOUT}</li>
-            <li onClick={() => navigate('/cookie-policy')}>{strings.COOKIE_POLICY}</li>
-            <li onClick={() => navigate('/privacy')}>{strings.PRIVACY_POLICY}</li>
-            <li onClick={() => navigate('/tos')}>{strings.TOS}</li>
-          </ul>
-        </div>
-        <div className="main-section">
-          <div className="title">{strings.RENT}</div>
-          <ul className="links">
-            {!env.HIDE_SUPPLIERS && <li onClick={() => navigate('/suppliers')}>{strings.SUPPLIERS}</li>}
-            <li onClick={() => navigate('/locations')}>{strings.LOCATIONS}</li>
-          </ul>
-        </div>
-        <div className="main-section">
-          <div className="title">{strings.SUPPORT}</div>
-          <ul className="links">
-            <li onClick={() => navigate('/contact')}>{strings.CONTACT}</li>
-            <li onClick={() => navigate('/faq')}>{strings.FAQ}</li>
-          </ul>
-          <div className="footer-contact">
-            <MailOutline className="icon" />
-            <a href={`mailto:${env.CONTACT_EMAIL}`}>{env.CONTACT_EMAIL}</a>
-          </div>
-          <div className="footer-contact">
-            <IconButton href="https://www.facebook.com/" target="_blank" aria-label="Facebook" className="social-icon"><FacebookIcon /></IconButton>
-            <IconButton href="https://x.com/" target="_blank" aria-label="X" className="social-icon"><X /></IconButton>
-            <IconButton href="https://www.linkedin.com/" target="_blank" aria-label="LinkedIn" className="social-icon"><LinkedIn /></IconButton>
-            <IconButton href="https://www.instagram.com/" target="_blank" aria-label="Instagram" className="social-icon"><Instagram /></IconButton>
-          </div>
-          <div className="newsletter">
-            <NewsletterForm />
-          </div>
-        </div>
-      </section>
-      <section className="payment">
+      <div className="footer-top">
         <div
-          className="payment-text"
-          style={{ margin: env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.PayPal ? '0 20px' : '-25px 10px 0 0' }}
+          className="header footer-logo"
+          onClick={() => navigate('/')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              navigate('/')
+            }
+          }}
+          role="button"
+          tabIndex={0}
         >
-          {strings.SECURE_PAYMENT}
+          <img src={Logo} alt={env.WEBSITE_NAME} className="footer-logo-img" />
         </div>
-        <img
-          src={SecurePayment}
-          alt=""
-          style={{ height: env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.PayPal ? 64 : 'auto' }}
-        />
-      </section>
-      <section className="copyright">
+
+        <section className="main">
+          <div className="main-section">
+            <div className="title">{strings.CORPORATE}</div>
+            <ul className="links">
+              <li onClick={() => navigate('/about')}>{strings.ABOUT}</li>
+              <li onClick={() => navigate('/cookie-policy')}>{strings.COOKIE_POLICY}</li>
+              <li onClick={() => navigate('/privacy')}>{strings.PRIVACY_POLICY}</li>
+              <li onClick={() => navigate('/tos')}>{strings.TOS}</li>
+            </ul>
+          </div>
+
+          <div className="main-section">
+            <div className="title">{strings.RENT}</div>
+            <ul className="links">
+              {!env.HIDE_SUPPLIERS && <li onClick={() => navigate('/suppliers')}>{strings.SUPPLIERS}</li>}
+              <li onClick={() => navigate('/locations')}>{strings.LOCATIONS}</li>
+            </ul>
+          </div>
+
+          <div className="main-section">
+            <div className="title">{strings.SUPPORT}</div>
+            <ul className="links">
+              <li onClick={() => navigate('/contact')}>{strings.CONTACT}</li>
+              <li onClick={() => navigate('/faq')}>{strings.FAQ}</li>
+            </ul>
+            <div className="footer-contact">
+              <MailOutline className="icon" />
+              <a href={`mailto:${env.CONTACT_EMAIL}`}>{env.CONTACT_EMAIL}</a>
+            </div>
+            <div className="footer-contact footer-socials">
+              <IconButton href="https://www.facebook.com/" target="_blank" aria-label="Facebook" className="social-icon"><FacebookIcon /></IconButton>
+              <IconButton href="https://x.com/" target="_blank" aria-label="X" className="social-icon"><X /></IconButton>
+              <IconButton href="https://www.linkedin.com/" target="_blank" aria-label="LinkedIn" className="social-icon"><LinkedIn /></IconButton>
+              <IconButton href="https://www.instagram.com/" target="_blank" aria-label="Instagram" className="social-icon"><Instagram /></IconButton>
+            </div>
+          </div>
+
+          <div className="main-section footer-newsletter">
+            <div className="newsletter">
+              <NewsletterForm />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section className="footer-bottom">
         <div className="copyright">
           <span>{strings.COPYRIGHT_PART1}</span>
           <span>{strings.COPYRIGHT_PART2}</span>
+        </div>
+        <div className="payment">
+          <div className="payment-text">{strings.SECURE_PAYMENT}</div>
+          <img
+            src={SecurePayment}
+            alt=""
+            className={env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.PayPal ? 'payment-img paypal' : 'payment-img'}
+          />
         </div>
       </section>
     </div>
   )
 }
+
 export default Footer
