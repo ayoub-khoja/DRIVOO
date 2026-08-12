@@ -283,7 +283,8 @@ export const update = async (req: Request, res: Response) => {
       car.name = name
       car.licensePlate = licensePlate
       car.brand = brand
-      car.model = model
+      // Use set(): Document.model() conflicts with the schema field named model
+      car.set('model', model)
       car.year = year
       car.chassisNumber = chassisNumber
       if (typeof registrationDoc === 'string') {

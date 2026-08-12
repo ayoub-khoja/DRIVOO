@@ -189,7 +189,6 @@ export const renderEmail = (options: EmailTemplateOptions): string => {
     fallbackLink,
     regardsHtml,
     hideBanner = false,
-    audience = 'client',
   } = options
 
   const greetingBlock = greeting
