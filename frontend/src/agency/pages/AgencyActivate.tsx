@@ -13,6 +13,7 @@ import { schema, FormFields } from '@/models/ActivateForm'
 import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/agency/lang/agency'
 import logo from '@/assets/img/logoWhite.png'
+import activateHero from '@/assets/img/first-login-agence.png'
 
 const AgencyActivate = () => {
   const navigate = useNavigate()
@@ -104,61 +105,67 @@ const AgencyActivate = () => {
   }
 
   return (
-    <div className="agency-signin">
+    <div className="agency-signin agency-activate">
       <div className="agency-signin-ambient" aria-hidden />
-      <Paper className="agency-signin-card" elevation={0}>
-        <div className="agency-signin-brand">
-          <img src={logo} alt="DRIVOO" />
-          <h1>{strings.ACTIVATE_TITLE}</h1>
-          <p>{strings.ACTIVATE_SUBTITLE}</p>
-        </div>
+      <div className="agency-activate-shell">
+        <Paper className="agency-signin-card agency-activate-form" elevation={0}>
+          <div className="agency-signin-brand">
+            <img src={logo} alt="DRIVOO" />
+            <h1>{strings.ACTIVATE_TITLE}</h1>
+            <p>{strings.ACTIVATE_SUBTITLE}</p>
+          </div>
 
-        {loading ? (
-          <div className="agency-inline-loading">
-            <CircularProgress size={28} />
-            <span>{strings.LOADING}</span>
-          </div>
-        ) : invalid ? (
-          <div className="form-error">
-            <Error message={strings.ACTIVATE_INVALID} />
-            <Button variant="outlined" color="inherit" onClick={() => navigate('/')} style={{ marginTop: 16 }}>
-              {strings.BACK_SITE}
-            </Button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <PasswordInput
-              label={commonStrings.PASSWORD}
-              variant="outlined"
-              {...register('password')}
-              error={!!errors.password}
-              helperText={errors.password?.message}
-              formControlProps={{ fullWidth: true, margin: 'dense', required: true }}
-            />
-            <PasswordInput
-              label={commonStrings.CONFIRM_PASSWORD}
-              variant="outlined"
-              {...register('confirmPassword')}
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword?.message}
-              formControlProps={{ fullWidth: true, margin: 'dense', required: true }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              className="btn-primary agency-signin-btn"
-              disabled={isSubmitting}
-            >
-              {strings.ACTIVATE_SUBMIT}
-            </Button>
-            {submitError && (
-              <div className="form-error">
-                <Error message={strings.ACTIVATE_ERROR} />
-              </div>
-            )}
-          </form>
-        )}
-      </Paper>
+          {loading ? (
+            <div className="agency-inline-loading">
+              <CircularProgress size={28} />
+              <span>{strings.LOADING}</span>
+            </div>
+          ) : invalid ? (
+            <div className="form-error">
+              <Error message={strings.ACTIVATE_INVALID} />
+              <Button variant="outlined" color="inherit" onClick={() => navigate('/')} style={{ marginTop: 16 }}>
+                {strings.BACK_SITE}
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+              <PasswordInput
+                label={commonStrings.PASSWORD}
+                variant="outlined"
+                {...register('password')}
+                error={!!errors.password}
+                helperText={errors.password?.message}
+                formControlProps={{ fullWidth: true, margin: 'dense', required: true }}
+              />
+              <PasswordInput
+                label={commonStrings.CONFIRM_PASSWORD}
+                variant="outlined"
+                {...register('confirmPassword')}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
+                formControlProps={{ fullWidth: true, margin: 'dense', required: true }}
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                className="btn-primary agency-signin-btn"
+                disabled={isSubmitting}
+              >
+                {strings.ACTIVATE_SUBMIT}
+              </Button>
+              {submitError && (
+                <div className="form-error">
+                  <Error message={strings.ACTIVATE_ERROR} />
+                </div>
+              )}
+            </form>
+          )}
+        </Paper>
+
+        <aside className="agency-activate-visual" aria-hidden>
+          <img src={activateHero} alt="" />
+        </aside>
+      </div>
     </div>
   )
 }

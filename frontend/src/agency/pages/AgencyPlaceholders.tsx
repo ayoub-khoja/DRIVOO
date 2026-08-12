@@ -14,6 +14,5 @@ const AgencyPlaceholder = ({ title }: { title: string }) => (
   </div>
 )
 
-export const AgencyFleet = () => <AgencyPlaceholder title={strings.FLEET} />
 export const AgencyBookings = () => <AgencyPlaceholder title={strings.BOOKINGS} />
 export const AgencyProfile = () => <AgencyPlaceholder title={strings.PROFILE} />

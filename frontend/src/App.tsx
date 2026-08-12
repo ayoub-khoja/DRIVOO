@@ -53,7 +53,7 @@ const AgencyLayout = lazy(() => import('@/agency/components/AgencyLayout'))
 const AgencySignIn = lazy(() => import('@/agency/pages/AgencySignIn'))
 const AgencyActivate = lazy(() => import('@/agency/pages/AgencyActivate'))
 const AgencyDashboard = lazy(() => import('@/agency/pages/AgencyDashboard'))
-const AgencyFleet = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyFleet })))
+const AgencyFleet = lazy(() => import('@/agency/pages/AgencyFleet'))
 const AgencyBookings = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyBookings })))
 const AgencyProfile = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyProfile })))
 
