@@ -17,6 +17,7 @@ import PushToken from '../models/PushToken'
 import * as helper from '../utils/helper'
 import * as authHelper from '../utils/authHelper'
 import * as mailHelper from '../utils/mailHelper'
+import * as emailTemplate from '../utils/emailTemplate'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
 import Car from '../models/Car'
@@ -201,24 +202,19 @@ const _signup = async (
         from: env.SMTP_FROM,
         to: user.email,
         subject: i18n.t('AGENCY_REQUEST_SUBJECT'),
-        html:
-          `<div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; border: 1px solid #e6eaf0; border-radius: 12px; background: #ffffff;">
-            <div style="height: 4px; width: 72px; background: #f5a623; border-radius: 999px; margin-bottom: 18px;"></div>
-            <p style="font-size: 16px; line-height: 1.6; color: #243853; margin: 0 0 14px;">
-              ${i18n.t('HELLO')}${user.fullName},
-            </p>
-            <p style="font-size: 15px; line-height: 1.7; color: #4a5b73; margin: 0 0 14px;">
-              ${i18n.t('AGENCY_REQUEST_BODY')}
-            </p>
-            <p style="font-size: 14px; line-height: 1.6; color: #6b7c93; margin: 0 0 18px;">
-              ${i18n.t('AGENCY_REQUEST_NEXT')}
-            </p>
-            <p style="font-size: 14px; color: #243853; margin: 0;">
-              ${i18n.t('REGARDS')}
-            </p>
-          </div>`,
+        html: emailTemplate.renderEmail({
+          hello: i18n.t('HELLO'),
+          greeting: user.fullName,
+          title: i18n.t('AGENCY_REQUEST_TITLE'),
+          audience: 'agency',
+          paragraphs: [
+            i18n.t('AGENCY_REQUEST_BODY'),
+            i18n.t('AGENCY_REQUEST_NEXT'),
+          ],
+          regardsHtml: i18n.t('REGARDS'),
+        }),
       }
-      await mailHelper.sendMail(mailOptions)
+      await mailHelper.sendMail(emailTemplate.withBanner('agency', mailOptions))
     } catch (err) {
       logger.error(`[user.supplierSignup] ${i18n.t('SMTP_ERROR')}`, err)
     }
@@ -235,13 +231,35 @@ const _signup = async (
   }
 
   try {
+    i18n.locale = user.language
+
+    // Client accounts are active immediately: send a welcome email with sign-in CTA
+    if (userType === bookcarsTypes.UserType.User) {
+      const signInUrl = helper.joinURL(env.FRONTEND_HOST, 'sign-in')
+      const mailOptions: nodemailer.SendMailOptions = {
+        from: env.SMTP_FROM,
+        to: user.email,
+        subject: i18n.t('CLIENT_WELCOME_SUBJECT'),
+        html: emailTemplate.renderEmail({
+          hello: i18n.t('HELLO'),
+          greeting: user.fullName,
+          title: i18n.t('CLIENT_WELCOME_TITLE'),
+          audience: 'client',
+          paragraphs: [i18n.t('CLIENT_WELCOME_BODY')],
+          cta: { text: i18n.t('CLIENT_WELCOME_CTA'), url: signInUrl },
+          fallbackLink: { url: signInUrl },
+          regardsHtml: i18n.t('REGARDS'),
+        }),
+      }
+      await mailHelper.sendMail(emailTemplate.withBanner('client', mailOptions))
+      res.sendStatus(200)
+      return
+    }
+
     // generate token and save
     const token = new Token({ user: user._id, token: helper.generateToken() })
 
     await token.save()
-
-    // Send email
-    i18n.locale = user.language
 
     const activationLink = `http${env.HTTPS ? 's' : ''}://${req.headers.host}/api/confirm-email/${user.email}/${token.token}`
 
@@ -249,17 +267,19 @@ const _signup = async (
       from: env.SMTP_FROM,
       to: user.email,
       subject: i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
-      html:
-        `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-          <p style="font-size: 16px; color: #555;">
-            ${i18n.t('HELLO')} ${user.fullName},<br><br>
-            ${i18n.t('ACCOUNT_ACTIVATION_LINK')}<br><br>
-            <a href="${activationLink}" target="_blank">${activationLink}</a><br><br>
-            ${i18n.t('REGARDS')}<br>
-          </p>
-        </div>`,
+      html: emailTemplate.renderLinkEmail({
+        hello: i18n.t('HELLO'),
+        greeting: user.fullName,
+        introHtml: i18n.t('ACCOUNT_ACTIVATION_LINK'),
+        link: activationLink,
+        regardsHtml: i18n.t('REGARDS'),
+        audience: userType === bookcarsTypes.UserType.Supplier ? 'agency' : 'client',
+      }),
     }
-    await mailHelper.sendMail(mailOptions)
+    await mailHelper.sendMail(emailTemplate.withBanner(
+      userType === bookcarsTypes.UserType.Supplier ? 'agency' : 'client',
+      mailOptions,
+    ))
     res.sendStatus(200)
   } catch (err) {
     // Keep the account even if activation email fails (e.g. local SMTP not configured)
@@ -567,23 +587,29 @@ export const create = async (req: Request, res: Response) => {
     // Send email
     i18n.locale = user.language
 
+    const activationLink = `${helper.joinURL(
+      user.type === bookcarsTypes.UserType.User ? env.FRONTEND_HOST : env.ADMIN_HOST,
+      'activate',
+    )}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}`
+
     const mailOptions: nodemailer.SendMailOptions = {
       from: env.SMTP_FROM,
       to: user.email,
       subject: i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
-      html:
-        `<p>
-        ${i18n.t('HELLO')}${user.fullName},<br><br>
-        ${i18n.t('ACCOUNT_ACTIVATION_LINK')}<br><br>
-        ${helper.joinURL(
-          user.type === bookcarsTypes.UserType.User ? env.FRONTEND_HOST : env.ADMIN_HOST,
-          'activate',
-        )}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}<br><br>
-        ${i18n.t('REGARDS')}<br>
-        </p>`,
+      html: emailTemplate.renderLinkEmail({
+        hello: i18n.t('HELLO'),
+        greeting: user.fullName,
+        introHtml: i18n.t('ACCOUNT_ACTIVATION_LINK'),
+        link: activationLink,
+        regardsHtml: i18n.t('REGARDS'),
+        audience: user.type === bookcarsTypes.UserType.Supplier ? 'agency' : 'client',
+      }),
     }
 
-    await mailHelper.sendMail(mailOptions)
+    await mailHelper.sendMail(emailTemplate.withBanner(
+      user.type === bookcarsTypes.UserType.Supplier ? 'agency' : 'client',
+      mailOptions,
+    ))
     res.sendStatus(200)
   } catch (err) {
     logger.error(`[user.create] ${i18n.t('ERROR')} ${JSON.stringify(body)}`, err)
@@ -728,17 +754,19 @@ export const resend = async (req: Request, res: Response) => {
         from: env.SMTP_FROM,
         to: user.email,
         subject: reset ? i18n.t('PASSWORD_RESET_SUBJECT') : i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
-        html:
-          `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-            <p style="font-size: 16px; color: #555;">
-              ${i18n.t('HELLO')} ${user.fullName},<br><br>  
-              ${reset ? i18n.t('PASSWORD_RESET_LINK') : i18n.t('ACCOUNT_ACTIVATION_LINK')}<br><br>  
-              <a href="${activationOrResetLink}" target="_blank">${activationOrResetLink}</a><br><br>
-              ${i18n.t('REGARDS')}<br>
-            </p>
-          </div>`,
+        html: emailTemplate.renderLinkEmail({
+          hello: i18n.t('HELLO'),
+          greeting: user.fullName,
+          introHtml: reset ? i18n.t('PASSWORD_RESET_LINK') : i18n.t('ACCOUNT_ACTIVATION_LINK'),
+          link: activationOrResetLink,
+          regardsHtml: i18n.t('REGARDS'),
+          audience: user.type === bookcarsTypes.UserType.Supplier ? 'agency' : 'client',
+        }),
       }
-      await mailHelper.sendMail(mailOptions)
+      await mailHelper.sendMail(emailTemplate.withBanner(
+        user.type === bookcarsTypes.UserType.Supplier ? 'agency' : 'client',
+        mailOptions,
+      ))
       res.sendStatus(200)
       return
     }
@@ -785,6 +813,32 @@ export const activate = async (req: Request, res: Response) => {
           user.agencyApproved = true
         }
         await user.save()
+
+        // Welcome email after client sets password / activates account
+        if (user.type === bookcarsTypes.UserType.User) {
+          try {
+            i18n.locale = user.language
+            const signInUrl = helper.joinURL(env.FRONTEND_HOST, 'sign-in')
+            const mailOptions: nodemailer.SendMailOptions = {
+              from: env.SMTP_FROM,
+              to: user.email,
+              subject: i18n.t('CLIENT_WELCOME_SUBJECT'),
+              html: emailTemplate.renderEmail({
+                hello: i18n.t('HELLO'),
+                greeting: user.fullName,
+                title: i18n.t('CLIENT_WELCOME_TITLE'),
+                audience: 'client',
+                paragraphs: [i18n.t('CLIENT_WELCOME_BODY')],
+                cta: { text: i18n.t('CLIENT_WELCOME_CTA'), url: signInUrl },
+                fallbackLink: { url: signInUrl },
+                regardsHtml: i18n.t('REGARDS'),
+              }),
+            }
+            await mailHelper.sendMail(emailTemplate.withBanner('client', mailOptions))
+          } catch (mailErr) {
+            logger.error(`[user.activate] welcome mail ${userId}`, mailErr)
+          }
+        }
 
         res.sendStatus(200)
         return
@@ -1294,18 +1348,17 @@ export const resendLink = async (req: Request, res: Response) => {
       from: env.SMTP_FROM,
       to: user.email,
       subject: i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
-      html:
-        `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-          <p style="font-size: 16px; color: #555;">
-            ${i18n.t('HELLO')} ${user.fullName},<br><br>
-            ${i18n.t('ACCOUNT_ACTIVATION_LINK')}<br><br>
-            <a href="${activateLink}" target="_blank">${activateLink}</a><br><br>
-            ${i18n.t('REGARDS')}<br>
-          </p>
-        </div>`,
+      html: emailTemplate.renderLinkEmail({
+        hello: i18n.t('HELLO'),
+        greeting: user.fullName,
+        introHtml: i18n.t('ACCOUNT_ACTIVATION_LINK'),
+        link: activateLink,
+        regardsHtml: i18n.t('REGARDS'),
+        audience: 'client',
+      }),
     }
 
-    await mailHelper.sendMail(mailOptions)
+    await mailHelper.sendMail(emailTemplate.withBanner('client', mailOptions))
     res
       .status(200)
       .send(getStatusMessage(user.language, i18n.t('ACCOUNT_ACTIVATION_EMAIL_SENT_PART_1') + user.email + i18n.t('ACCOUNT_ACTIVATION_EMAIL_SENT_PART_2')))
@@ -2144,15 +2197,16 @@ export const sendEmail = async (req: Request, res: Response) => {
       from: env.SMTP_FROM,
       to,
       subject: isContactForm ? i18n.t('CONTACT_SUBJECT') : subject,
-      html:
-        `<p>
-              ${i18n.t('FROM')}: ${from}<br>
-              ${(isContactForm && `${i18n.t('SUBJECT')}: ${subject}<br>`) || ''}
-              ${(message && `${i18n.t('MESSAGE')}:<br>${message.replace(/(?:\r\n|\r|\n)/g, '<br>')}<br>`) || ''}
-         </p>`,
+      html: emailTemplate.renderContactEmail({
+        from,
+        subject: isContactForm ? subject : undefined,
+        message,
+        fromLabel: i18n.t('FROM'),
+        subjectLabel: i18n.t('SUBJECT'),
+        messageLabel: i18n.t('MESSAGE'),
+      }),
     }
     await mailHelper.sendMail(mailOptions)
-
     res.sendStatus(200)
   } catch (err) {
     logger.error(`[user.sendEmail] ${JSON.stringify(req.body)}`, err)
@@ -2537,30 +2591,18 @@ export const approveAccountRequest = async (req: Request, res: Response) => {
       from: env.SMTP_FROM,
       to: user.email,
       subject: i18n.t('AGENCY_APPROVED_SUBJECT'),
-      html:
-        `<div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; border: 1px solid #e6eaf0; border-radius: 12px; background: #ffffff;">
-          <div style="height: 4px; width: 72px; background: #f5a623; border-radius: 999px; margin-bottom: 18px;"></div>
-          <p style="font-size: 16px; line-height: 1.6; color: #243853; margin: 0 0 14px;">
-            ${i18n.t('HELLO')}${user.fullName},
-          </p>
-          <p style="font-size: 15px; line-height: 1.7; color: #4a5b73; margin: 0 0 14px;">
-            ${i18n.t('AGENCY_APPROVED_BODY')}
-          </p>
-          <p style="margin: 0 0 18px;">
-            <a href="${activationLink}" target="_blank" style="display: inline-block; background: #f5a623; color: #101820; text-decoration: none; font-weight: 700; padding: 12px 18px; border-radius: 10px;">
-              ${i18n.t('AGENCY_APPROVED_CTA')}
-            </a>
-          </p>
-          <p style="font-size: 13px; line-height: 1.6; color: #6b7c93; margin: 0 0 18px; word-break: break-all;">
-            ${activationLink}
-          </p>
-          <p style="font-size: 14px; color: #243853; margin: 0;">
-            ${i18n.t('REGARDS')}
-          </p>
-        </div>`,
+      html: emailTemplate.renderEmail({
+        hello: i18n.t('HELLO'),
+        greeting: user.fullName,
+        audience: 'agency',
+        paragraphs: [i18n.t('AGENCY_APPROVED_BODY')],
+        cta: { text: i18n.t('AGENCY_APPROVED_CTA'), url: activationLink },
+        fallbackLink: { url: activationLink },
+        regardsHtml: i18n.t('REGARDS'),
+      }),
     }
     try {
-      await mailHelper.sendMail(mailOptions)
+      await mailHelper.sendMail(emailTemplate.withBanner('agency', mailOptions))
     } catch (mailErr) {
       logger.error(`[user.approveAccountRequest] mail ${id}`, mailErr)
     }

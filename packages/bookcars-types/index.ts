@@ -41,6 +41,12 @@ export enum GearboxType {
   Automatic = 'automatic',
 }
 
+export enum DeliveryType {
+  Airport = 'airport',
+  Office = 'office',
+  Delivery = 'delivery',
+}
+
 export enum FuelPolicy {
   LikeForLike = 'likeForlike',
   FreeTank = 'freeTank',
@@ -193,6 +199,17 @@ export interface CreateCarPayload {
   supplier: string
   minimumAge: number
   locations: string[]
+
+  // fleet extended fields
+  brand?: string
+  model?: string
+  year?: number
+  chassisNumber?: string
+  registrationDoc?: string
+  insuranceExpiry?: Date | string
+  technicalVisitExpiry?: Date | string
+  nextOilChange?: Date | string
+  deliveryType?: DeliveryType | string
 
   // price fields
   hourlyPrice: number | null
@@ -501,6 +518,16 @@ export interface Car {
   supplier: User
   minimumAge: number
   locations: Location[]
+
+  brand?: string
+  model?: string
+  year?: number
+  chassisNumber?: string
+  registrationDoc?: string
+  insuranceExpiry?: Date
+  technicalVisitExpiry?: Date
+  nextOilChange?: Date
+  deliveryType?: DeliveryType | string
 
   // price fields
   dailyPrice: number

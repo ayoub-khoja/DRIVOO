@@ -389,6 +389,92 @@
   min-height: 46px;
 }
 
+/* Agency activate: form left + hero image right */
+.agency-activate {
+  place-items: stretch;
+  padding: 0 !important;
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.agency-activate .agency-signin-ambient {
+  inset: 0;
+  animation: none;
+}
+
+.agency-activate-shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.agency-activate-form {
+  width: 100% !important;
+  max-width: none;
+  margin: 0;
+  border-radius: 0 !important;
+  border: 0 !important;
+  border-right: 1px solid rgb(255 255 255 / 10%) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 28px 36px !important;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.agency-activate-form .agency-signin-brand,
+.agency-activate-form form,
+.agency-activate-form .agency-inline-loading,
+.agency-activate-form .form-error {
+  width: 100%;
+  max-width: 440px;
+}
+
+.agency-activate-form .agency-signin-brand {
+  margin-bottom: 18px;
+}
+
+.agency-activate-form .agency-signin-brand img {
+  height: 72px;
+  margin-bottom: 14px;
+}
+
+.agency-activate-form .agency-signin-brand h1 {
+  font-size: 1.45rem;
+  color: #ffffff;
+}
+
+.agency-activate-form .agency-signin-btn {
+  width: 100%;
+  max-width: 440px;
+}
+
+.agency-activate-visual {
+  position: relative;
+  overflow: hidden;
+  background: #0b1626;
+  height: 100%;
+  min-height: 0;
+}
+
+.agency-activate-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
 .agency-signin .MuiInputLabel-root,
 .agency-signin .MuiOutlinedInput-root,
 .agency-signin .MuiFormHelperText-root {
@@ -448,6 +534,31 @@
   }
 }
 
+@media (max-width: 960px) {
+  .agency-activate {
+    height: auto;
+    max-height: none;
+    overflow: auto;
+  }
+
+  .agency-activate-shell {
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+    height: auto;
+  }
+
+  .agency-activate-visual {
+    display: none;
+  }
+
+  .agency-activate-form {
+    border-right: 0 !important;
+    min-height: 100vh;
+    height: auto;
+    padding: 32px 24px !important;
+  }
+}
+
 @media (max-width: 900px) {
   .agency-sidebar {
     position: sticky;
@@ -483,5 +594,230 @@
   .agency-main {
     margin-left: 0;
     padding: 18px 16px 28px;
+  }
+}
+
+/* Fleet */
+.agency-fleet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.agency-empty-icon {
+  font-size: 2.4rem !important;
+  color: #f5a623;
+  margin-bottom: 8px;
+}
+
+.agency-fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.agency-fleet-card {
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+.agency-fleet-card-media {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 25%);
+  color: #f5a623;
+}
+
+.agency-fleet-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.agency-fleet-card-body {
+  padding: 14px 16px 16px;
+}
+
+.agency-fleet-card-body h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.agency-fleet-card-body p {
+  margin: 0 0 10px;
+  color: #9eb0c7;
+  font-size: 0.9rem;
+}
+
+.agency-fleet-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.agency-fleet-card-meta .is-live {
+  color: #7dffb0;
+}
+
+.agency-fleet-card-meta .is-pending {
+  color: #ffc766;
+}
+
+/* Add car stepper dialog */
+.agency-car-dialog .MuiPaper-root {
+  background: #12233a !important;
+  color: #fff !important;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 20px !important;
+}
+
+.agency-car-dialog-content {
+  padding: 24px !important;
+}
+
+.agency-car-dialog-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.agency-car-dialog-head h2 {
+  margin: 0 0 6px;
+  color: #fff;
+}
+
+.agency-car-dialog-head p {
+  margin: 0;
+  color: #a9b8cc;
+}
+
+.agency-car-stepper {
+  margin-bottom: 22px;
+}
+
+.agency-car-stepper .MuiStepLabel-label {
+  color: #9eb0c7 !important;
+  font-size: 0.78rem !important;
+}
+
+.agency-car-stepper .MuiStepLabel-label.Mui-active,
+.agency-car-stepper .MuiStepLabel-label.Mui-completed {
+  color: #f5a623 !important;
+  font-weight: 700 !important;
+}
+
+.agency-car-stepper .MuiStepIcon-root {
+  color: rgb(255 255 255 / 20%) !important;
+}
+
+.agency-car-stepper .MuiStepIcon-root.Mui-active,
+.agency-car-stepper .MuiStepIcon-root.Mui-completed {
+  color: #f5a623 !important;
+}
+
+.agency-car-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.agency-car-span-2 {
+  grid-column: span 2;
+}
+
+.agency-car-form .MuiInputLabel-root,
+.agency-car-form .MuiOutlinedInput-root,
+.agency-car-form .MuiFormHelperText-root,
+.agency-car-form .MuiFormControlLabel-label {
+  color: #d7e0ec !important;
+}
+
+.agency-car-form .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(255 255 255 / 22%) !important;
+}
+
+.agency-car-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px dashed rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 3%);
+}
+
+.agency-car-upload-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.agency-car-upload-meta span,
+.agency-car-upload-meta em {
+  color: #9eb0c7;
+  font-size: 0.85rem;
+  font-style: normal;
+}
+
+.agency-car-upload-meta em {
+  color: #ff8f8f;
+}
+
+.agency-car-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgb(245 166 35 / 16%);
+  color: #ffc766;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.agency-car-preview {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b7c5d8;
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.agency-car-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.agency-car-error {
+  margin: 12px 0 0;
+  color: #ff8f8f;
+}
+
+@media (max-width: 700px) {
+  .agency-fleet-head {
+    flex-direction: column;
+  }
+
+  .agency-car-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agency-car-span-2 {
+    grid-column: span 1;
   }
 }

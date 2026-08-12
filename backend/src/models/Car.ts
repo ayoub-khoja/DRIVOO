@@ -15,6 +15,43 @@ const carSchema = new Schema<env.Car>(
       index: true,
       trim: true,
     },
+    brand: {
+      type: String,
+      trim: true,
+    },
+    model: {
+      type: String,
+      trim: true,
+    },
+    year: {
+      type: Number,
+      min: 1980,
+      max: 2100,
+    },
+    chassisNumber: {
+      type: String,
+      trim: true,
+    },
+    registrationDoc: {
+      type: String,
+    },
+    insuranceExpiry: {
+      type: Date,
+    },
+    technicalVisitExpiry: {
+      type: Date,
+    },
+    nextOilChange: {
+      type: Date,
+    },
+    deliveryType: {
+      type: String,
+      enum: [
+        bookcarsTypes.DeliveryType.Airport,
+        bookcarsTypes.DeliveryType.Office,
+        bookcarsTypes.DeliveryType.Delivery,
+      ],
+    },
     supplier: {
       type: Schema.Types.ObjectId,
       required: [true, "can't be blank"],

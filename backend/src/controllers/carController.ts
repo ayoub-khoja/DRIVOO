@@ -17,6 +17,7 @@ import User from '../models/User'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
 import * as mailHelper from '../utils/mailHelper'
+import * as emailTemplate from '../utils/emailTemplate'
 import Location from '../models/Location'
 
 /**
@@ -102,6 +103,29 @@ export const create = async (req: Request, res: Response) => {
     }
     // --------- image ---------
 
+    // --------- registration document (carte grise) ---------
+    if (body.registrationDoc) {
+      const safeDoc = path.basename(body.registrationDoc)
+      if (safeDoc === body.registrationDoc) {
+        const tempDir = path.resolve(env.CDN_TEMP_CARS)
+        const carsDir = path.resolve(env.CDN_CARS)
+        const sourcePath = path.resolve(tempDir, safeDoc)
+        if (sourcePath.startsWith(tempDir + path.sep) && await helper.pathExists(sourcePath)) {
+          const ext = path.extname(safeDoc).toLowerCase()
+          if ([...env.allowedImageExtensions, '.pdf'].includes(ext)) {
+            const filename = `${car._id}_carte_grise_${Date.now()}${ext}`
+            const newPath = path.resolve(carsDir, filename)
+            if (newPath.startsWith(carsDir + path.sep)) {
+              await asyncFs.rename(sourcePath, newPath)
+              car.registrationDoc = filename
+              await car.save()
+            }
+          }
+        }
+      }
+    }
+    // --------- registration document ---------
+
     // notify admin if the car was created by a supplier
     if (body.loggedUser) {
       const loggedUser = await User.findById(body.loggedUser)
@@ -138,15 +162,17 @@ export const create = async (req: Request, res: Response) => {
                 from: env.SMTP_FROM,
                 to: admin.email,
                 subject: message,
-                html: `<p>
-${i18n.t('HELLO')}${admin.fullName},<br><br>
-${message}<br><br>
-${helper.joinURL(env.ADMIN_HOST, `update-car?cr=${car._id.toString()}`)}<br><br>
-${i18n.t('REGARDS')}<br>
-</p>`,
+                html: emailTemplate.renderNotificationEmail({
+                  hello: i18n.t('HELLO'),
+                  greeting: admin.fullName,
+                  messageHtml: message,
+                  actionUrl: helper.joinURL(env.ADMIN_HOST, `update-car?cr=${car._id.toString()}`),
+                  regardsHtml: i18n.t('REGARDS'),
+                  audience: 'client',
+                }),
               }
 
-              await mailHelper.sendMail(mailOptions)
+              await mailHelper.sendMail(emailTemplate.withBanner('client', mailOptions))
             }
           }
         }
@@ -240,6 +266,15 @@ export const update = async (req: Request, res: Response) => {
         isDateBasedPrice,
         dateBasedPrices,
         blockOnPay,
+        brand,
+        model,
+        year,
+        chassisNumber,
+        registrationDoc,
+        insuranceExpiry,
+        technicalVisitExpiry,
+        nextOilChange,
+        deliveryType,
       } = body
 
       car.supplier = new mongoose.Types.ObjectId(supplier)
@@ -247,6 +282,18 @@ export const update = async (req: Request, res: Response) => {
       car.locations = locations.map((l) => new mongoose.Types.ObjectId(l))
       car.name = name
       car.licensePlate = licensePlate
+      car.brand = brand
+      // Use set(): Document.model() conflicts with the schema field named model
+      car.set('model', model)
+      car.year = year
+      car.chassisNumber = chassisNumber
+      if (typeof registrationDoc === 'string') {
+        car.registrationDoc = registrationDoc
+      }
+      car.insuranceExpiry = insuranceExpiry ? new Date(insuranceExpiry) : undefined
+      car.technicalVisitExpiry = technicalVisitExpiry ? new Date(technicalVisitExpiry) : undefined
+      car.nextOilChange = nextOilChange ? new Date(nextOilChange) : undefined
+      car.deliveryType = deliveryType as bookcarsTypes.DeliveryType | undefined
       car.available = available
       car.fullyBooked = fullyBooked
       car.comingSoon = comingSoon
