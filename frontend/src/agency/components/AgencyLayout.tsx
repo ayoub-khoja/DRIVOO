@@ -7,6 +7,7 @@ import {
   LogoutOutlined,
   PersonOutline,
   ApartmentOutlined,
+  StarOutline,
 } from '@mui/icons-material'
 import { Button, CircularProgress } from '@mui/material'
 import env from '@/config/env.config'
@@ -76,6 +77,10 @@ const AgencyShell = () => {
           <NavLink to="/agency/bookings" className={({ isActive }) => (isActive ? 'active' : '')}>
             <EventNoteOutlined />
             <span>{strings.BOOKINGS}</span>
+          </NavLink>
+          <NavLink to="/agency/reviews" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <StarOutline />
+            <span>{strings.REVIEWS}</span>
           </NavLink>
           {isMainAgency && (
             <NavLink to="/agency/agencies" className={({ isActive }) => (isActive ? 'active' : '')}>

@@ -12,7 +12,6 @@ type AgencyPublicReviewsProps = {
   slug: string
   loading: boolean
   data: bookcarsTypes.AgencyReviewList | null
-  onCreated: (review: bookcarsTypes.AgencyReview) => void
 }
 
 const nameInitial = (value: string) => value.trim().charAt(0).toUpperCase() || 'A'
@@ -29,7 +28,7 @@ const formatReviewDate = (value?: Date | string) => {
   })
 }
 
-const AgencyPublicReviews = ({ slug, loading, data, onCreated }: AgencyPublicReviewsProps) => {
+const AgencyPublicReviews = ({ slug, loading, data }: AgencyPublicReviewsProps) => {
   const userContext = useUserContext()
   const user = userContext?.user
   const [name, setName] = useState(user?.fullName || '')
@@ -75,13 +74,12 @@ const AgencyPublicReviews = ({ slug, loading, data, onCreated }: AgencyPublicRev
 
     setSubmitting(true)
     try {
-      const created = await AgencyPublicService.createPublicReview(slug, {
+      await AgencyPublicService.createPublicReview(slug, {
         name: trimmedName,
         email: email.trim() || undefined,
         rating,
         comment: trimmedComment,
       })
-      onCreated(created)
       setComment('')
       setRating(5)
       setMessage(strings.REVIEW_SENT)

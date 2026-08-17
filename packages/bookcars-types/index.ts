@@ -276,17 +276,27 @@ export interface PublicAgencyCar {
   available?: boolean
 }
 
+export enum AgencyReviewStatus {
+  Pending = 'pending',
+  Approved = 'approved',
+  Rejected = 'rejected',
+}
+
 export interface AgencyReview {
   _id: string
   name: string
+  email?: string
   rating: number
   comment: string
+  status?: AgencyReviewStatus
   createdAt?: Date | string
 }
 
 export interface AgencyReviewList {
   average: number
   count: number
+  pendingCount?: number
+  rejectedCount?: number
   reviews: AgencyReview[]
 }
 
@@ -295,6 +305,10 @@ export interface CreateAgencyReviewPayload {
   email?: string
   rating: number
   comment: string
+}
+
+export interface ModerateAgencyReviewPayload {
+  status: AgencyReviewStatus.Approved | AgencyReviewStatus.Rejected
 }
 
 export interface LocalizedName {

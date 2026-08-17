@@ -3,18 +3,27 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@mui/material'
 import {
   ArrowForward,
-  DirectionsCarOutlined,
+  AssignmentOutlined,
+  DescriptionOutlined,
+  DrawOutlined,
+  FolderOpenOutlined,
   InsightsOutlined,
+  KeyOutlined,
+  NotificationsActiveOutlined,
   PaymentsOutlined,
+  RateReviewOutlined,
+  ReceiptLongOutlined,
   StorefrontOutlined,
   TaskAlt,
   TravelExploreOutlined,
   VerifiedOutlined,
 } from '@mui/icons-material'
 import { strings } from '@/lang/agency-showcase'
+import * as langHelper from '@/utils/langHelper'
 import Layout from '@/components/Layout'
 import Footer from '@/components/Footer'
-import Logo from '@/assets/img/logoWhite.png'
+import homeAgence from '@/assets/img/home-agence.png'
+import homeAgenceRtl from '@/assets/img/home-agence-rtl.png'
 
 import '@/assets/css/agency-showcase.css'
 
@@ -25,17 +34,26 @@ const AgencyShowcase = () => {
   const values = [
     { icon: TravelExploreOutlined, title: strings.VALUE_1_TITLE, text: strings.VALUE_1_TEXT },
     { icon: InsightsOutlined, title: strings.VALUE_2_TITLE, text: strings.VALUE_2_TEXT },
+    { icon: ReceiptLongOutlined, title: strings.VALUE_5_TITLE, text: strings.VALUE_5_TEXT, accent: true },
+    { icon: DescriptionOutlined, title: strings.VALUE_6_TITLE, text: strings.VALUE_6_TEXT, accent: true },
     { icon: VerifiedOutlined, title: strings.VALUE_3_TITLE, text: strings.VALUE_3_TEXT },
     { icon: StorefrontOutlined, title: strings.VALUE_4_TITLE, text: strings.VALUE_4_TEXT },
   ]
 
-  const steps = [
-    { n: '01', title: strings.STEP_1_TITLE, text: strings.STEP_1_TEXT },
-    { n: '02', title: strings.STEP_2_TITLE, text: strings.STEP_2_TEXT },
-    { n: '03', title: strings.STEP_3_TITLE, text: strings.STEP_3_TEXT },
+  const tools = [
+    { icon: DrawOutlined, title: strings.TOOL_1_TITLE, text: strings.TOOL_1_TEXT },
+    { icon: RateReviewOutlined, title: strings.TOOL_2_TITLE, text: strings.TOOL_2_TEXT },
+    { icon: FolderOpenOutlined, title: strings.TOOL_3_TITLE, text: strings.TOOL_3_TEXT },
+    { icon: PaymentsOutlined, title: strings.TOOL_4_TITLE, text: strings.TOOL_4_TEXT },
   ]
 
-  const offers = [strings.OFFER_1, strings.OFFER_2, strings.OFFER_3, strings.OFFER_4]
+  const steps = [
+    { n: '01', icon: AssignmentOutlined, title: strings.STEP_1_TITLE, text: strings.STEP_1_TEXT },
+    { n: '02', icon: KeyOutlined, title: strings.STEP_2_TITLE, text: strings.STEP_2_TEXT },
+    { n: '03', icon: NotificationsActiveOutlined, title: strings.STEP_3_TITLE, text: strings.STEP_3_TEXT },
+  ]
+
+  const offers = [strings.OFFER_1, strings.OFFER_2, strings.OFFER_3, strings.OFFER_4, strings.OFFER_5, strings.OFFER_6]
 
   useEffect(() => {
     const root = rootRef.current
@@ -62,13 +80,14 @@ const AgencyShowcase = () => {
 
   const goJoin = () => navigate('/sign-up?role=agency')
   const goLogin = () => navigate('/agency/sign-in')
+  const isAr = langHelper.getLanguage() === 'ar'
 
   return (
     <Layout strict={false}>
       <div className="vitrine" ref={rootRef}>
         <section className="vitrine-hero">
-          <div className="vitrine-orb vitrine-orb-a" aria-hidden />
-          <div className="vitrine-orb vitrine-orb-b" aria-hidden />
+          <img className="vitrine-hero-media" src={isAr ? homeAgenceRtl : homeAgence} alt="" />
+          <div className="vitrine-hero-shade" aria-hidden />
           <div className="vitrine-hero-inner">
             <p className="vitrine-kicker">{strings.EYEBROW}</p>
             <h1>{strings.HERO_TITLE}</h1>
@@ -80,17 +99,6 @@ const AgencyShowcase = () => {
               <Button variant="outlined" className="vitrine-ghost" onClick={goLogin}>
                 {strings.CTA_LOGIN}
               </Button>
-            </div>
-          </div>
-          <div className="vitrine-hero-card" aria-hidden>
-            <img src={Logo} alt="" />
-            <div className="vitrine-hero-card-bar">
-              <DirectionsCarOutlined />
-              <span />
-            </div>
-            <div className="vitrine-hero-card-bar">
-              <PaymentsOutlined />
-              <span />
             </div>
           </div>
         </section>
@@ -124,7 +132,11 @@ const AgencyShowcase = () => {
             {values.map((item, index) => {
               const Icon = item.icon
               return (
-                <article key={item.title} className="vitrine-value-card vitrine-reveal" style={{ animationDelay: `${index * 80}ms` }}>
+                <article
+                  key={item.title}
+                  className={`vitrine-value-card vitrine-reveal${item.accent ? ' is-accent' : ''}`}
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
                   <Icon />
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
@@ -132,20 +144,45 @@ const AgencyShowcase = () => {
               )
             })}
           </div>
+          <div className="vitrine-tools">
+            <p className="vitrine-tools-label">{strings.TOOLS_TITLE}</p>
+            <div className="vitrine-tools-grid">
+              {tools.map((item, index) => {
+                const Icon = item.icon
+                return (
+                  <article key={item.title} className="vitrine-tool vitrine-reveal" style={{ animationDelay: `${index * 70}ms` }}>
+                    <Icon />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
         </section>
 
         <section className="vitrine-block">
-          <header className="vitrine-heading vitrine-reveal">
+          <header className="vitrine-heading vitrine-steps-head vitrine-reveal">
+            <p className="vitrine-kicker">{strings.STEPS_KICKER}</p>
             <h2>{strings.STEPS_TITLE}</h2>
+            <p>{strings.STEPS_TEXT}</p>
           </header>
           <div className="vitrine-steps">
-            {steps.map((step) => (
-              <article key={step.n} className="vitrine-step vitrine-reveal">
-                <span>{step.n}</span>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </article>
-            ))}
+            {steps.map((step, index) => {
+              const Icon = step.icon
+              return (
+                <article key={step.n} className="vitrine-step vitrine-reveal" style={{ animationDelay: `${index * 90}ms` }}>
+                  <div className="vitrine-step-top">
+                    <span>{step.n}</span>
+                    <Icon />
+                  </div>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
+                </article>
+              )
+            })}
           </div>
         </section>
 

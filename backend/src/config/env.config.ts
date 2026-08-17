@@ -1067,6 +1067,7 @@ export interface AgencyReview extends Document {
   email?: string
   rating: number
   comment: string
+  status: bookcarsTypes.AgencyReviewStatus
   createdAt?: Date
   updatedAt?: Date
 }

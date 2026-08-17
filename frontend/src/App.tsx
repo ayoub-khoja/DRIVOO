@@ -59,6 +59,7 @@ const AgencyFleet = lazy(() => import('@/agency/pages/AgencyFleet'))
 const AgencyBranches = lazy(() => import('@/agency/pages/AgencyBranches'))
 const AgencyBookings = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyBookings })))
 const AgencyProfile = lazy(() => import('@/agency/pages/AgencyProfile'))
+const AgencyReviews = lazy(() => import('@/agency/pages/AgencyReviews'))
 
 const AppLayout = () => {
   const location = useLocation()
@@ -132,6 +133,7 @@ const router = createBrowserRouter([
       { path: 'fleet', element: <AgencyFleet /> },
       { path: 'agencies', element: <AgencyBranches /> },
       { path: 'bookings', element: <AgencyBookings /> },
+      { path: 'reviews', element: <AgencyReviews /> },
       { path: 'profile', element: <AgencyProfile /> },
       { path: '*', element: <NoMatch /> },
     ],

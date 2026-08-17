@@ -1,4 +1,5 @@
 import mongoose, { ConnectOptions, Model } from 'mongoose'
+import * as bookcarsTypes from ':bookcars-types'
 import * as env from '../config/env.config'
 import * as logger from './logger'
 import Booking, { BOOKING_EXPIRE_AT_INDEX_NAME } from '../models/Booking'
@@ -260,6 +261,11 @@ export const initialize = async (createIndexes: boolean = true): Promise<boolean
     }
 
     await Promise.all(models.map((model) => createCollection(model as Model<unknown>, createIndexes)))
+
+    await AgencyReview.updateMany(
+      { $or: [{ status: { $exists: false } }, { status: null }] },
+      { $set: { status: bookcarsTypes.AgencyReviewStatus.Approved } },
+    )
 
     //
     // Feature detection and conditional text index creation (backward compatible with older versions)

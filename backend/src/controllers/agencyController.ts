@@ -69,6 +69,34 @@ const findPublicAgency = async (slug?: string) => {
   })
 }
 
+const APPROVED_STATUS = { status: bookcarsTypes.AgencyReviewStatus.Approved }
+
+const toPublicReviewDto = (review: { _id: unknown, name: string, rating: number, comment: string, createdAt?: Date }) => ({
+  _id: String(review._id),
+  name: review.name,
+  rating: review.rating,
+  comment: review.comment,
+  createdAt: review.createdAt,
+})
+
+const toAgencyReviewDto = (review: {
+  _id: unknown
+  name: string
+  email?: string
+  rating: number
+  comment: string
+  status?: bookcarsTypes.AgencyReviewStatus
+  createdAt?: Date
+}) => ({
+  _id: String(review._id),
+  name: review.name,
+  email: review.email,
+  rating: review.rating,
+  comment: review.comment,
+  status: review.status || bookcarsTypes.AgencyReviewStatus.Pending,
+  createdAt: review.createdAt,
+})
+
 /**
  * List sub-agencies of the authenticated main agency.
  */
@@ -576,13 +604,13 @@ export const getPublicReviews = async (req: Request, res: Response) => {
     }
 
     const [reviews, stats] = await Promise.all([
-      AgencyReview.find({ agency: agency._id })
+      AgencyReview.find({ agency: agency._id, ...APPROVED_STATUS })
         .select({ name: 1, rating: 1, comment: 1, createdAt: 1 })
         .sort({ createdAt: -1 })
         .limit(80)
         .lean(),
       AgencyReview.aggregate<{ count: number, average: number }>([
-        { $match: { agency: agency._id } },
+        { $match: { agency: agency._id, ...APPROVED_STATUS } },
         { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } },
       ]),
     ])
@@ -590,7 +618,11 @@ export const getPublicReviews = async (req: Request, res: Response) => {
     const count = stats[0]?.count || 0
     const average = count ? Math.round((stats[0]?.average || 0) * 10) / 10 : 0
 
-    res.status(200).json({ average, count, reviews })
+    res.status(200).json({
+      average,
+      count,
+      reviews: reviews.map(toPublicReviewDto),
+    })
   } catch (err) {
     logger.error(`[agency.getPublicReviews] ${i18n.t('ERROR')} ${slug}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
@@ -637,17 +669,99 @@ export const createPublicReview = async (req: Request, res: Response) => {
       email: email || undefined,
       rating,
       comment,
+      status: bookcarsTypes.AgencyReviewStatus.Pending,
     })
 
     res.status(201).json({
-      _id: String(review._id),
-      name: review.name,
-      rating: review.rating,
-      comment: review.comment,
-      createdAt: review.createdAt,
+      ...toPublicReviewDto(review),
+      status: review.status,
     })
   } catch (err) {
     logger.error(`[agency.createPublicReview] ${i18n.t('ERROR')} ${slug}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * List reviews of the authenticated agency for moderation.
+ */
+export const getReviews = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const agencyId = sessionUser._id
+    const [reviews, groups] = await Promise.all([
+      AgencyReview.find({ agency: agencyId })
+        .select({ name: 1, email: 1, rating: 1, comment: 1, status: 1, createdAt: 1 })
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean(),
+      AgencyReview.aggregate<{ _id: string | null, count: number, average: number }>([
+        { $match: { agency: agencyId } },
+        { $group: { _id: '$status', count: { $sum: 1 }, average: { $avg: '$rating' } } },
+      ]),
+    ])
+
+    const countByStatus = (status: bookcarsTypes.AgencyReviewStatus) =>
+      groups.filter((group) => group._id === status).reduce((sum, group) => sum + group.count, 0)
+
+    const approved = groups.find((group) => group._id === bookcarsTypes.AgencyReviewStatus.Approved)
+    const count = approved?.count || 0
+    const average = count ? Math.round((approved?.average || 0) * 10) / 10 : 0
+
+    res.status(200).json({
+      average,
+      count,
+      pendingCount: countByStatus(bookcarsTypes.AgencyReviewStatus.Pending),
+      rejectedCount: countByStatus(bookcarsTypes.AgencyReviewStatus.Rejected),
+      reviews: reviews.map(toAgencyReviewDto),
+    })
+  } catch (err) {
+    logger.error(`[agency.getReviews] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Approve or reject a client review belonging to the authenticated agency.
+ */
+export const moderateReview = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { body }: { body: bookcarsTypes.ModerateAgencyReviewPayload } = req
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!helper.isValidObjectId(id)) {
+      res.status(400).send('Invalid review')
+      return
+    }
+
+    const status = body.status
+    if (status !== bookcarsTypes.AgencyReviewStatus.Approved && status !== bookcarsTypes.AgencyReviewStatus.Rejected) {
+      res.status(400).send('Invalid status')
+      return
+    }
+
+    const review = await AgencyReview.findOne({ _id: id, agency: sessionUser._id })
+    if (!review) {
+      res.sendStatus(404)
+      return
+    }
+
+    review.status = status
+    await review.save()
+    res.status(200).json(toAgencyReviewDto(review))
+  } catch (err) {
+    logger.error(`[agency.moderateReview] ${i18n.t('ERROR')} ${id}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }

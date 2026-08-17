@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   DirectionsCarFilledOutlined,
   ForumOutlined,
@@ -71,15 +71,6 @@ const AgencyPublicPanel = ({ slug, profile }: AgencyPublicPanelProps) => {
     }
   }, [slug])
 
-  const onCreated = useCallback((review: bookcarsTypes.AgencyReview) => {
-    setReviews((prev) => {
-      const list = [review, ...(prev?.reviews || [])]
-      const count = list.length
-      const average = Math.round((list.reduce((sum, item) => sum + item.rating, 0) / count) * 10) / 10
-      return { average, count, reviews: list }
-    })
-  }, [])
-
   const tabs = useMemo(() => ([
     { id: 'cars' as const, label: strings.TAB_CARS, icon: <DirectionsCarFilledOutlined />, count: profile.carCount },
     { id: 'about' as const, label: strings.TAB_ABOUT, icon: <InfoOutlined /> },
@@ -138,7 +129,6 @@ const AgencyPublicPanel = ({ slug, profile }: AgencyPublicPanelProps) => {
             slug={slug}
             loading={reviewsLoading}
             data={reviews}
-            onCreated={onCreated}
           />
         )}
       </div>

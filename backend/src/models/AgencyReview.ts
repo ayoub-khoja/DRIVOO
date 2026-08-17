@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose'
+import * as bookcarsTypes from ':bookcars-types'
 import * as env from '../config/env.config'
 
 const agencyReviewSchema = new Schema<env.AgencyReview>(
@@ -36,6 +37,16 @@ const agencyReviewSchema = new Schema<env.AgencyReview>(
       trim: true,
       maxlength: 800,
     },
+    status: {
+      type: String,
+      enum: [
+        bookcarsTypes.AgencyReviewStatus.Pending,
+        bookcarsTypes.AgencyReviewStatus.Approved,
+        bookcarsTypes.AgencyReviewStatus.Rejected,
+      ],
+      default: bookcarsTypes.AgencyReviewStatus.Pending,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -45,6 +56,7 @@ const agencyReviewSchema = new Schema<env.AgencyReview>(
 )
 
 agencyReviewSchema.index({ agency: 1, createdAt: -1 })
+agencyReviewSchema.index({ agency: 1, status: 1, createdAt: -1 })
 agencyReviewSchema.index(
   { agency: 1, email: 1 },
   {

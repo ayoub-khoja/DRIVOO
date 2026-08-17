@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   DirectionsCarOutlined,
   EventNoteOutlined,
@@ -10,10 +10,28 @@ import { Button } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
+import * as AgencyReviewService from '@/agency/services/AgencyReviewService'
 
 const AgencyDashboard = () => {
   const { agency } = useAgencyContext()
   const approved = agency?.agencyApproved !== false
+  const [rating, setRating] = useState<string>('—')
+  const [pendingCount, setPendingCount] = useState(0)
+
+  const loadRating = useCallback(async () => {
+    try {
+      const data = await AgencyReviewService.getReviews()
+      setRating(data.count ? data.average.toFixed(1) : '—')
+      setPendingCount(data.pendingCount || 0)
+    } catch {
+      setRating('—')
+      setPendingCount(0)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadRating()
+  }, [loadRating])
 
   return (
     <div className="agency-page">
@@ -32,6 +50,21 @@ const AgencyDashboard = () => {
           <div>
             <h3>{strings.PENDING_TITLE}</h3>
             <p>{strings.PENDING_TEXT}</p>
+          </div>
+        </div>
+      )}
+
+      {pendingCount > 0 && (
+        <div className="agency-pending">
+          <div className="agency-pending-pulse" aria-hidden />
+          <div>
+            <h3>{strings.REVIEWS}</h3>
+            <p>{strings.REVIEWS_PENDING_HINT.replace('{0}', String(pendingCount))}</p>
+            <div className="agency-actions">
+              <Button component={Link} to="/agency/reviews" variant="contained" className="btn-primary">
+                {strings.ACTION_REVIEWS}
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -58,13 +91,13 @@ const AgencyDashboard = () => {
             <strong>0 TND</strong>
           </div>
         </article>
-        <article className="agency-stat" style={{ animationDelay: '0.26s' }}>
+        <Link to="/agency/reviews" className="agency-stat agency-stat-link" style={{ animationDelay: '0.26s' }}>
           <StarOutline />
           <div>
             <span>{strings.STAT_RATING}</span>
-            <strong>—</strong>
+            <strong>{rating}</strong>
           </div>
-        </article>
+        </Link>
       </div>
 
       <div className="agency-grid">

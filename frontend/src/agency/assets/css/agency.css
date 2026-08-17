@@ -1235,3 +1235,177 @@
     align-items: stretch;
   }
 }
+
+/* Reviews */
+.agency-stat-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.agency-stat-link:hover {
+  border-color: #f5a623;
+  box-shadow: 0 10px 28px rgb(245 166 35 / 16%);
+}
+
+.agency-review-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.agency-review-inline-error {
+  margin: 0;
+  color: #b42318;
+  font-weight: 600;
+}
+
+.agency-review-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.agency-review-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid #d5deea;
+  border-radius: 999px;
+  background: #fff;
+  color: #3d4f66;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.agency-review-filters button em {
+  font-style: normal;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #eef3f8;
+  font-size: 0.78rem;
+}
+
+.agency-review-filters button.is-active {
+  background: #0b1626;
+  border-color: #0b1626;
+  color: #fff;
+}
+
+.agency-review-filters button.is-active em {
+  background: rgb(255 255 255 / 16%);
+}
+
+.agency-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.agency-review-card {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 8px 24px rgb(11 22 38 / 5%);
+}
+
+.agency-review-card.is-pending {
+  border-color: rgb(245 166 35 / 45%);
+  background: linear-gradient(180deg, rgb(245 166 35 / 8%), #fff 42%);
+}
+
+.agency-review-avatar {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: #0b1626;
+  color: #fff;
+  font-weight: 800;
+}
+
+.agency-review-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.agency-review-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.agency-review-meta strong {
+  display: block;
+  color: #0b1626;
+}
+
+.agency-review-meta time {
+  color: #6b7c91;
+  font-size: 0.82rem;
+}
+
+.agency-review-body p {
+  margin: 0;
+  color: #3d4f66;
+  line-height: 1.55;
+}
+
+.agency-review-chip {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.agency-review-chip.is-pending {
+  background: rgb(245 166 35 / 16%);
+  color: #9a5b00;
+}
+
+.agency-review-chip.is-approved {
+  background: rgb(21 115 71 / 12%);
+  color: #157347;
+}
+
+.agency-review-chip.is-rejected {
+  background: rgb(180 35 24 / 10%);
+  color: #b42318;
+}
+
+.agency-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .agency-review-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .agency-review-card {
+    grid-template-columns: 1fr;
+  }
+
+  .agency-review-meta {
+    flex-direction: column;
+  }
+}

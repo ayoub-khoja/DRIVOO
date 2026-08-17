@@ -24,6 +24,8 @@ routes.route(routeNames.updateLogo).post(authJwt.verifyToken, authJwt.authSuppli
 }, agencyController.updateLogo)
 routes.route(routeNames.deleteLogo).delete(authJwt.verifyToken, authJwt.authSupplier, agencyController.deleteLogo)
 routes.route(routeNames.getShareLink).get(authJwt.verifyToken, authJwt.authSupplier, agencyController.getShareLink)
+routes.route(routeNames.getReviews).get(authJwt.verifyToken, authJwt.authSupplier, agencyController.getReviews)
+routes.route(routeNames.moderateReview).put(authJwt.verifyToken, authJwt.authSupplier, agencyController.moderateReview)
 routes.route(routeNames.getPublicCars).get(agencyController.getPublicCars)
 routes.route(routeNames.getPublicReviews).get(agencyController.getPublicReviews)
 routes.route(routeNames.createPublicReview).post(agencyController.createPublicReview)
