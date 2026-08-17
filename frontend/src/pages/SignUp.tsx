@@ -145,6 +145,11 @@ const SignUp = () => {
     } else {
       setLanguage(UserService.getLanguage())
       setVisible(true)
+      const roleParam = new URLSearchParams(window.location.search).get('role')
+      if (roleParam === 'agency') {
+        setRole(bookcarsTypes.UserType.Supplier)
+        setActiveStep(1)
+      }
     }
   }
 

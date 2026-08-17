@@ -14,6 +14,10 @@
   z-index: 1401 !important;
 }
 
+.menu .MuiPaper-root {
+  overflow: visible !important;
+}
+
 .menu div.language,
 .btn div.language {
   display: flex;
@@ -69,6 +73,19 @@
 
 .header .btn-auth span.btn-auth-txt {
   white-space: nowrap;
+}
+
+.header .header-agency-btn {
+  border: 1px solid rgb(255 255 255 / 18%) !important;
+  border-radius: 999px !important;
+  padding-inline: 14px !important;
+}
+
+.header .header-agency-btn:hover,
+.header .header-agency-btn.is-client {
+  background: var(--drivoo-yellow) !important;
+  color: #101820 !important;
+  border-color: var(--drivoo-yellow) !important;
 }
 
 .header .logo {

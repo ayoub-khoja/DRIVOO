@@ -6,6 +6,7 @@ import {
   EventNoteOutlined,
   LogoutOutlined,
   PersonOutline,
+  ApartmentOutlined,
 } from '@mui/icons-material'
 import { Button, CircularProgress } from '@mui/material'
 import env from '@/config/env.config'
@@ -23,6 +24,7 @@ const AgencyShell = () => {
   const isSignIn = location.pathname.endsWith('/sign-in')
   const isActivate = location.pathname.includes('/activate')
   const isPublic = isSignIn || isActivate
+  const isMainAgency = !!agency && !agency.parentAgency
 
   React.useEffect(() => {
     if (!agencyLoaded || isPublic) {
@@ -75,6 +77,12 @@ const AgencyShell = () => {
             <EventNoteOutlined />
             <span>{strings.BOOKINGS}</span>
           </NavLink>
+          {isMainAgency && (
+            <NavLink to="/agency/agencies" className={({ isActive }) => (isActive ? 'active' : '')}>
+              <ApartmentOutlined />
+              <span>{strings.BRANCHES}</span>
+            </NavLink>
+          )}
           <NavLink to="/agency/profile" className={({ isActive }) => (isActive ? 'active' : '')}>
             <PersonOutline />
             <span>{strings.PROFILE}</span>

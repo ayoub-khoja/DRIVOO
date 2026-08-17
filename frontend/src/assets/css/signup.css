@@ -295,6 +295,10 @@ div.signup .signup-span-2 {
   grid-column: 1 / -1;
 }
 
+div.signup .signup-grid-2 .MuiAutocomplete-root {
+  width: 100%;
+}
+
 div.signup .signup-upload {
   margin: 12px 0 8px;
   padding: 14px;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   AppBar,
   Toolbar,
@@ -33,6 +33,7 @@ import {
   QuestionAnswer as FaqIcon,
   PersonOutline as SignUpIcon,
   Cookie as CookiePolicyIcon,
+  StorefrontOutlined as AgencyHubIcon,
 } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { CircleFlag } from 'react-circle-flags'
@@ -66,6 +67,8 @@ const Header = ({
   headerTitle,
 }: HeaderProps) => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const isAgencyHub = location.pathname.startsWith('/espace-agence')
 
   const { user } = useUserContext() as UserContextType
   const { notificationCount } = useNotificationContext() as NotificationContextType
@@ -234,16 +237,20 @@ const Header = ({
   }
 
   const menuId = 'primary-account-menu'
+  const headerMenuProps = {
+    anchorOrigin: { vertical: 'bottom', horizontal: 'right' } as const,
+    transformOrigin: { vertical: 'top', horizontal: 'right' } as const,
+    disableScrollLock: true,
+  }
+
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       id={menuId}
-      keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isMenuOpen}
       onClose={handleMenuClose}
       className="menu"
+      {...headerMenuProps}
     >
       <MenuItem onClick={handleSettingsClick}>
         <SettingsIcon className="header-action" />
@@ -260,13 +267,11 @@ const Header = ({
   const renderMobileMenu = (
     <Menu
       anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
       className="menu"
+      {...headerMenuProps}
     >
       <MenuItem onClick={handleSettingsClick}>
         <SettingsIcon className="header-action" />
@@ -291,13 +296,11 @@ const Header = ({
   const renderLanguageMenu = (
     <Menu
       anchorEl={langAnchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       id={languageMenuId}
-      keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isLangMenuOpen}
       onClose={handleLangMenuClose}
       className="menu"
+      {...headerMenuProps}
     >
       {
         env._LANGUAGES.map((language) => (
@@ -316,13 +319,11 @@ const Header = ({
   const renderCurrencyMenu = (
     <Menu
       anchorEl={currencyAnchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       id={currencyMenuId}
-      keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isCurrencyMenuOpen}
       onClose={handleCurrencyMenuClose}
       className="menu"
+      {...headerMenuProps}
     >
       {
         env.CURRENCIES.map((_currency) => (
@@ -363,6 +364,15 @@ const Header = ({
                 >
                   <ListItemIcon><HomeIcon /></ListItemIcon>
                   <ListItemText primary={strings.HOME} />
+                </ListItem>
+                <ListItem
+                  onClick={() => {
+                    navigate(isAgencyHub ? '/' : '/espace-agence')
+                    handleSideMenuClose()
+                  }}
+                >
+                  <ListItemIcon>{isAgencyHub ? <SignUpIcon /> : <AgencyHubIcon />}</ListItemIcon>
+                  <ListItemText primary={isAgencyHub ? strings.CLIENT_HUB : strings.AGENCY_HUB} />
                 </ListItem>
                 {isSignedIn && (
                   <ListItem
@@ -477,6 +487,17 @@ const Header = ({
             {(env.isMobile || !headerTitle) && <div style={classes.grow} />}
             <div className="header-desktop">
               {isLoaded && (
+                <Button
+                  variant="contained"
+                  startIcon={isAgencyHub ? <SignUpIcon /> : <AgencyHubIcon />}
+                  onClick={() => navigate(isAgencyHub ? '/' : '/espace-agence')}
+                  disableElevation
+                  className={`btn btn-auth header-agency-btn${isAgencyHub ? ' is-client' : ''}`}
+                >
+                  <span className="btn-auth-txt">{isAgencyHub ? strings.CLIENT_HUB : strings.AGENCY_HUB}</span>
+                </Button>
+              )}
+              {isLoaded && (
                 <Button variant="contained" onClick={handleCurrencyMenuOpen} disableElevation className="btn bold">
                   {PaymentService.getCurrency()}
                 </Button>
@@ -512,6 +533,9 @@ const Header = ({
               )}
             </div>
             <div className="header-mobile">
+              <IconButton className="btn" onClick={() => navigate(isAgencyHub ? '/' : '/espace-agence')} aria-label={isAgencyHub ? strings.CLIENT_HUB : strings.AGENCY_HUB}>
+                {isAgencyHub ? <SignUpIcon /> : <AgencyHubIcon />}
+              </IconButton>
               <Button variant="contained" onClick={handleCurrencyMenuOpen} disableElevation fullWidth className="btn bold">
                 {PaymentService.getCurrency()}
               </Button>

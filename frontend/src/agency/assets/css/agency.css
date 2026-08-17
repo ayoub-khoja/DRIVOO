@@ -12,11 +12,8 @@
 
 .agency-app {
   min-height: 100vh;
-  background:
-    radial-gradient(1200px 600px at 10% -10%, rgb(245 166 35 / 18%), transparent 55%),
-    radial-gradient(900px 500px at 100% 0%, rgb(46 110 180 / 22%), transparent 50%),
-    linear-gradient(160deg, #0b1626 0%, #12233a 48%, #0e1a2c 100%);
-  color: #f4f7fb;
+  background: #fff;
+  color: #12233a;
   font-family: var(--drivoo-font-body, 'Segoe UI', sans-serif);
 }
 
@@ -31,9 +28,11 @@
   flex-direction: column;
   gap: 28px;
   padding: 28px 20px;
-  background: rgb(8 16 28 / 92%);
+  color: #f4f7fb;
+  background:
+    radial-gradient(900px 480px at 10% -20%, rgb(245 166 35 / 16%), transparent 55%),
+    linear-gradient(180deg, #08101c 0%, #0b1626 100%);
   border-right: 1px solid rgb(255 255 255 / 10%);
-  backdrop-filter: blur(16px);
   overflow-y: auto;
 }
 
@@ -42,6 +41,8 @@
   padding: 28px 36px 40px;
   overflow-x: hidden;
   min-height: 100vh;
+  background: #fff;
+  color: #12233a;
 }
 
 .agency-brand {
@@ -61,6 +62,7 @@
   font-family: var(--drivoo-font-display, Georgia, serif);
   font-weight: 800;
   letter-spacing: 0.02em;
+  color: #fff;
 }
 
 .agency-nav {
@@ -140,7 +142,7 @@
   margin: 0;
   font-family: var(--drivoo-font-display, Georgia, serif);
   font-weight: 800;
-  color: #fff;
+  color: #0b1626;
 }
 
 .agency-topbar h1 {
@@ -157,15 +159,15 @@
 }
 
 .agency-status-chip.is-pending {
-  background: rgb(245 166 35 / 16%);
-  color: #ffc766;
-  border: 1px solid rgb(245 166 35 / 35%);
+  background: rgb(245 166 35 / 14%);
+  color: #b36b00;
+  border: 1px solid rgb(245 166 35 / 38%);
 }
 
 .agency-status-chip.is-live {
-  background: rgb(46 204 113 / 16%);
-  color: #7dffb0;
-  border: 1px solid rgb(46 204 113 / 35%);
+  background: rgb(46 204 113 / 12%);
+  color: #157347;
+  border: 1px solid rgb(46 204 113 / 32%);
 }
 
 .agency-page {
@@ -180,9 +182,10 @@
   border-radius: 24px;
   padding: 32px;
   background:
-    linear-gradient(120deg, rgb(18 36 58 / 88%), rgb(14 28 46 / 72%)),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 40 40"><circle cx="2" cy="2" r="1.2" fill="rgba(255,255,255,0.08)"/></svg>');
-  border: 1px solid rgb(255 255 255 / 10%);
+    linear-gradient(120deg, #fff8ee, #ffffff 55%),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 40 40"><circle cx="2" cy="2" r="1.2" fill="rgba(11,22,38,0.06)"/></svg>');
+  border: 1px solid #eadfcb;
+  box-shadow: 0 12px 32px rgb(11 22 38 / 5%);
   animation: agency-fade-up 0.65s ease both;
 }
 
@@ -202,7 +205,7 @@
 .agency-pending p,
 .agency-page-head p {
   margin: 0;
-  color: #b7c5d8;
+  color: #5b6b80;
   line-height: 1.55;
 }
 
@@ -213,7 +216,7 @@
   width: 260px;
   height: 260px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(245 166 35 / 45%), transparent 68%);
+  background: radial-gradient(circle, rgb(245 166 35 / 32%), transparent 68%);
   animation: agency-float 7s ease-in-out infinite;
 }
 
@@ -253,8 +256,9 @@
   align-items: center;
   padding: 18px;
   border-radius: 18px;
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 10%);
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 8px 24px rgb(11 22 38 / 5%);
   animation: agency-fade-up 0.7s ease both;
 }
 
@@ -265,7 +269,7 @@
 
 .agency-stat span {
   display: block;
-  color: #9eb0c7;
+  color: #6b7c91;
   font-size: 0.82rem;
   margin-bottom: 4px;
 }
@@ -273,6 +277,7 @@
 .agency-stat strong {
   font-size: 1.35rem;
   font-family: var(--drivoo-font-display, Georgia, serif);
+  color: #0b1626;
 }
 
 .agency-grid {
@@ -284,8 +289,9 @@
 .agency-panel {
   padding: 24px;
   border-radius: 20px;
-  background: rgb(255 255 255 / 4%);
-  border: 1px solid rgb(255 255 255 / 10%);
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 8px 24px rgb(11 22 38 / 5%);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -294,8 +300,7 @@
 
 .agency-panel-accent {
   background:
-    linear-gradient(145deg, rgb(245 166 35 / 14%), rgb(255 255 255 / 3%) 45%),
-    rgb(255 255 255 / 4%);
+    linear-gradient(145deg, rgb(245 166 35 / 12%), #fff 45%);
 }
 
 .agency-actions {
@@ -303,6 +308,11 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 8px;
+}
+
+.agency-page .MuiButton-outlined {
+  color: #12233a !important;
+  border-color: #c5d0de !important;
 }
 
 .agency-page-head h2 {
@@ -315,8 +325,8 @@
   display: grid;
   place-items: center;
   border-radius: 22px;
-  border: 1px dashed rgb(255 255 255 / 18%);
-  background: rgb(255 255 255 / 3%);
+  border: 1px dashed #d5deea;
+  background: #f8fafc;
   overflow: hidden;
 }
 
@@ -620,15 +630,16 @@
 .agency-fleet-card {
   overflow: hidden;
   border-radius: 18px;
-  background: rgb(255 255 255 / 4%);
-  border: 1px solid rgb(255 255 255 / 10%);
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 8px 24px rgb(11 22 38 / 5%);
 }
 
 .agency-fleet-card-media {
   height: 150px;
   display: grid;
   place-items: center;
-  background: rgb(0 0 0 / 25%);
+  background: #f4f7fb;
   color: #f5a623;
 }
 
@@ -645,12 +656,12 @@
 .agency-fleet-card-body h3 {
   margin: 0 0 4px;
   font-size: 1.05rem;
-  color: #fff;
+  color: #0b1626;
 }
 
 .agency-fleet-card-body p {
   margin: 0 0 10px;
-  color: #9eb0c7;
+  color: #5b6b80;
   font-size: 0.9rem;
 }
 
@@ -663,11 +674,11 @@
 }
 
 .agency-fleet-card-meta .is-live {
-  color: #7dffb0;
+  color: #157347;
 }
 
 .agency-fleet-card-meta .is-pending {
-  color: #ffc766;
+  color: #b36b00;
 }
 
 /* Add car stepper dialog */
@@ -819,5 +830,408 @@
 
   .agency-car-span-2 {
     grid-column: span 1;
+  }
+}
+
+.agency-search {
+  max-width: 420px;
+  background: #fff;
+  border-radius: 12px !important;
+}
+
+.agency-search .MuiOutlinedInput-notchedOutline {
+  border-color: #e6ebf2 !important;
+}
+
+.agency-branch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.agency-branch-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 8px 24px rgb(11 22 38 / 5%);
+}
+
+.agency-branch-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agency-branch-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgb(245 166 35 / 14%);
+  color: #b36b00;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.agency-branch-card h3 {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
+  color: #0b1626;
+}
+
+.agency-branch-card p,
+.agency-branch-card-meta {
+  margin: 0;
+  color: #5b6b80;
+  font-size: 0.9rem;
+}
+
+.agency-branch-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agency-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #5b6b80;
+  font-size: 0.9rem;
+}
+
+.agency-pager-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agency-branch-dialog .MuiPaper-root {
+  background: #fff !important;
+  color: #12233a !important;
+  border: 1px solid #e6ebf2;
+  border-radius: 20px !important;
+}
+
+.agency-branch-dialog-content {
+  padding: 24px !important;
+}
+
+.agency-branch-dialog .agency-car-dialog-head h2 {
+  color: #0b1626;
+}
+
+.agency-branch-dialog .agency-car-dialog-head p {
+  color: #5b6b80;
+}
+
+.agency-branch-form .MuiInputLabel-root,
+.agency-branch-form .MuiOutlinedInput-root,
+.agency-branch-form .MuiFormHelperText-root {
+  color: #12233a;
+}
+
+.agency-branch-form .MuiOutlinedInput-notchedOutline {
+  border-color: #c5d0de;
+}
+
+.agency-logo-card,
+.agency-profile-panel,
+.agency-profile-meta {
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgb(11 22 38 / 5%);
+}
+
+.agency-logo-card {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 22px;
+}
+
+.agency-share-panel {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-left: 20px;
+  border-left: 1px solid #e6ebf2;
+  min-width: 0;
+}
+
+.agency-share-qr {
+  width: 120px;
+  height: 120px;
+  padding: 6px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  border-radius: 16px;
+}
+
+.agency-share-qr svg {
+  width: 100%;
+  height: 100%;
+}
+
+.agency-share-qr-ghost {
+  width: 84px;
+  height: 84px;
+  border-radius: 8px;
+  background: #f3f6fb;
+}
+
+.agency-share-copy {
+  min-width: 0;
+}
+
+.agency-share-kicker {
+  margin: 0 0 2px;
+  color: #f5a623;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.agency-share-copy strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #0b1626;
+  font-size: 0.92rem;
+}
+
+.agency-share-url {
+  display: block;
+  max-width: 210px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #6b7c91;
+  font-size: 0.78rem;
+}
+
+.agency-share-actions {
+  display: flex;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.agency-share-actions .MuiIconButton-root {
+  color: #0b1626;
+}
+
+.agency-share-pending {
+  display: block;
+  margin-top: 6px;
+  color: #b36b00;
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
+.agency-logo-preview {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  flex-shrink: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #fff8ee, #f3f6fb);
+  border: 1px dashed #f5a623;
+  color: #b36b00;
+  font-size: 2.4rem;
+  font-weight: 800;
+}
+
+.agency-logo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
+.agency-logo-preview.is-busy img,
+.agency-logo-preview.is-busy span {
+  opacity: 0.45;
+}
+
+.agency-logo-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 55%);
+}
+
+.agency-logo-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.agency-logo-copy h3,
+.agency-profile-panel h3 {
+  margin: 0 0 6px;
+  color: #0b1626;
+}
+
+.agency-logo-copy p {
+  margin: 0 0 14px;
+  color: #5b6b80;
+}
+
+.agency-logo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.agency-field-error {
+  display: block;
+  margin-top: 8px;
+  color: #c62828;
+  font-style: normal;
+  font-size: 0.85rem;
+}
+
+.agency-profile-meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  overflow: hidden;
+}
+
+.agency-profile-meta article {
+  padding: 18px 20px;
+  border-right: 1px solid #e6ebf2;
+}
+
+.agency-profile-meta article:last-child {
+  border-right: none;
+}
+
+.agency-profile-meta span {
+  display: block;
+  margin-bottom: 6px;
+  color: #6b7c91;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.agency-profile-meta strong {
+  color: #0b1626;
+  font-size: 0.98rem;
+  word-break: break-word;
+}
+
+.agency-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.agency-profile-panel {
+  padding: 22px;
+}
+
+.agency-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.agency-profile-span-2 {
+  grid-column: span 2;
+}
+
+.agency-profile-save {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.agency-profile-ok {
+  margin: 0;
+  color: #157347;
+  font-weight: 600;
+}
+
+.agency-profile-form .MuiInputLabel-root,
+.agency-profile-form .MuiOutlinedInput-root,
+.agency-profile-form .MuiFormHelperText-root {
+  color: #12233a;
+}
+
+.agency-profile-form .MuiOutlinedInput-notchedOutline {
+  border-color: #c5d0de;
+}
+
+@media (max-width: 900px) {
+  .agency-logo-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .agency-share-panel {
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: 16px;
+    border-left: none;
+    border-top: 1px solid #e6ebf2;
+    width: 100%;
+  }
+
+  .agency-profile-meta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .agency-profile-meta article:nth-child(2n) {
+    border-right: none;
+  }
+
+  .agency-profile-meta article:nth-child(-n + 2) {
+    border-bottom: 1px solid #e6ebf2;
+  }
+}
+
+@media (max-width: 700px) {
+  .agency-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agency-profile-span-2 {
+    grid-column: span 1;
+  }
+
+  .agency-profile-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .agency-profile-meta article {
+    border-right: none;
+    border-bottom: 1px solid #e6ebf2;
+  }
+
+  .agency-profile-meta article:last-child {
+    border-bottom: none;
+  }
+
+  .agency-profile-save {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
