@@ -1053,6 +1053,25 @@ export interface Setting extends Document {
 }
 
 /**
+ * AgencyReview Document.
+ *
+ * @export
+ * @interface AgencyReview
+ * @typedef {AgencyReview}
+ * @extends {Document}
+ */
+export interface AgencyReview extends Document {
+  agency: Types.ObjectId
+  user?: Types.ObjectId
+  name: string
+  email?: string
+  rating: number
+  comment: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+/**
  * Allowed driver's license file extensions.
  *
  * @type {string[]}

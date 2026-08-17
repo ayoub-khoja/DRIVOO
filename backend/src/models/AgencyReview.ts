@@ -1,17 +1,7 @@
 import { Schema, model } from 'mongoose'
+import * as env from '../config/env.config'
 
-export interface AgencyReview {
-  agency: Schema.Types.ObjectId
-  user?: Schema.Types.ObjectId
-  name: string
-  email?: string
-  rating: number
-  comment: string
-  createdAt?: Date
-  updatedAt?: Date
-}
-
-const agencyReviewSchema = new Schema<AgencyReview>(
+const agencyReviewSchema = new Schema<env.AgencyReview>(
   {
     agency: {
       type: Schema.Types.ObjectId,
@@ -64,6 +54,6 @@ agencyReviewSchema.index(
   },
 )
 
-const AgencyReviewModel = model<AgencyReview>('AgencyReview', agencyReviewSchema)
+const AgencyReview = model<env.AgencyReview>('AgencyReview', agencyReviewSchema)
 
-export default AgencyReviewModel
+export default AgencyReview
