@@ -190,6 +190,16 @@ const userSchema = new Schema<env.User>(
       default: false,
       index: true,
     },
+    parentAgency: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      index: true,
+    },
+    profileSlug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
     expireAt: {
       //
       // Non verified and active users created from checkout with Stripe are temporary and
@@ -211,6 +221,8 @@ userSchema.index({ type: 1, expireAt: 1, fullName: 1 })
 userSchema.index({ type: 1, expireAt: 1, email: 1 })
 userSchema.index({ type: 1, expireAt: 1, fullName: 1, _id: 1 })
 userSchema.index({ type: 1, expireAt: 1, email: 1, _id: 1 })
+userSchema.index({ parentAgency: 1, type: 1, expireAt: 1, fullName: 1 })
+userSchema.index({ profileSlug: 1 }, { unique: true, sparse: true })
 
 const User = model<env.User>('User', userSchema)
 

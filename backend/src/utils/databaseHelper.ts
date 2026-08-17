@@ -15,6 +15,7 @@ import ParkingSpot from '../models/ParkingSpot'
 import AdditionalDriver from '../models/AdditionalDriver'
 import BankDetails from '../models/BankDetails'
 import DateBasedPrice from '../models/DateBasedPrice'
+import AgencyReview from '../models/AgencyReview'
 import * as databaseTTLHelper from './databaseTTLHelper'
 import * as databaseLangHelper from './databaseLangHelper'
 import * as settingController from '../controllers/settingController'
@@ -212,6 +213,7 @@ const defineModels = <T extends readonly unknown[]>(models: T) => models
  */
 export const models = defineModels([
   AdditionalDriver,
+  AgencyReview,
   BankDetails,
   Booking,
   Car,
@@ -246,6 +248,17 @@ export const initialize = async (createIndexes: boolean = true): Promise<boolean
     //
     // Create collections
     //
+    try {
+      await AgencyReview.collection.dropIndex('agency_1_email_1')
+      logger.info('Dropped obsolete index AgencyReview.agency_1_email_1')
+    } catch (err: unknown) {
+      const codeName = (err as { codeName?: string })?.codeName
+      if (codeName !== 'IndexNotFound' && codeName !== 'NamespaceNotFound') {
+        logger.error('Failed to drop obsolete AgencyReview.agency_1_email_1 index:', err)
+        throw err
+      }
+    }
+
     await Promise.all(models.map((model) => createCollection(model as Model<unknown>, createIndexes)))
 
     //

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import {
+  Autocomplete,
   Button,
   Dialog,
   DialogActions,
@@ -10,6 +11,7 @@ import {
   OutlinedInput,
   Checkbox,
   Link,
+  TextField,
 } from '@mui/material'
 import {
   CheckCircleOutline as CheckCircleOutlineIcon,
@@ -23,6 +25,8 @@ import * as bookcarsTypes from ':bookcars-types'
 import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/sign-up'
 import * as UserService from '@/services/UserService'
+import * as GeoService from '@/services/GeoService'
+import * as langHelper from '@/utils/langHelper'
 import * as helper from '@/utils/helper'
 import Error from '@/components/Error'
 import {
@@ -69,7 +73,12 @@ const SupplierSignupWizard = ({
   const [uploading, setUploading] = useState(false)
   const [fileLabel, setFileLabel] = useState('')
   const [successOpen, setSuccessOpen] = useState(false)
+  const [cities, setCities] = useState<bookcarsTypes.GeoCity[]>([])
+  const [municipalities, setMunicipalities] = useState<bookcarsTypes.GeoMunicipality[]>([])
+  const [selectedCityId, setSelectedCityId] = useState<number | null>(null)
+  const [geoError, setGeoError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const language = langHelper.getLanguage()
 
   React.useEffect(() => {
     if (completed) {
@@ -108,6 +117,29 @@ const SupplierSignupWizard = ({
 
   const { register, formState: { errors, isSubmitting }, setValue, clearErrors, setError, getValues, trigger, watch } = form
   const rneDocument = watch('rneDocument')
+  const governorate = watch('governorate')
+  const city = watch('city')
+
+  React.useEffect(() => {
+    let cancelled = false
+    const loadGeo = async () => {
+      try {
+        const catalog = await GeoService.getTunisiaCatalog()
+        if (!cancelled) {
+          setCities(catalog.cities)
+          setMunicipalities(catalog.municipalities)
+        }
+      } catch {
+        if (!cancelled) {
+          setGeoError(strings.GEO_LOAD_ERROR)
+        }
+      }
+    }
+    void loadGeo()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const validateStep = async () => {
     if (step === 0) {
@@ -382,16 +414,54 @@ const SupplierSignupWizard = ({
                 <OutlinedInput type="text" {...register('address')} label={strings.ADDRESS} required />
                 <FormHelperText error={!!errors.address}>{errors.address?.message || ''}</FormHelperText>
               </FormControl>
-              <FormControl fullWidth margin="dense" error={!!errors.city}>
-                <InputLabel className="required">{strings.CITY}</InputLabel>
-                <OutlinedInput type="text" {...register('city')} label={strings.CITY} required />
-                <FormHelperText error={!!errors.city}>{errors.city?.message || ''}</FormHelperText>
-              </FormControl>
               <FormControl fullWidth margin="dense" error={!!errors.governorate}>
-                <InputLabel className="required">{strings.GOVERNORATE}</InputLabel>
-                <OutlinedInput type="text" {...register('governorate')} label={strings.GOVERNORATE} required />
-                <FormHelperText error={!!errors.governorate}>{errors.governorate?.message || ''}</FormHelperText>
+                <Autocomplete
+                  options={cities}
+                  value={cities.find((item) => GeoService.getGeoLabel(item.names, language) === governorate) || null}
+                  getOptionLabel={(option) => GeoService.getGeoLabel(option.names, language)}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  onChange={(_event, nextCity) => {
+                    setSelectedCityId(nextCity?.id ?? null)
+                    setValue('governorate', nextCity ? GeoService.getGeoLabel(nextCity.names, language) : '', { shouldValidate: true })
+                    setValue('city', '', { shouldValidate: true })
+                    clearErrors(['governorate', 'city'])
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={strings.GOVERNORATE}
+                      required
+                      error={!!errors.governorate}
+                      helperText={errors.governorate?.message || ''}
+                    />
+                  )}
+                />
               </FormControl>
+              <FormControl fullWidth margin="dense" error={!!errors.city}>
+                <Autocomplete
+                  options={selectedCityId
+                    ? municipalities.filter((item) => item.cityId === selectedCityId)
+                    : []}
+                  disabled={!selectedCityId}
+                  value={municipalities.find((item) => item.cityId === selectedCityId && GeoService.getGeoLabel(item.names, language) === city) || null}
+                  getOptionLabel={(option) => GeoService.getGeoLabel(option.names, language)}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  onChange={(_event, nextMunicipality) => {
+                    setValue('city', nextMunicipality ? GeoService.getGeoLabel(nextMunicipality.names, language) : '', { shouldValidate: true })
+                    clearErrors('city')
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={strings.CITY}
+                      required
+                      error={!!errors.city}
+                      helperText={errors.city?.message || (selectedCityId ? '' : strings.GEO_PLACEHOLDER_MUNICIPALITY)}
+                    />
+                  )}
+                />
+              </FormControl>
+              {geoError ? <FormHelperText className="signup-span-2" error>{geoError}</FormHelperText> : null}
               <FormControl fullWidth margin="dense" error={!!errors.postalCode}>
                 <InputLabel className="required">{strings.POSTAL_CODE}</InputLabel>
                 <OutlinedInput type="text" {...register('postalCode')} label={strings.POSTAL_CODE} required />
@@ -528,10 +598,3 @@ const SupplierSignupWizard = ({
 }
 
 export default SupplierSignupWizard
-
-export const supplierStepLabels = () => [
-  strings.STEP_ROLE,
-  strings.STEP_COMPANY,
-  strings.STEP_ADDRESS_BANK,
-  strings.STEP_CONTACT,
-]

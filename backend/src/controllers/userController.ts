@@ -18,6 +18,7 @@ import * as helper from '../utils/helper'
 import * as authHelper from '../utils/authHelper'
 import * as mailHelper from '../utils/mailHelper'
 import * as emailTemplate from '../utils/emailTemplate'
+import * as profileSlugHelper from '../utils/profileSlug'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
 import Car from '../models/Car'
@@ -75,6 +76,14 @@ const _signup = async (
 
     user = new User(body)
     await user.save()
+
+    if (userType === bookcarsTypes.UserType.Supplier && !user.profileSlug) {
+      try {
+        await profileSlugHelper.ensureProfileSlug(user)
+      } catch (slugErr) {
+        logger.error(`[user.signup] profile slug ${user._id}`, slugErr)
+      }
+    }
 
     // avatar
     if (body.avatar) {
@@ -1615,6 +1624,8 @@ export const getUser = async (req: Request, res: Response) => {
       whatsapp: 1,
       agencyApproved: 1,
       active: 1,
+      parentAgency: 1,
+      profileSlug: 1,
     }).lean()
 
     if (!user) {

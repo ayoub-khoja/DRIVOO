@@ -39,6 +39,8 @@ const Locations = lazy(() => import('@/pages/Locations'))
 const Suppliers = lazy(() => import('@/pages/Suppliers'))
 const Faq = lazy(() => import('@/pages/Faq'))
 const CookiePolicy = lazy(() => import('@/pages/CookiePolicy'))
+const AgencyShowcase = lazy(() => import('@/pages/AgencyShowcase'))
+const AgencyPublicProfile = lazy(() => import('@/pages/AgencyPublicProfile'))
 
 const AdminProvider = lazy(() => import('@/admin/context/AdminContext').then((m) => ({ default: m.AdminProvider })))
 const AdminLayout = lazy(() => import('@/admin/components/AdminLayout'))
@@ -54,8 +56,9 @@ const AgencySignIn = lazy(() => import('@/agency/pages/AgencySignIn'))
 const AgencyActivate = lazy(() => import('@/agency/pages/AgencyActivate'))
 const AgencyDashboard = lazy(() => import('@/agency/pages/AgencyDashboard'))
 const AgencyFleet = lazy(() => import('@/agency/pages/AgencyFleet'))
+const AgencyBranches = lazy(() => import('@/agency/pages/AgencyBranches'))
 const AgencyBookings = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyBookings })))
-const AgencyProfile = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyProfile })))
+const AgencyProfile = lazy(() => import('@/agency/pages/AgencyProfile'))
 
 const AppLayout = () => {
   const location = useLocation()
@@ -127,6 +130,7 @@ const router = createBrowserRouter([
       { path: 'activate', element: <AgencyActivate /> },
       { path: 'dashboard', element: <AgencyDashboard /> },
       { path: 'fleet', element: <AgencyFleet /> },
+      { path: 'agencies', element: <AgencyBranches /> },
       { path: 'bookings', element: <AgencyBookings /> },
       { path: 'profile', element: <AgencyProfile /> },
       { path: '*', element: <NoMatch /> },
@@ -157,6 +161,8 @@ const router = createBrowserRouter([
       { path: 'locations', element: <Locations /> },
       { path: 'faq', element: <Faq /> },
       { path: 'cookie-policy', element: <CookiePolicy /> },
+      { path: 'espace-agence', element: <AgencyShowcase /> },
+      { path: 'agence/:slug', element: <AgencyPublicProfile /> },
       ...(env.HIDE_SUPPLIERS ? [] : [{ path: 'suppliers', element: <Suppliers /> }]),
       { path: '*', element: <NoMatch /> }
     ]

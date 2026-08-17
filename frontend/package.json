@@ -46,6 +46,7 @@
     "react-ga4": "^2.1.0",
     "react-hook-form": "^7.71.2",
     "react-leaflet": "^5.0.0",
+    "react-qr-code": "^2.2.0",
     "react-router-dom": "^7.13.1",
     "react-slick": "^0.31.0",
     "react-toastify": "^11.0.5",

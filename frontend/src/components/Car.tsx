@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   Button,
   Tooltip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
 } from '@mui/material'
 import {
   LocalGasStation as CarTypeIcon,
@@ -17,7 +14,6 @@ import {
   Clear as UncheckIcon,
   Info as InfoIcon,
   LocationOn as LocationIcon,
-  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'

@@ -1,0 +1,660 @@
+.agence-public-state {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #5b6b80;
+}
+
+.agence-public {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 20px 28px 64px;
+}
+
+.agence-public-layout {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.agence-public-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.agence-public-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 40px 36px 36px;
+  color: #f4f7fb;
+  text-align: left;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background:
+    radial-gradient(720px 280px at 80% -20%, rgb(245 166 35 / 28%), transparent 55%),
+    linear-gradient(160deg, #08101c 0%, #12233a 100%);
+}
+
+.agence-public-orb {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -60px;
+  bottom: -80px;
+  border-radius: 50%;
+  background: rgb(245 166 35 / 18%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.agence-public-kicker {
+  margin: 0 0 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f5a623;
+}
+
+.agence-public-hero h1 {
+  margin: 0 0 12px;
+  font-family: var(--drivoo-font-display, Georgia, serif);
+  font-size: clamp(1.5rem, 4vw, 2.3rem);
+}
+
+.agence-public-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(46 204 113 / 16%);
+  color: #8dffbf;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.agence-public-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.agence-public-ghost {
+  color: #fff !important;
+  border-color: rgb(255 255 255 / 24%) !important;
+  text-transform: none !important;
+}
+
+.agence-public-profile,
+.agence-public-card {
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgb(11 22 38 / 6%);
+}
+
+.agence-public-profile {
+  overflow: hidden;
+  padding: 22px 20px 0;
+  position: sticky;
+  top: 76px;
+}
+
+.agence-public-identity {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.agence-public-avatar {
+  width: 86px;
+  height: 86px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #fff8ee;
+  border: 3px solid rgb(245 166 35 / 45%);
+  color: #0b1626;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.agence-public-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
+.agence-public-identity h2 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  color: #0b1626;
+  line-height: 1.3;
+}
+
+.agence-public-role,
+.agence-public-place {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-size: 0.86rem;
+  color: #5b6b80;
+}
+
+.agence-public-role {
+  color: #e8891a;
+  font-weight: 700;
+}
+
+.agence-public-role svg,
+.agence-public-place svg {
+  font-size: 1rem !important;
+}
+
+.agence-public-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 0 16px;
+}
+
+.agence-public-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 4px;
+  color: #3a4a60;
+  text-decoration: none;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+a.agence-public-row:hover {
+  color: #0b1626;
+}
+
+.agence-public-ico {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #fff8ee;
+  color: #c67a12;
+}
+
+.agence-public-ico .is-live {
+  color: #1aa05a;
+}
+
+.agence-public-map-block {
+  margin: 0 -20px;
+  padding: 14px 20px 0;
+  border-top: 1px solid #eef2f7;
+}
+
+.agence-public-map-block h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 0.92rem;
+  color: #0b1626;
+}
+
+.agence-public-map-address {
+  margin: 0 0 10px;
+  color: #5b6b80;
+  font-size: 0.84rem;
+}
+
+.agence-public-map {
+  height: 210px;
+  margin: 0 -20px;
+  overflow: hidden;
+  border-radius: 0 0 22px 22px;
+}
+
+.agence-public-leaflet {
+  width: 100%;
+  height: 100%;
+}
+
+.agence-public-card {
+  padding: 24px 26px;
+}
+
+.agence-public-card h2,
+.agence-public-card h3 {
+  margin: 0 0 12px;
+  color: #0b1626;
+}
+
+.agence-public-card p {
+  margin: 0;
+  color: #5b6b80;
+  line-height: 1.7;
+}
+
+.agence-public-panel {
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgb(11 22 38 / 6%);
+  overflow: hidden;
+}
+
+.agence-public-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  background: #f6f8fb;
+  border-bottom: 1px solid #e6ebf2;
+}
+
+.agence-public-tabs button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #5b6b80;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agence-public-tabs button svg {
+  font-size: 1.15rem;
+}
+
+.agence-public-tabs button em {
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e8edf4;
+  color: #3a4a60;
+  font-style: normal;
+  font-size: 0.75rem;
+}
+
+.agence-public-tabs button.is-active {
+  background: #fff;
+  color: #0b1626;
+  box-shadow: 0 6px 16px rgb(11 22 38 / 8%);
+}
+
+.agence-public-tabs button.is-active em {
+  background: #fff3df;
+  color: #c67a12;
+}
+
+.agence-public-tab-body {
+  padding: 22px 24px 26px;
+}
+
+.agence-public-tab-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 160px;
+  color: #5b6b80;
+  text-align: center;
+}
+
+.agence-public-tab-state svg {
+  font-size: 2rem;
+  color: #f5a623;
+}
+
+.agence-public-tab-state p {
+  margin: 0;
+}
+
+.agence-public-about h2 {
+  margin: 0 0 10px;
+  color: #0b1626;
+  font-size: 1.15rem;
+}
+
+.agence-public-about > p {
+  margin: 0 0 18px;
+  color: #5b6b80;
+  line-height: 1.7;
+}
+
+.agence-public-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.agence-public-facts div {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f7f9fc;
+}
+
+.agence-public-facts dt {
+  margin: 0 0 4px;
+  color: #8a97a8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.agence-public-facts dd {
+  margin: 0;
+  color: #0b1626;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.agence-public-fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.agence-public-car {
+  overflow: hidden;
+  border: 1px solid #e6ebf2;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.agence-public-car-media {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #f4f7fb, #eef2f7);
+  color: #9aa8b8;
+}
+
+.agence-public-car-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.agence-public-car-media svg {
+  font-size: 2.4rem;
+}
+
+.agence-public-car-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 14px 12px;
+}
+
+.agence-public-car-top h4 {
+  margin: 0 0 2px;
+  color: #0b1626;
+  font-size: 0.98rem;
+}
+
+.agence-public-car-top p {
+  margin: 0;
+  color: #8a97a8;
+  font-size: 0.8rem;
+}
+
+.agence-public-car-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #5b6b80;
+  font-size: 0.8rem;
+}
+
+.agence-public-car-meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.agence-public-car-meta svg {
+  font-size: 1rem;
+  color: #c67a12;
+}
+
+.agence-public-car-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.agence-public-car-footer strong {
+  color: #0b1626;
+  font-size: 1rem;
+}
+
+.agence-public-car-footer span {
+  margin-left: 2px;
+  color: #8a97a8;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.agence-public-car-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #f5a623;
+  color: #0b1626;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.agence-public-reviews-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #f7f9fc;
+}
+
+.agence-public-reviews-score {
+  margin: 0 0 4px;
+  color: #0b1626;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.agence-public-reviews-head span {
+  display: block;
+  margin-top: 4px;
+  color: #5b6b80;
+  font-size: 0.84rem;
+}
+
+.agence-public-stars {
+  display: inline-flex;
+  color: #f5a623;
+}
+
+.agence-public-stars.is-sm svg {
+  font-size: 1rem;
+}
+
+.agence-public-stars.is-md svg {
+  font-size: 1.25rem;
+}
+
+.agence-public-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.agence-public-review {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.agence-public-review-avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff3df;
+  color: #c67a12;
+  font-weight: 800;
+}
+
+.agence-public-review-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.agence-public-review-meta strong {
+  color: #0b1626;
+}
+
+.agence-public-review-meta time {
+  color: #8a97a8;
+  font-size: 0.78rem;
+}
+
+.agence-public-review p {
+  margin: 8px 0 0;
+  color: #3a4a60;
+  line-height: 1.6;
+}
+
+.agence-public-review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #f7f9fc;
+}
+
+.agence-public-review-form h3 {
+  margin: 0;
+  color: #0b1626;
+  font-size: 1.05rem;
+}
+
+.agence-public-review-form > p {
+  margin: 0;
+  color: #5b6b80;
+  font-size: 0.88rem;
+}
+
+.agence-public-review-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.agence-public-review-rate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #0b1626;
+  font-weight: 700;
+}
+
+.agence-public-review-form .btn-primary {
+  align-self: flex-start;
+  text-transform: none;
+}
+
+@media (max-width: 1024px) {
+  .agence-public {
+    padding: 16px 16px 48px;
+  }
+
+  .agence-public-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .agence-public-profile {
+    position: static;
+  }
+
+  .agence-public-hero {
+    padding: 28px 20px 24px;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .agence-public-tabs button {
+    font-size: 0.78rem;
+    padding: 8px 8px;
+    gap: 5px;
+  }
+
+  .agence-public-fleet-grid,
+  .agence-public-facts,
+  .agence-public-review-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .agence-public-tab-body {
+    padding: 16px;
+  }
+
+  .agence-public-review-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}

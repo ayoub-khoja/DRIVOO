@@ -60,6 +60,9 @@ export const AgencyProvider: React.FC<AgencyProviderProps> = ({ children }) => {
           language: user.language,
           type: user.type,
           agencyApproved: user.agencyApproved,
+          parentAgency: typeof user.parentAgency === 'object' && user.parentAgency
+            ? user.parentAgency._id
+            : user.parentAgency,
         })
       }
     } catch {

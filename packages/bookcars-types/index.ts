@@ -192,6 +192,137 @@ export interface UpdateSupplierPayload {
   blacklisted?: boolean
 }
 
+export interface CreateSubAgencyPayload {
+  fullName: string
+  email: string
+  phone?: string
+  city?: string
+  address?: string
+  governorate?: string
+}
+
+export interface SubAgency {
+  _id: string
+  fullName: string
+  email?: string
+  phone?: string
+  city?: string
+  address?: string
+  governorate?: string
+  avatar?: string
+  active?: boolean
+  agencyApproved?: boolean
+  carCount?: number
+  createdAt?: Date | string
+}
+
+export interface UpdateAgencyProfilePayload {
+  fullName: string
+  phone?: string
+  whatsapp?: string
+  bio?: string
+  address?: string
+  city?: string
+  governorate?: string
+  postalCode?: string
+  taxId?: string
+  rneNumber?: string
+  iban?: string
+  legalRepFirstName?: string
+  legalRepLastName?: string
+  legalRepTitle?: string
+  legalRepCin?: string
+}
+
+export interface AgencyLogoPayload {
+  avatar: string
+}
+
+export interface AgencyShareLink {
+  slug: string
+  url: string
+}
+
+export interface PublicAgencyProfile {
+  slug: string
+  fullName: string
+  avatar?: string
+  bio?: string
+  email?: string
+  phone?: string
+  whatsapp?: string
+  address?: string
+  city?: string
+  governorate?: string
+  postalCode?: string
+  latitude?: number
+  longitude?: number
+  agencyApproved?: boolean
+  carCount?: number
+}
+
+export interface PublicAgencyCar {
+  _id: string
+  name: string
+  brand?: string
+  model?: string
+  year?: number
+  image?: string
+  dailyPrice: number
+  seats?: number
+  doors?: number
+  gearbox?: string
+  type?: string
+  available?: boolean
+}
+
+export interface AgencyReview {
+  _id: string
+  name: string
+  rating: number
+  comment: string
+  createdAt?: Date | string
+}
+
+export interface AgencyReviewList {
+  average: number
+  count: number
+  reviews: AgencyReview[]
+}
+
+export interface CreateAgencyReviewPayload {
+  name: string
+  email?: string
+  rating: number
+  comment: string
+}
+
+export interface LocalizedName {
+  fr: string
+  en: string
+  ar: string
+}
+
+export interface GeoCity {
+  id: number
+  names: LocalizedName
+  latitude: number
+  longitude: number
+}
+
+export interface GeoMunicipality {
+  id: number
+  cityId: number
+  names: LocalizedName
+  latitude: number
+  longitude: number
+}
+
+export interface GeoCatalog {
+  cities: GeoCity[]
+  municipalities: GeoMunicipality[]
+}
+
 export interface CreateCarPayload {
   loggedUser: string
   name: string
@@ -453,6 +584,8 @@ export interface User {
   legalRepCin?: string
   whatsapp?: string
   agencyApproved?: boolean
+  parentAgency?: User | string
+  profileSlug?: string
 }
 
 export interface Option {
