@@ -598,10 +598,3 @@ const SupplierSignupWizard = ({
 }
 
 export default SupplierSignupWizard
-
-export const supplierStepLabels = () => [
-  strings.STEP_ROLE,
-  strings.STEP_COMPANY,
-  strings.STEP_ADDRESS_BANK,
-  strings.STEP_CONTACT,
-]

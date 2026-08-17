@@ -1,0 +1,28 @@
+import type { GeoCity } from ':bookcars-types'
+
+export const TUNISIA_CITIES: readonly GeoCity[] = [
+  { id: 1, names: { fr: 'Tunis', en: 'Tunis', ar: 'تونس' }, latitude: 36.806389, longitude: 10.181667 },
+  { id: 2, names: { fr: 'Ariana', en: 'Ariana', ar: 'أريانة' }, latitude: 36.862499, longitude: 10.195556 },
+  { id: 3, names: { fr: 'Ben Arous', en: 'Ben Arous', ar: 'بن عروس' }, latitude: 36.753768, longitude: 10.218867 },
+  { id: 4, names: { fr: 'La Manouba', en: 'La Manouba', ar: 'المنوبة' }, latitude: 36.8089, longitude: 10.0972 },
+  { id: 5, names: { fr: 'Nabeul', en: 'Nabeul', ar: 'نابل' }, latitude: 36.4561, longitude: 10.7376 },
+  { id: 6, names: { fr: 'Zaghouan', en: 'Zaghouan', ar: 'زغوان' }, latitude: 36.4022, longitude: 10.1426 },
+  { id: 7, names: { fr: 'Bizerte', en: 'Bizerte', ar: 'بنزرت' }, latitude: 37.274, longitude: 9.874 },
+  { id: 8, names: { fr: 'Béja', en: 'Béja', ar: 'باجا' }, latitude: 36.7333, longitude: 9.1833 },
+  { id: 9, names: { fr: 'Jendouba', en: 'Jendouba', ar: 'جندوبة' }, latitude: 36.5011, longitude: 8.7802 },
+  { id: 10, names: { fr: 'Le Kef', en: 'Le Kef', ar: 'الكاف' }, latitude: 36.1825, longitude: 8.7148 },
+  { id: 11, names: { fr: 'Siliana', en: 'Siliana', ar: 'سليانة' }, latitude: 36.0881, longitude: 9.3708 },
+  { id: 12, names: { fr: 'Kairouan', en: 'Kairouan', ar: 'قيروان' }, latitude: 35.678, longitude: 10.096 },
+  { id: 13, names: { fr: 'Kasserine', en: 'Kasserine', ar: 'قاصرين' }, latitude: 35.1676, longitude: 8.8365 },
+  { id: 14, names: { fr: 'Sidi Bouzid', en: 'Sidi Bouzid', ar: 'سيدي بوزيد' }, latitude: 35.0382, longitude: 9.4858 },
+  { id: 15, names: { fr: 'Sousse', en: 'Sousse', ar: 'سوسة' }, latitude: 35.82143, longitude: 10.634422 },
+  { id: 16, names: { fr: 'Monastir', en: 'Monastir', ar: 'منستير' }, latitude: 35.777, longitude: 10.8262 },
+  { id: 17, names: { fr: 'Mahdia', en: 'Mahdia', ar: 'مهدية' }, latitude: 35.506798, longitude: 11.046753 },
+  { id: 18, names: { fr: 'Sfax', en: 'Sfax', ar: 'صفاقس' }, latitude: 34.741, longitude: 10.76 },
+  { id: 19, names: { fr: 'Gabès', en: 'Gabès', ar: 'قابس' }, latitude: 33.881, longitude: 10.098 },
+  { id: 20, names: { fr: 'Médenine', en: 'Medenine', ar: 'مدنين' }, latitude: 33.3547, longitude: 10.5055 },
+  { id: 21, names: { fr: 'Tataouine', en: 'Tataouine', ar: 'تطاوين' }, latitude: 32.9297, longitude: 10.4518 },
+  { id: 22, names: { fr: 'Tozeur', en: 'Tozeur', ar: 'توزر' }, latitude: 33.9197, longitude: 8.1335 },
+  { id: 23, names: { fr: 'Kebili', en: 'Kebili', ar: 'قبلي' }, latitude: 33.7044, longitude: 8.9709 },
+  { id: 24, names: { fr: 'Gafsa', en: 'Gafsa', ar: 'قفصة' }, latitude: 34.431141, longitude: 8.775656 },
+]

@@ -34,11 +34,18 @@ import DatePicker from '@/components/DatePicker'
 import SocialLogin from '@/components/SocialLogin'
 import { schema, FormFields } from '@/models/SignUpForm'
 import PasswordInput from '@/components/PasswordInput'
-import SupplierSignupWizard, { supplierStepLabels } from '@/components/SupplierSignupWizard'
+import SupplierSignupWizard from '@/components/SupplierSignupWizard'
 
 import '@/assets/css/signup.css'
 
 type SignUpRole = bookcarsTypes.UserType.User | bookcarsTypes.UserType.Supplier
+
+const supplierStepLabels = () => [
+  strings.STEP_ROLE,
+  strings.STEP_COMPANY,
+  strings.STEP_ADDRESS_BANK,
+  strings.STEP_CONTACT,
+]
 
 const SignUp = () => {
   const navigate = useNavigate()

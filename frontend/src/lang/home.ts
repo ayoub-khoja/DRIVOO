@@ -47,7 +47,7 @@ const strings = new LocalizedStrings({
     HOW_STEP3_TITLE: 'Roulez',
     HOW_STEP3_TEXT: 'Récupérez votre voiture et partez.',
     SERVICES_EYEBROW: 'Différence',
-    SERVICES_TITLE: "Ce qui nous différencie",
+    SERVICES_TITLE: 'Ce qui nous différencie',
     SERVICES_FLEET_TITLE: 'Large gamme de véhicules',
     SERVICES_FLEET: 'Des citadines compactes aux SUV premium, une flotte pour chaque trajet.',
     SERVICES_FLEXIBLE_TITLE: 'Prise en charge flexible',

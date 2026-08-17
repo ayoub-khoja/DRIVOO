@@ -328,6 +328,19 @@ export const CDN_SUPPLIER_DOCS = __env__('BC_CDN_SUPPLIER_DOCS', true)
 export const CDN_TEMP_SUPPLIER_DOCS = __env__('BC_CDN_TEMP_SUPPLIER_DOCS', true)
 
 /**
+ * Optional S3 (or S3-compatible) object storage for agency logos.
+ * When bucket + keys are set, logos are uploaded to S3 (and also kept in CDN_USERS so existing URLs keep working).
+ */
+export const S3_BUCKET = __env__('BC_S3_BUCKET', false)
+export const S3_REGION = __env__('BC_S3_REGION', false, 'eu-west-3')
+export const S3_ACCESS_KEY = __env__('BC_S3_ACCESS_KEY', false)
+export const S3_SECRET_KEY = __env__('BC_S3_SECRET_KEY', false)
+export const S3_ENDPOINT = __env__('BC_S3_ENDPOINT', false)
+export const S3_FORCE_PATH_STYLE = helper.StringToBoolean(__env__('BC_S3_FORCE_PATH_STYLE', false, 'false'))
+export const S3_KEY_PREFIX = __env__('BC_S3_KEY_PREFIX', false, 'bookcars/users')
+export const S3_ENABLED = Boolean(S3_BUCKET && S3_ACCESS_KEY && S3_SECRET_KEY)
+
+/**
  * Admin host.
  *
  * @type {string}
@@ -631,6 +644,10 @@ export interface User extends Document {
   legalRepCin?: string
   whatsapp?: string
   agencyApproved?: boolean
+  parentAgency?: Types.ObjectId
+  profileSlug?: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 /**
