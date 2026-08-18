@@ -1,11 +1,36 @@
 import { nanoid } from 'nanoid'
 import { Request, Response } from 'express'
-import * as bookcarsTypes from ':bookcars-types'
 import i18n from '../lang/i18n'
 import * as helper from '../utils/helper'
 import * as logger from '../utils/logger'
 import SubscriptionPlan from '../models/SubscriptionPlan'
 import SubscriptionDiscount from '../models/SubscriptionDiscount'
+
+type LocalizedText = { fr: string, en: string, ar: string }
+type PlanPricing = { months: number, monthlyPrice: number, totalPrice: number, discountPercent: number }
+type PlanFeature = { id: string, label: LocalizedText, included: boolean }
+type PlanPayload = {
+  visible?: boolean
+  name?: LocalizedText | Record<string, unknown>
+  subtitle?: LocalizedText | Record<string, unknown>
+  tokens?: number
+  freeTokens?: number
+  trialMonths?: number
+  pricing?: PlanPricing[]
+  freePlan?: boolean
+  mostPopular?: boolean
+  firstTrialFree?: boolean
+  active?: boolean
+  visibleVerified?: boolean
+  visibleUnverified?: boolean
+  showPaymentButton?: boolean
+  unlimitedDuration?: boolean
+  requiresApproval?: boolean
+  discountId?: string | null
+  features?: PlanFeature[]
+  services?: string[]
+}
+type DiscountPayload = { name?: string, percent?: number, active?: boolean }
 
 const ALLOWED_MONTHS = [3, 6, 12]
 const MAX_FEATURES = 30
@@ -13,7 +38,7 @@ const MAX_SERVICES = 40
 
 const clip = (value: unknown, max: number) => String(value ?? '').trim().slice(0, max)
 
-const toLocalized = (value: unknown, max = 120): bookcarsTypes.LocalizedText => {
+const toLocalized = (value: unknown, max = 120): LocalizedText => {
   const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
   return {
     fr: clip(source.fr, max),
@@ -32,7 +57,7 @@ const toNumber = (value: unknown, min = 0, max = 1_000_000) => {
 
 const toBool = (value: unknown) => value === true
 
-const sanitizePricing = (value: unknown): bookcarsTypes.SubscriptionPlanPricing[] => {
+const sanitizePricing = (value: unknown): PlanPricing[] => {
   const rows = Array.isArray(value) ? value : []
   return ALLOWED_MONTHS.map((months) => {
     const row = rows.find((item) => Number((item as { months?: number })?.months) === months) as Record<string, unknown> | undefined
@@ -45,7 +70,7 @@ const sanitizePricing = (value: unknown): bookcarsTypes.SubscriptionPlanPricing[
   })
 }
 
-const sanitizeFeatures = (value: unknown): bookcarsTypes.SubscriptionPlanFeature[] => {
+const sanitizeFeatures = (value: unknown): PlanFeature[] => {
   if (!Array.isArray(value)) {
     return []
   }
@@ -66,7 +91,7 @@ const sanitizeServices = (value: unknown) => {
   return [...new Set(value.map((item) => clip(item, 64)).filter(Boolean))].slice(0, MAX_SERVICES)
 }
 
-const sanitizePlan = (body: bookcarsTypes.UpsertSubscriptionPlanPayload) => {
+const sanitizePlan = (body: PlanPayload) => {
   const name = toLocalized(body.name)
   if (name.fr.length < 2 && name.en.length < 2 && name.ar.length < 2) {
     return null
@@ -110,7 +135,7 @@ export const getPlans = async (_req: Request, res: Response) => {
 }
 
 export const createPlan = async (req: Request, res: Response) => {
-  const { body }: { body: bookcarsTypes.UpsertSubscriptionPlanPayload } = req
+  const { body }: { body: PlanPayload } = req
   try {
     const payload = sanitizePlan(body)
     if (!payload) {
@@ -127,7 +152,7 @@ export const createPlan = async (req: Request, res: Response) => {
 
 export const updatePlan = async (req: Request, res: Response) => {
   const { id } = req.params
-  const { body }: { body: bookcarsTypes.UpsertSubscriptionPlanPayload } = req
+  const { body }: { body: PlanPayload } = req
   try {
     if (!helper.isValidObjectId(id)) {
       throw new Error('id is not valid')
@@ -174,7 +199,7 @@ export const getDiscounts = async (_req: Request, res: Response) => {
 }
 
 export const createDiscount = async (req: Request, res: Response) => {
-  const { body }: { body: bookcarsTypes.UpsertSubscriptionDiscountPayload } = req
+  const { body }: { body: DiscountPayload } = req
   try {
     const name = clip(body.name, 80)
     if (name.length < 2) {
@@ -195,7 +220,7 @@ export const createDiscount = async (req: Request, res: Response) => {
 
 export const updateDiscount = async (req: Request, res: Response) => {
   const { id } = req.params
-  const { body }: { body: bookcarsTypes.UpsertSubscriptionDiscountPayload } = req
+  const { body }: { body: DiscountPayload } = req
   try {
     if (!helper.isValidObjectId(id)) {
       throw new Error('id is not valid')
