@@ -2659,3 +2659,85 @@ export const rejectAccountRequest = async (req: Request, res: Response) => {
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }
+
+/**
+ * Update an approved agency from the admin panel.
+ */
+export const updateAgency = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { body }: { body: bookcarsTypes.UpdateAgencyProfilePayload } = req
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('id is not valid')
+    }
+
+    const user = await User.findById(id)
+    if (!user || user.type !== bookcarsTypes.UserType.Supplier) {
+      res.sendStatus(204)
+      return
+    }
+
+    const clip = (value: unknown, max: number) => String(value ?? '').trim().slice(0, max)
+    const fullName = clip(body.fullName, 120)
+    if (fullName.length < 2) {
+      res.status(400).send('Invalid agency name')
+      return
+    }
+
+    const optionalPhone = (value: string) => {
+      if (!value) {
+        return ''
+      }
+      const digits = value.replace(/\D/g, '')
+      return digits.length >= 6 && digits.length <= 15 ? value : null
+    }
+
+    const phone = optionalPhone(clip(body.phone, 32))
+    const whatsapp = optionalPhone(clip(body.whatsapp, 32))
+    if (phone === null || whatsapp === null) {
+      res.status(400).send('Invalid phone')
+      return
+    }
+
+    user.fullName = fullName
+    user.phone = phone || undefined
+    user.whatsapp = whatsapp || undefined
+    user.address = clip(body.address, 240) || undefined
+    user.city = clip(body.city, 80) || undefined
+    user.governorate = clip(body.governorate, 80) || undefined
+    user.postalCode = clip(body.postalCode, 12) || undefined
+    user.taxId = clip(body.taxId, 64) || undefined
+    user.rneNumber = clip(body.rneNumber, 64) || undefined
+    user.iban = clip(body.iban, 64) || undefined
+    user.legalRepFirstName = clip(body.legalRepFirstName, 80) || undefined
+    user.legalRepLastName = clip(body.legalRepLastName, 80) || undefined
+    user.legalRepTitle = clip(body.legalRepTitle, 80) || undefined
+    user.legalRepCin = clip(body.legalRepCin, 16) || undefined
+
+    await user.save()
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      whatsapp: user.whatsapp,
+      address: user.address,
+      city: user.city,
+      governorate: user.governorate,
+      postalCode: user.postalCode,
+      taxId: user.taxId,
+      rneNumber: user.rneNumber,
+      rneDocument: user.rneDocument,
+      iban: user.iban,
+      legalRepFirstName: user.legalRepFirstName,
+      legalRepLastName: user.legalRepLastName,
+      legalRepTitle: user.legalRepTitle,
+      legalRepCin: user.legalRepCin,
+      createdAt: user.get('createdAt'),
+    })
+  } catch (err) {
+    logger.error(`[user.updateAgency] ${i18n.t('ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
