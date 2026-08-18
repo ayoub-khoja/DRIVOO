@@ -41,6 +41,7 @@ const routes = {
   getAccountRequests: '/api/account-requests/:page/:size',
   approveAccountRequest: '/api/account-request/:id/approve',
   rejectAccountRequest: '/api/account-request/:id/reject',
+  updateAgency: '/api/admin/agency/:id',
 }
 
 export default routes

@@ -49,5 +49,6 @@ routes.route(routeNames.deleteTempSupplierDoc).post(userController.deleteTempSup
 routes.route(routeNames.approveAccountRequest).post(authJwt.verifyToken, authJwt.authAdmin, userController.approveAccountRequest)
 routes.route(routeNames.rejectAccountRequest).post(authJwt.verifyToken, authJwt.authAdmin, userController.rejectAccountRequest)
 routes.route(routeNames.getAccountRequests).post(authJwt.verifyToken, authJwt.authAdmin, userController.getAccountRequests)
+routes.route(routeNames.updateAgency).put(authJwt.verifyToken, authJwt.authAdmin, userController.updateAgency)
 
 export default routes

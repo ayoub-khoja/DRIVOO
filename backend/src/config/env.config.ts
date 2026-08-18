@@ -1072,6 +1072,57 @@ export interface AgencyReview extends Document {
   updatedAt?: Date
 }
 
+export interface LocalizedText {
+  fr: string
+  en: string
+  ar: string
+}
+
+export interface SubscriptionPlanPricing {
+  months: number
+  monthlyPrice: number
+  totalPrice: number
+  discountPercent: number
+}
+
+export interface SubscriptionPlanFeature {
+  id: string
+  label: LocalizedText
+  included: boolean
+}
+
+export interface SubscriptionPlan extends Document {
+  visible: boolean
+  name: LocalizedText
+  subtitle: LocalizedText
+  tokens: number
+  freeTokens: number
+  trialMonths: number
+  pricing: SubscriptionPlanPricing[]
+  freePlan: boolean
+  mostPopular: boolean
+  firstTrialFree: boolean
+  active: boolean
+  visibleVerified: boolean
+  visibleUnverified: boolean
+  showPaymentButton: boolean
+  unlimitedDuration: boolean
+  requiresApproval: boolean
+  discountId?: Types.ObjectId | null
+  features: SubscriptionPlanFeature[]
+  services: string[]
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface SubscriptionDiscount extends Document {
+  name: string
+  percent: number
+  active: boolean
+  createdAt?: Date
+  updatedAt?: Date
+}
+
 /**
  * Allowed driver's license file extensions.
  *

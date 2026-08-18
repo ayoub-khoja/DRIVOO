@@ -17,6 +17,8 @@ import AdditionalDriver from '../models/AdditionalDriver'
 import BankDetails from '../models/BankDetails'
 import DateBasedPrice from '../models/DateBasedPrice'
 import AgencyReview from '../models/AgencyReview'
+import SubscriptionPlan from '../models/SubscriptionPlan'
+import SubscriptionDiscount from '../models/SubscriptionDiscount'
 import * as databaseTTLHelper from './databaseTTLHelper'
 import * as databaseLangHelper from './databaseLangHelper'
 import * as settingController from '../controllers/settingController'
@@ -226,6 +228,8 @@ export const models = defineModels([
   NotificationCounter,
   ParkingSpot,
   PushToken,
+  SubscriptionDiscount,
+  SubscriptionPlan,
   Token,
   User,
 ] as const)
