@@ -415,19 +415,19 @@ export const searchAgencies = async (req: Request, res: Response) => {
     }
 
     if (current.type === bookcarsTypes.UserType.Admin) {
-      const filter: mongoose.FilterQuery<env.User> = {
+      const agencies = await User.find({
         type: bookcarsTypes.UserType.Supplier,
         blacklisted: { $ne: true },
         expireAt: null,
-      }
-      if (keyword) {
-        filter.$or = [
-          { fullName: { $regex: keyword, $options: 'i' } },
-          { email: { $regex: keyword, $options: 'i' } },
-        ]
-      }
-
-      const agencies = await User.find(filter)
+        ...(keyword
+          ? {
+            $or: [
+              { fullName: { $regex: keyword, $options: 'i' } },
+              { email: { $regex: keyword, $options: 'i' } },
+            ],
+          }
+          : {}),
+      })
         .select(PEER_FIELDS)
         .sort({ fullName: 1 })
         .limit(40)
