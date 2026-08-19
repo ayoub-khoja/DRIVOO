@@ -1,0 +1,627 @@
+/* Admin subscription — dark DRIVOO theme */
+
+.sub-workspace {
+  --sub-accent: var(--drivoo-yellow, #ff6b1a);
+  --sub-ink: #ffffff;
+  --sub-muted: #d7dde8;
+  --sub-line: rgb(255 255 255 / 12%);
+  --sub-card: var(--drivoo-surface, #2c4565);
+  padding: 0;
+  color: var(--sub-ink);
+  background: transparent;
+}
+
+.sub-workspace .admin-inline-loading {
+  min-height: 180px;
+  background: transparent;
+  color: var(--sub-accent);
+}
+
+.sub-tabs {
+  display: flex;
+  gap: 28px;
+  margin: 0 0 22px;
+  border-bottom: 1px solid var(--sub-line);
+}
+
+.sub-tabs button {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 14px 0 12px;
+  margin: 0;
+  cursor: pointer;
+  color: #d7dde8 !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: var(--drivoo-font-body);
+  position: relative;
+}
+
+.sub-tabs button:hover {
+  color: #ffffff !important;
+}
+
+.sub-tabs button.is-active {
+  color: var(--sub-accent) !important;
+}
+
+.sub-tabs button.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--sub-accent);
+}
+
+.sub-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 18px;
+}
+
+.sub-add-btn,
+.sub-submit {
+  background: var(--sub-accent) !important;
+  color: #ffffff !important;
+  text-transform: none !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  padding: 8px 16px !important;
+  box-shadow: none !important;
+}
+
+.sub-add-btn:hover,
+.sub-submit:hover {
+  background: #e85f12 !important;
+}
+
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.sub-plan-card {
+  position: relative;
+  background: var(--sub-card);
+  border: 1px solid var(--sub-line);
+  border-radius: 16px;
+  padding: 18px 16px 14px;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sub-plan-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sub-accent), transparent 70%);
+}
+
+.sub-plan-badge {
+  position: absolute;
+  top: 0;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 0 0 10px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.sub-plan-badge.is-active {
+  background: rgb(34 197 94 / 22%);
+  color: #4ade80 !important;
+}
+
+.sub-plan-badge.is-inactive {
+  background: rgb(239 68 68 / 22%);
+  color: #f87171 !important;
+}
+
+.sub-plan-card h3 {
+  margin: 18px 0 4px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--sub-accent) !important;
+  line-height: 1.3;
+  padding-right: 72px;
+}
+
+.sub-plan-card .sub-plan-subtitle {
+  margin: 0 0 10px;
+  color: var(--sub-muted) !important;
+  font-size: 0.82rem;
+  min-height: 1.2em;
+}
+
+.sub-plan-price {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff !important;
+}
+
+.sub-plan-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.sub-plan-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #d7dde8 !important;
+}
+
+.sub-plan-meta .MuiSvgIcon-root {
+  font-size: 16px;
+  color: var(--sub-accent);
+}
+
+.sub-plan-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.sub-plan-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #d7dde8 !important;
+  line-height: 1.35;
+}
+
+.sub-plan-features .is-on {
+  color: #4ade80;
+  font-size: 16px;
+}
+
+.sub-plan-features .is-off {
+  color: rgb(255 255 255 / 35%);
+  font-size: 16px;
+}
+
+.sub-plan-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sub-line);
+}
+
+.sub-plan-actions .MuiIconButton-root {
+  color: #d7dde8 !important;
+}
+
+.sub-plan-actions .MuiIconButton-root:hover {
+  color: var(--sub-accent) !important;
+  background: var(--drivoo-yellow-dim, rgb(255 107 26 / 14%)) !important;
+}
+
+.sub-plan-actions .is-delete:hover {
+  color: #f87171 !important;
+  background: rgb(239 68 68 / 12%) !important;
+}
+
+.sub-empty {
+  grid-column: 1 / -1;
+  padding: 40px 16px;
+  text-align: center;
+  color: #d7dde8 !important;
+  background: var(--sub-card);
+  border: 1px dashed var(--sub-line);
+  border-radius: 16px;
+}
+
+.sub-form-paper {
+  display: flex !important;
+  flex-direction: column !important;
+  background:
+    radial-gradient(700px 240px at 0% 0%, rgb(255 107 26 / 12%), transparent 55%),
+    var(--drivoo-surface, #2c4565) !important;
+  border-radius: 16px !important;
+  max-height: calc(100vh - 48px) !important;
+  height: min(860px, calc(100vh - 48px)) !important;
+  overflow: hidden !important;
+  border: 1px solid rgb(255 255 255 / 12%);
+  color: #ffffff;
+}
+
+.sub-form-header {
+  flex: 0 0 auto;
+  padding: 18px 22px 8px;
+}
+
+.sub-form-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff !important;
+}
+
+.sub-form-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 8px 22px 16px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sub-form-actions {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  padding: 12px 22px 18px !important;
+  margin: 0 !important;
+  background: rgb(8 16 28 / 45%);
+  border-top: 1px solid rgb(255 255 255 / 12%);
+}
+
+.sub-form-actions .MuiButton-outlined {
+  color: #ffffff !important;
+  border-color: rgb(255 255 255 / 28%) !important;
+  text-transform: none !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+}
+
+.sub-block {
+  border: 1px solid var(--sub-line);
+  border-radius: 12px;
+  padding: 14px;
+  background: rgb(0 0 0 / 18%);
+}
+
+.sub-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.sub-block-head h3,
+.sub-label,
+.sub-pricing-row strong {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff !important;
+}
+
+.sub-lang-tabs {
+  display: inline-flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--sub-line);
+}
+
+.sub-lang-tabs button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.72rem;
+  color: #d7dde8 !important;
+}
+
+.sub-lang-tabs button.is-active {
+  background: var(--sub-accent);
+  color: #ffffff !important;
+}
+
+.sub-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--sub-line);
+  border-radius: 12px;
+  background: rgb(0 0 0 / 18%);
+}
+
+.sub-toggle-row span,
+.sub-toggle-copy strong {
+  color: #ffffff !important;
+}
+
+.sub-toggle-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sub-toggle-copy small {
+  color: #d7dde8 !important;
+  font-weight: 600;
+}
+
+.sub-fields-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sub-pricing-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sub-pricing-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.sub-toggles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sub-feature-empty {
+  border: 1px dashed var(--sub-line);
+  border-radius: 12px;
+  padding: 22px;
+  text-align: center;
+  color: #d7dde8 !important;
+}
+
+.sub-feature-list,
+.sub-service-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sub-feature-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.sub-feature-item .MuiIconButton-root {
+  color: #d7dde8 !important;
+}
+
+.sub-service-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--sub-line);
+  border-radius: 12px;
+  background: rgb(0 0 0 / 18%);
+}
+
+.sub-submit {
+  min-width: 140px !important;
+  padding: 10px 18px !important;
+  font-weight: 800 !important;
+}
+
+.sub-workspace .MuiOutlinedInput-root,
+.sub-form-paper .MuiOutlinedInput-root,
+.sub-form-paper .MuiSelect-select {
+  background: rgb(0 0 0 / 22%);
+  color: #ffffff !important;
+}
+
+.sub-workspace .MuiInputLabel-root,
+.sub-form-paper .MuiInputLabel-root {
+  color: #d7dde8 !important;
+}
+
+.sub-workspace .MuiOutlinedInput-input,
+.sub-form-paper .MuiOutlinedInput-input {
+  color: #ffffff !important;
+}
+
+.sub-form-paper .MuiOutlinedInput-notchedOutline,
+.sub-workspace .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(255 255 255 / 18%) !important;
+}
+
+.sub-form-paper .Mui-focused .MuiOutlinedInput-notchedOutline,
+.sub-workspace .Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--sub-accent) !important;
+}
+
+.sub-form-paper .MuiSvgIcon-root {
+  color: #d7dde8;
+}
+
+.sub-form-paper .MuiSwitch-switchBase.Mui-checked {
+  color: #4ade80 !important;
+}
+
+.sub-form-paper .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: #22c55e !important;
+}
+
+.sub-form-paper .sub-blue-switch.Mui-checked {
+  color: var(--sub-accent) !important;
+}
+
+.sub-form-paper .sub-blue-switch.Mui-checked + .MuiSwitch-track {
+  background-color: var(--sub-accent) !important;
+}
+
+.sub-discount-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sub-discount-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--sub-card);
+  border: 1px solid var(--sub-line);
+  border-radius: 12px;
+}
+
+.sub-discount-card strong,
+.sub-discount-card span {
+  color: #ffffff !important;
+}
+
+.sub-discount-card .MuiIconButton-root {
+  color: #d7dde8 !important;
+}
+
+.sub-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  margin-right: 8px;
+}
+
+.sub-status.is-active {
+  background: rgb(34 197 94 / 18%);
+  color: #4ade80 !important;
+}
+
+.sub-status.is-inactive {
+  background: rgb(248 113 113 / 18%);
+  color: #f87171 !important;
+}
+
+.sub-discount-form {
+  display: grid;
+  grid-template-columns: 1fr 140px auto auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+@media only screen and (width <= 860px) {
+  .sub-fields-2,
+  .sub-toggles,
+  .sub-pricing-row,
+  .sub-discount-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sub-confirm-paper {
+  background:
+    radial-gradient(500px 180px at 0% 0%, rgb(255 107 26 / 14%), transparent 55%),
+    var(--drivoo-surface, #2c4565) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgb(255 255 255 / 12%);
+  color: #ffffff;
+}
+
+.sub-confirm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 8px;
+}
+
+.sub-confirm-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(239 68 68 / 18%);
+  color: #f87171 !important;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sub-confirm-header h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff !important;
+}
+
+.sub-confirm-header p {
+  margin: 0;
+  color: var(--drivoo-yellow, #ff6b1a) !important;
+  font-weight: 700;
+}
+
+.sub-confirm-header .MuiIconButton-root {
+  color: #d7dde8 !important;
+}
+
+.sub-confirm-content {
+  padding: 8px 18px 4px !important;
+}
+
+.sub-confirm-content p {
+  margin: 0;
+  color: #d7dde8 !important;
+  line-height: 1.5;
+}
+
+.sub-confirm-actions {
+  padding: 12px 18px 18px !important;
+  gap: 10px;
+}
+
+.sub-confirm-actions .MuiButton-outlined {
+  color: #ffffff !important;
+  border-color: rgb(255 255 255 / 28%) !important;
+  text-transform: none !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+}
+
+.sub-confirm-delete {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  text-transform: none !important;
+  font-weight: 800 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+.sub-confirm-delete:hover {
+  background: #dc2626 !important;
+}

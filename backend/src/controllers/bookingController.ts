@@ -22,6 +22,7 @@ import * as emailTemplate from '../utils/emailTemplate'
 import * as env from '../config/env.config'
 import * as logger from '../utils/logger'
 import stripeAPI from '../payment/stripe'
+import * as firebaseMessaging from '../services/firebase/messaging'
 
 /**
  * Create a Booking.
@@ -81,6 +82,16 @@ export const notify = async (driver: env.User, bookingId: string, user: env.User
     counter = new NotificationCounter({ user: user._id, count: 1 })
     await counter.save()
   }
+
+  void firebaseMessaging.sendNotificationToUser(user._id.toString(), {
+    title: i18n.t('HELLO'),
+    body: message,
+    type: 'booking',
+    url: helper.joinURL(env.ADMIN_HOST, `update-booking?b=${bookingId}`),
+    data: { bookingId },
+  }).catch((error) => {
+    logger.warn(`[booking.notify] push skipped: ${error}`)
+  })
 
   // mail
   if (user.enableEmailNotifications) {

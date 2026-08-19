@@ -870,3 +870,193 @@ export interface CarOptions {
   fullInsurance?: boolean
   additionalDriver?: boolean
 }
+
+export interface LocalizedText {
+  fr: string
+  en: string
+  ar: string
+}
+
+export interface SubscriptionPlanPricing {
+  months: number
+  monthlyPrice: number
+  totalPrice: number
+  discountPercent: number
+}
+
+export interface SubscriptionPlanFeature {
+  id: string
+  label: LocalizedText
+  included: boolean
+}
+
+export interface SubscriptionPlan {
+  _id: string
+  visible: boolean
+  name: LocalizedText
+  subtitle: LocalizedText
+  tokens: number
+  freeTokens: number
+  trialMonths: number
+  pricing: SubscriptionPlanPricing[]
+  freePlan: boolean
+  mostPopular: boolean
+  firstTrialFree: boolean
+  active: boolean
+  visibleVerified: boolean
+  visibleUnverified: boolean
+  showPaymentButton: boolean
+  unlimitedDuration: boolean
+  requiresApproval: boolean
+  discountId?: string | null
+  features: SubscriptionPlanFeature[]
+  services: string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type UpsertSubscriptionPlanPayload = Omit<SubscriptionPlan, '_id' | 'createdAt' | 'updatedAt'> & {
+  _id?: string
+}
+
+export interface SubscriptionDiscount {
+  _id: string
+  name: string
+  percent: number
+  active: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type UpsertSubscriptionDiscountPayload = {
+  _id?: string
+  name: string
+  percent: number
+  active: boolean
+}
+
+export enum FcmDevicePlatform {
+  Web = 'web',
+  Android = 'android',
+  Ios = 'ios',
+}
+
+export enum FirebaseEnvironment {
+  Development = 'development',
+  Staging = 'staging',
+  Production = 'production',
+}
+
+export type ConversationParticipantRole = 'client' | 'agency' | 'admin' | 'support'
+
+export type MessageType = 'text' | 'system' | 'attachment'
+
+export interface FcmDevice {
+  _id: string
+  user: string
+  token: string
+  platform: FcmDevicePlatform
+  browser?: string
+  deviceName?: string
+  isActive: boolean
+  environment: FirebaseEnvironment | string
+  lastSeenAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export interface RegisterFcmDevicePayload {
+  token: string
+  platform: FcmDevicePlatform
+  browser?: string
+  deviceName?: string
+  environment?: FirebaseEnvironment | string
+}
+
+export interface UnregisterFcmDevicePayload {
+  token: string
+}
+
+export interface NotificationPayload {
+  title: string
+  body: string
+  url?: string
+  type?: string
+  data?: Record<string, string>
+}
+
+export interface FirebaseMessagePayload {
+  title?: string
+  body?: string
+  url?: string
+  type?: string
+  data?: Record<string, string>
+}
+
+export interface MessageParticipant {
+  userId: string
+  role: ConversationParticipantRole
+  unreadCount: number
+  lastReadAt?: Date | string | null
+}
+
+export interface Conversation {
+  id: string
+  participantUids: string[]
+  participants: MessageParticipant[]
+  lastMessage?: string
+  lastMessageAt?: Date | string | null
+  lastMessageSenderId?: string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export interface ChatMessage {
+  id: string
+  conversationId: string
+  senderId: string
+  type: MessageType
+  text?: string
+  attachmentUrl?: string
+  readBy: string[]
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export interface ChatPeer {
+  _id: string
+  fullName: string
+  avatar?: string | null
+  type?: UserType
+  online?: boolean
+  lastSeenAt?: Date | string | null
+  kind?: 'support' | 'branch' | 'parent' | 'agency'
+}
+
+export interface ChatConversationView {
+  _id: string
+  peer: ChatPeer
+  lastMessage?: string
+  lastMessageAt?: Date | string | null
+  lastMessageSenderId?: string | null
+  unreadCount: number
+  updatedAt?: Date | string
+}
+
+export interface ChatMessageView {
+  _id: string
+  conversation: string
+  sender: string
+  text: string
+  createdAt: Date | string
+}
+
+export interface OpenChatPayload {
+  agencyId?: string
+  peerId?: string
+}
+
+export interface SendChatMessagePayload {
+  text: string
+}

@@ -14,7 +14,12 @@ const config = [
       'build/',
       'dist/',
       'vite.config.js',
-      'vite.config.d.ts'
+      'vite.config.d.ts',
+      'vitest.config.js',
+      'vitest.config.d.ts',
+      'vite-plugin-firebase-sw.js',
+      'vite-plugin-firebase-sw.d.ts',
+      'public/firebase-messaging-sw.js',
     ]
   },
   {

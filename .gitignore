@@ -10,10 +10,17 @@
 
 # Local env secrets
 **/.env
+**/.env.local
 **/.env.production
 !**/.env.example
 !**/.env.docker.example
 !**/.env.production.example
+
+# Firebase Admin credentials
+**/*firebase-adminsdk*.json
+**/serviceAccount*.json
+**/google-services.json
+frontend/public/firebase-messaging-sw.js
 
 # Uploaded / generated media
 /cdn/

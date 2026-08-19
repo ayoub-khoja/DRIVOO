@@ -63,3 +63,16 @@ export const getUsers = (
       },
     )
     .then((res) => res.data)
+
+export const updateAgency = (
+  id: string,
+  data: bookcarsTypes.UpdateAgencyProfilePayload,
+): Promise<{ status: number, data: bookcarsTypes.User }> =>
+  adminAxiosInstance
+    .put(`/api/admin/agency/${encodeURIComponent(id)}`, data)
+    .then((res) => ({ status: res.status, data: res.data }))
+
+export const deleteAgency = (id: string): Promise<number> =>
+  adminAxiosInstance
+    .delete(`/api/delete-supplier/${encodeURIComponent(id)}`)
+    .then((res) => res.status)

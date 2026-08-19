@@ -9,6 +9,9 @@ import LocationValue from '../models/LocationValue'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
 import PushToken from '../models/PushToken'
+import FirebaseDevice from '../models/FirebaseDevice'
+import ChatConversation from '../models/ChatConversation'
+import ChatMessage from '../models/ChatMessage'
 import Token, { TOKEN_EXPIRE_AT_INDEX_NAME } from '../models/Token'
 import User, { USER_EXPIRE_AT_INDEX_NAME } from '../models/User'
 import Country from '../models/Country'
@@ -220,8 +223,11 @@ export const models = defineModels([
   BankDetails,
   Booking,
   Car,
+  ChatConversation,
+  ChatMessage,
   Country,
   DateBasedPrice,
+  FirebaseDevice,
   Location,
   LocationValue,
   Notification,

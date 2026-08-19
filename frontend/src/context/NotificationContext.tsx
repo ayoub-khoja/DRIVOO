@@ -12,6 +12,8 @@ export interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | null>(null)
 
+export { NotificationContext }
+
 // Create a provider
 interface NotificationProviderProps {
   children: ReactNode

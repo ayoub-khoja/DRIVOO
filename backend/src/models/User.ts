@@ -195,6 +195,9 @@ const userSchema = new Schema<env.User>(
       ref: 'User',
       index: true,
     },
+    chatLastSeenAt: {
+      type: Date,
+    },
     profileSlug: {
       type: String,
       trim: true,

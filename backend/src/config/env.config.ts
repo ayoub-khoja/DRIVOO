@@ -430,6 +430,32 @@ export const MINIMUM_AGE = Number.parseInt(__env__('BC_MINIMUM_AGE', false, '21'
 export const EXPO_ACCESS_TOKEN = __env__('BC_EXPO_ACCESS_TOKEN', false)
 
 /**
+ * Firebase Admin project ID.
+ */
+export const FIREBASE_PROJECT_ID = __env__('BC_FIREBASE_PROJECT_ID', false)
+
+/**
+ * Firebase Admin service account client email.
+ */
+export const FIREBASE_CLIENT_EMAIL = __env__('BC_FIREBASE_CLIENT_EMAIL', false)
+
+/**
+ * Firebase Admin service account private key.
+ * Supports escaped newlines from .env files.
+ */
+export const FIREBASE_PRIVATE_KEY = __env__('BC_FIREBASE_PRIVATE_KEY', false).replace(/\\n/g, '\n')
+
+/**
+ * Optional path to a Google service account JSON file.
+ */
+export const GOOGLE_APPLICATION_CREDENTIALS = __env__('GOOGLE_APPLICATION_CREDENTIALS', false)
+
+/**
+ * Isolates FCM devices per environment (development, staging, production).
+ */
+export const FIREBASE_ENVIRONMENT = __env__('BC_FIREBASE_ENVIRONMENT', false, process.env.NODE_ENV || 'development')
+
+/**
  * Stripe secret key.
  *
  * @type {string}
@@ -645,6 +671,7 @@ export interface User extends Document {
   whatsapp?: string
   agencyApproved?: boolean
   parentAgency?: Types.ObjectId
+  chatLastSeenAt?: Date
   profileSlug?: string
   createdAt?: Date
   updatedAt?: Date
@@ -1005,6 +1032,37 @@ export interface NotificationCounter extends Document {
 export interface PushToken extends Document {
   user: Types.ObjectId
   token: string
+}
+
+/**
+ * Firebase Cloud Messaging device Document.
+ */
+export interface FirebaseDevice extends Document {
+  user: Types.ObjectId
+  token: string
+  platform: bookcarsTypes.FcmDevicePlatform
+  browser?: string
+  deviceName?: string
+  isActive: boolean
+  environment: string
+  lastSeenAt?: Date
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface ChatConversation extends Document {
+  participants: Types.ObjectId[]
+  participantKey: string
+  lastMessage?: string
+  lastMessageAt?: Date
+  lastMessageSender?: Types.ObjectId
+  unreadBy: Map<string, number>
+}
+
+export interface ChatMessage extends Document {
+  conversation: Types.ObjectId
+  sender: Types.ObjectId
+  text: string
 }
 
 /**

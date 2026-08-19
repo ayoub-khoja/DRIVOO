@@ -15,3 +15,8 @@ const AgencyPlaceholder = ({ title }: { title: string }) => (
 )
 
 export const AgencyBookings = () => <AgencyPlaceholder title={strings.BOOKINGS} />
+export const AgencyInvoices = () => <AgencyPlaceholder title={strings.INVOICES} />
+export const AgencyContact = () => <AgencyPlaceholder title={strings.CONTACT} />
+export const AgencyReceipts = () => <AgencyPlaceholder title={strings.RECEIPTS} />
+export const AgencySubscription = () => <AgencyPlaceholder title={strings.SUBSCRIPTION} />
+export const AgencyMaintenance = () => <AgencyPlaceholder title={strings.MAINTENANCE} />
