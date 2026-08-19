@@ -150,9 +150,7 @@ const MessengerWidget = ({ axiosInstance, currentUser, mode, theme = 'dark' }: M
     return () => {
       cancelled = true
     }
-    // Boot only when the widget is opened, not on every callback identity change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, loadConversations, loadContacts])
 
   useEffect(() => {
     if (!open) {
