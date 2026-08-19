@@ -101,7 +101,7 @@
 }
 
 .header .logo .logo-img {
-  height: 68px;
+  height: 44px;
   width: auto;
   max-width: 280px;
   object-fit: contain;
@@ -134,7 +134,7 @@
   }
 
   .header .logo .logo-img {
-    height: 56px;
+    height: 36px;
     max-width: 220px;
   }
 

@@ -8,12 +8,21 @@ import {
   PersonOutline,
   ApartmentOutlined,
   StarOutline,
+  ReceiptLongOutlined,
+  ContactMailOutlined,
+  RequestQuoteOutlined,
+  CardMembershipOutlined,
+  BuildOutlined,
 } from '@mui/icons-material'
 import { Button, CircularProgress } from '@mui/material'
 import env from '@/config/env.config'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
 import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
+import agencyAxiosInstance from '@/agency/services/agencyAxios'
+import FirebaseMessagingBridge from '@/components/FirebaseMessagingBridge'
+import AgencyTopbar from '@/agency/components/AgencyTopbar'
+import MessengerWidget from '@/components/messenger/MessengerWidget'
 import logo from '@/assets/img/logoWhite.png'
 
 import '@/agency/assets/css/agency.css'
@@ -59,6 +68,7 @@ const AgencyShell = () => {
 
   return (
     <div className="agency-app">
+      <FirebaseMessagingBridge enabled axiosInstance={agencyAxiosInstance} />
       <aside className="agency-sidebar">
         <div className="agency-brand">
           <img src={logo} alt={env.WEBSITE_NAME} />
@@ -88,6 +98,26 @@ const AgencyShell = () => {
               <span>{strings.BRANCHES}</span>
             </NavLink>
           )}
+          <NavLink to="/agency/invoices" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <ReceiptLongOutlined />
+            <span>{strings.INVOICES}</span>
+          </NavLink>
+          <NavLink to="/agency/contact" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <ContactMailOutlined />
+            <span>{strings.CONTACT}</span>
+          </NavLink>
+          <NavLink to="/agency/receipts" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <RequestQuoteOutlined />
+            <span>{strings.RECEIPTS}</span>
+          </NavLink>
+          <NavLink to="/agency/subscription" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <CardMembershipOutlined />
+            <span>{strings.SUBSCRIPTION}</span>
+          </NavLink>
+          <NavLink to="/agency/maintenance" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <BuildOutlined />
+            <span>{strings.MAINTENANCE}</span>
+          </NavLink>
           <NavLink to="/agency/profile" className={({ isActive }) => (isActive ? 'active' : '')}>
             <PersonOutline />
             <span>{strings.PROFILE}</span>
@@ -103,17 +133,12 @@ const AgencyShell = () => {
       </aside>
 
       <main className="agency-main">
-        <header className="agency-topbar">
-          <div className="agency-topbar-copy">
-            <p className="agency-kicker">{strings.WELCOME}</p>
-            <h1>{agency.fullName}</h1>
-          </div>
-          <div className={`agency-status-chip ${agency.agencyApproved === false ? 'is-pending' : 'is-live'}`}>
-            {agency.agencyApproved === false ? 'Pending' : 'Live'}
-          </div>
-        </header>
-        <Outlet />
+        <AgencyTopbar />
+        <div className="agency-main-content">
+          <Outlet />
+        </div>
       </main>
+      <MessengerWidget axiosInstance={agencyAxiosInstance} currentUser={agency} mode="agency" theme="light" />
     </div>
   )
 }

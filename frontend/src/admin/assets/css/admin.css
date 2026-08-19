@@ -303,6 +303,44 @@
 .admin-row-actions {
   display: inline-flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-row-actions .MuiButton-root {
+  white-space: nowrap;
+}
+
+.admin-edit-field .MuiInputLabel-root {
+  color: #4a5568 !important;
+}
+
+.admin-edit-field .MuiInputLabel-root.Mui-focused {
+  color: var(--drivoo-yellow) !important;
+}
+
+.admin-edit-field .MuiOutlinedInput-root {
+  color: #243853 !important;
+  background: #ffffff !important;
+}
+
+.admin-edit-field .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(36 56 83 / 22%) !important;
+}
+
+.admin-edit-field .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: rgb(36 56 83 / 40%) !important;
+}
+
+.admin-edit-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--drivoo-yellow) !important;
+}
+
+.admin-delete-warning {
+  margin: 0;
+  color: #243853 !important;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .admin-empty {

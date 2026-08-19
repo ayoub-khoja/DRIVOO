@@ -60,3 +60,16 @@ export const setCurrentUser = (user: bookcarsTypes.User | null) => {
     localStorage.removeItem(STORAGE_KEY)
   }
 }
+
+export const updateLanguage = (data: bookcarsTypes.UpdateLanguagePayload): Promise<number> =>
+  agencyAxiosInstance
+    .post('/api/update-language', data)
+    .then((res) => {
+      if (res.status === 200) {
+        const user = getCurrentUser()
+        if (user) {
+          setCurrentUser({ ...user, language: data.language })
+        }
+      }
+      return res.status
+    })

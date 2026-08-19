@@ -2,7 +2,7 @@ import React, { lazy, Suspense, useEffect, useState } from 'react'
 import { createBrowserRouter, RouterProvider, Outlet, useLocation, Navigate } from 'react-router-dom'
 import env from '@/config/env.config'
 import { NotificationProvider } from '@/context/NotificationContext'
-import { UserProvider } from '@/context/UserContext'
+import { UserContextType, UserProvider, useUserContext } from '@/context/UserContext'
 import { RecaptchaProvider } from '@/context/RecaptchaContext'
 import { PayPalProvider } from '@/context/PayPalContext'
 import { SettingProvider } from '@/context/SettingContext'
@@ -10,6 +10,8 @@ import { init as initGA } from '@/utils/ga4'
 import ScrollToTop from '@/components/ScrollToTop'
 import NProgressIndicator from '@/components/NProgressIndicator'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import FirebaseMessagingBridge from '@/components/FirebaseMessagingBridge'
+import axiosInstance from '@/services/axiosInstance'
 
 if (env.GOOGLE_ANALYTICS_ENABLED) {
   initGA()
@@ -49,6 +51,7 @@ const AdminDashboard = lazy(() => import('@/admin/pages/AdminDashboard'))
 const AccountRequests = lazy(() => import('@/admin/pages/AccountRequests'))
 const AdminAgencies = lazy(() => import('@/admin/pages/AdminAgencies'))
 const AdminClients = lazy(() => import('@/admin/pages/AdminClients'))
+const AdminSubscription = lazy(() => import('@/admin/pages/AdminSubscription'))
 
 const AgencyProvider = lazy(() => import('@/agency/context/AgencyContext').then((m) => ({ default: m.AgencyProvider })))
 const AgencyLayout = lazy(() => import('@/agency/components/AgencyLayout'))
@@ -58,8 +61,19 @@ const AgencyDashboard = lazy(() => import('@/agency/pages/AgencyDashboard'))
 const AgencyFleet = lazy(() => import('@/agency/pages/AgencyFleet'))
 const AgencyBranches = lazy(() => import('@/agency/pages/AgencyBranches'))
 const AgencyBookings = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyBookings })))
+const AgencyInvoices = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyInvoices })))
+const AgencyContact = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyContact })))
+const AgencyReceipts = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyReceipts })))
+const AgencySubscription = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencySubscription })))
+const AgencyMaintenance = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyMaintenance })))
 const AgencyProfile = lazy(() => import('@/agency/pages/AgencyProfile'))
 const AgencyReviews = lazy(() => import('@/agency/pages/AgencyReviews'))
+const AgencyNotifications = lazy(() => import('@/agency/pages/AgencyNotifications'))
+
+const AppMessaging = () => {
+  const { user } = useUserContext() as UserContextType
+  return <FirebaseMessagingBridge enabled={!!user} axiosInstance={axiosInstance} />
+}
 
 const AppLayout = () => {
   const location = useLocation()
@@ -78,6 +92,7 @@ const AppLayout = () => {
               <PayPalProvider>
                 <ScrollToTop />
                 <div className="app">
+                  <AppMessaging />
                   <Suspense fallback={<NProgressIndicator />}>
                     <Header />
                     <Outlet />
@@ -119,6 +134,7 @@ const router = createBrowserRouter([
       { path: 'account-requests', element: <AccountRequests /> },
       { path: 'agencies', element: <AdminAgencies /> },
       { path: 'clients', element: <AdminClients /> },
+      { path: 'subscription', element: <AdminSubscription /> },
       { path: '*', element: <NoMatch /> },
     ],
   },
@@ -134,7 +150,13 @@ const router = createBrowserRouter([
       { path: 'agencies', element: <AgencyBranches /> },
       { path: 'bookings', element: <AgencyBookings /> },
       { path: 'reviews', element: <AgencyReviews /> },
+      { path: 'invoices', element: <AgencyInvoices /> },
+      { path: 'contact', element: <AgencyContact /> },
+      { path: 'receipts', element: <AgencyReceipts /> },
+      { path: 'subscription', element: <AgencySubscription /> },
+      { path: 'maintenance', element: <AgencyMaintenance /> },
       { path: 'profile', element: <AgencyProfile /> },
+      { path: 'notifications', element: <AgencyNotifications /> },
       { path: '*', element: <NoMatch /> },
     ],
   },

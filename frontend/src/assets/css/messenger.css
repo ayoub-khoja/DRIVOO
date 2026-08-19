@@ -1,0 +1,340 @@
+.drivoo-messenger {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1400;
+  font-family: var(--drivoo-font-body, 'Segoe UI', sans-serif);
+}
+
+.drivoo-messenger-bubble {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: #101820;
+  background: linear-gradient(145deg, #ffb347, #f5a623 45%, #e8891a);
+  box-shadow: 0 16px 40px rgb(245 166 35 / 42%), 0 0 0 6px rgb(245 166 35 / 16%);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.drivoo-messenger-bubble:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.drivoo-messenger-bubble .MuiSvgIcon-root {
+  font-size: 30px;
+}
+
+.drivoo-messenger-bubble-badge {
+  position: absolute;
+  top: -4px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 3px #0b1626;
+}
+
+.drivoo-messenger.is-light .drivoo-messenger-bubble-badge {
+  box-shadow: 0 0 0 3px #fff;
+}
+
+.drivoo-messenger-panel {
+  position: absolute;
+  right: 0;
+  bottom: 80px;
+  width: min(400px, calc(100vw - 32px));
+  height: min(620px, calc(100vh - 120px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 35%);
+}
+
+.drivoo-messenger.is-dark .drivoo-messenger-panel {
+  color: #f4f7fb;
+  background: linear-gradient(180deg, #15263c 0%, #0b1626 100%);
+  border: 1px solid rgb(255 255 255 / 12%);
+}
+
+.drivoo-messenger.is-light .drivoo-messenger-panel {
+  color: #12233a;
+  background: #fff;
+  border: 1px solid #eadfcb;
+}
+
+.drivoo-messenger-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+}
+
+.drivoo-messenger-head-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.drivoo-messenger-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.drivoo-messenger-head p {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  opacity: 0.72;
+}
+
+.drivoo-messenger-icon-btn {
+  color: inherit !important;
+}
+
+.drivoo-messenger-search {
+  margin: 0 16px 12px;
+}
+
+.drivoo-messenger-search .MuiOutlinedInput-root {
+  border-radius: 14px;
+  font-size: 0.88rem;
+}
+
+.drivoo-messenger.is-dark .drivoo-messenger-search .MuiOutlinedInput-root {
+  color: #fff;
+  background: rgb(255 255 255 / 6%);
+}
+
+.drivoo-messenger-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px 12px;
+}
+
+.drivoo-messenger-row {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.drivoo-messenger.is-dark .drivoo-messenger-row:hover,
+.drivoo-messenger.is-dark .drivoo-messenger-row.is-active {
+  background: rgb(255 255 255 / 7%);
+}
+
+.drivoo-messenger.is-light .drivoo-messenger-row:hover,
+.drivoo-messenger.is-light .drivoo-messenger-row.is-active {
+  background: #fff8ee;
+}
+
+.drivoo-messenger-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+}
+
+.drivoo-messenger-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffe0b8, #f5a623);
+  color: #101820;
+}
+
+.drivoo-messenger-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.drivoo-messenger-avatar.is-logo {
+  background: #0b1626;
+}
+
+.drivoo-messenger-avatar.is-logo img {
+  object-fit: contain;
+  padding: 6px 5px;
+}
+
+.drivoo-messenger-status {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: 0 0 0 2px #0b1626;
+}
+
+.drivoo-messenger.is-light .drivoo-messenger-status {
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.drivoo-messenger-status.is-online {
+  background: #22c55e;
+}
+
+.drivoo-messenger-row-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.drivoo-messenger-row-copy strong,
+.drivoo-messenger-row-copy span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drivoo-messenger-row-copy span {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.drivoo-messenger-unread {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f5a623;
+  color: #101820;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.drivoo-messenger-empty {
+  padding: 32px 20px;
+  text-align: center;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.drivoo-messenger-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.drivoo-messenger-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 16px 12px;
+}
+
+.drivoo-messenger-bubble-msg {
+  max-width: 78%;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.drivoo-messenger-bubble-msg time {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  opacity: 0.65;
+}
+
+.drivoo-messenger-bubble-msg.is-mine {
+  margin-left: auto;
+  background: linear-gradient(135deg, #f5a623, #ff7a18);
+  color: #101820;
+  border-bottom-right-radius: 6px;
+}
+
+.drivoo-messenger.is-dark .drivoo-messenger-bubble-msg.is-theirs {
+  background: rgb(255 255 255 / 10%);
+  border-bottom-left-radius: 6px;
+}
+
+.drivoo-messenger.is-light .drivoo-messenger-bubble-msg.is-theirs {
+  background: #f3f5f8;
+  border-bottom-left-radius: 6px;
+}
+
+.drivoo-messenger-composer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 16px;
+}
+
+.drivoo-messenger-composer textarea {
+  flex: 1;
+  resize: none;
+  min-height: 44px;
+  max-height: 96px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.drivoo-messenger.is-dark .drivoo-messenger-composer textarea {
+  color: #fff;
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 12%);
+}
+
+.drivoo-messenger.is-light .drivoo-messenger-composer textarea {
+  color: #12233a;
+  background: #fff8ee;
+  border: 1px solid #eadfcb;
+}
+
+.drivoo-messenger-send {
+  min-width: 44px !important;
+  height: 44px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #f5a623, #ff7a18) !important;
+  color: #101820 !important;
+}
+
+@media (max-width: 640px) {
+  .drivoo-messenger {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .drivoo-messenger-panel {
+    width: calc(100vw - 24px);
+    height: min(70vh, 620px);
+  }
+}

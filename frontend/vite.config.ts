@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { createHtmlPlugin } from 'vite-plugin-html'
 import babelPlugin from '@rolldown/plugin-babel'
+import { firebaseMessagingSwPlugin } from './vite-plugin-firebase-sw'
 
 // https://vitejs.dev/config/
 export default ({ mode }: { mode: string }) => {
@@ -26,6 +27,7 @@ export default ({ mode }: { mode: string }) => {
           },
         },
       }),
+      firebaseMessagingSwPlugin(),
     ],
 
     resolve: {

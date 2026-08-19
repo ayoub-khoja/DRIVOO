@@ -6,12 +6,16 @@ import {
   LogoutOutlined,
   StorefrontOutlined,
   PeopleOutline,
+  CardMembershipOutlined,
 } from '@mui/icons-material'
 import { Button, CircularProgress } from '@mui/material'
 import env from '@/config/env.config'
 import { strings } from '@/admin/lang/admin'
 import { useAdminContext } from '@/admin/context/AdminContext'
 import * as AdminAuthService from '@/admin/services/AdminAuthService'
+import adminAxiosInstance from '@/admin/services/adminAxios'
+import FirebaseMessagingBridge from '@/components/FirebaseMessagingBridge'
+import MessengerWidget from '@/components/messenger/MessengerWidget'
 import logo from '@/assets/img/logoWhite.png'
 
 import '@/admin/assets/css/admin.css'
@@ -53,6 +57,7 @@ const AdminShell = () => {
 
   return (
     <div className="admin-app">
+      <FirebaseMessagingBridge enabled axiosInstance={adminAxiosInstance} />
       <aside className="admin-sidebar">
         <div className="admin-brand">
           <img src={logo} alt={env.WEBSITE_NAME} />
@@ -76,6 +81,10 @@ const AdminShell = () => {
             <PeopleOutline />
             <span>{strings.USERS}</span>
           </NavLink>
+          <NavLink to="/admin/subscription" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <CardMembershipOutlined />
+            <span>{strings.SUBSCRIPTION}</span>
+          </NavLink>
         </nav>
 
         <div className="admin-sidebar-footer">
@@ -96,6 +105,7 @@ const AdminShell = () => {
         <main className="admin-content">
           <Outlet />
         </main>
+        <MessengerWidget axiosInstance={adminAxiosInstance} currentUser={admin} mode="admin" theme="dark" />
       </div>
     </div>
   )

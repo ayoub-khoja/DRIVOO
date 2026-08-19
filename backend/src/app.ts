@@ -23,6 +23,8 @@ import settingRoutes from './routes/settingRoutes'
 import agencyRoutes from './routes/agencyRoutes'
 import geoRoutes from './routes/geoRoutes'
 import subscriptionRoutes from './routes/subscriptionRoutes'
+import fcmDeviceRoutes from './routes/fcmDeviceRoutes'
+import chatRoutes from './routes/chatRoutes'
 import * as helper from './utils/helper'
 
 const app = express()
@@ -70,6 +72,8 @@ app.use('/', settingRoutes)
 app.use('/', agencyRoutes)
 app.use('/', geoRoutes)
 app.use('/', subscriptionRoutes)
+app.use('/', fcmDeviceRoutes)
+app.use('/', chatRoutes)
 
 if (env.ENABLE_SENTRY) {
   Sentry.setupExpressErrorHandler(app)

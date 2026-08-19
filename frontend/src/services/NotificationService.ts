@@ -1,6 +1,11 @@
 import * as bookcarsTypes from ':bookcars-types'
 import axiosInstance from './axiosInstance'
+import agencyAxiosInstance from '@/agency/services/agencyAxios'
 import env from '@/config/env.config'
+
+const notificationClient = () => (
+  window.location.pathname.startsWith('/agency') ? agencyAxiosInstance : axiosInstance
+)
 
 /**
  * Get NotificationCounter by UserID.
@@ -9,7 +14,7 @@ import env from '@/config/env.config'
  * @returns {Promise<bookcarsTypes.NotificationCounter>}
  */
 export const getNotificationCounter = (userId: string): Promise<bookcarsTypes.NotificationCounter> => (
-  axiosInstance
+  notificationClient()
     .get(
       `/api/notification-counter/${encodeURIComponent(userId)}`,
       { withCredentials: true }
@@ -25,7 +30,7 @@ export const getNotificationCounter = (userId: string): Promise<bookcarsTypes.No
  * @returns {Promise<number>}
  */
 export const markAsRead = (userId: string, ids: string[]): Promise<number> => (
-  axiosInstance
+  notificationClient()
     .post(
       `/api/mark-Notifications-as-read/${encodeURIComponent(userId)}`,
       { ids },
@@ -42,7 +47,7 @@ export const markAsRead = (userId: string, ids: string[]): Promise<number> => (
  * @returns {Promise<number>}
  */
 export const markAsUnread = (userId: string, ids: string[]): Promise<number> => (
-  axiosInstance
+  notificationClient()
     .post(
 `/api/mark-Notifications-as-unread/${encodeURIComponent(userId)}`,
       { ids },
@@ -59,7 +64,7 @@ export const markAsUnread = (userId: string, ids: string[]): Promise<number> => 
  * @returns {Promise<number>}
  */
 export const deleteNotifications = (userId: string, ids: string[]): Promise<number> => (
-  axiosInstance
+  notificationClient()
     .post(
       `/api/delete-Notifications/${encodeURIComponent(userId)}`,
       { ids },
@@ -76,7 +81,7 @@ export const deleteNotifications = (userId: string, ids: string[]): Promise<numb
  * @returns {Promise<bookcarsTypes.Result<bookcarsTypes.Notification>>}
  */
 export const getNotifications = (userId: string, page: number): Promise<bookcarsTypes.Result<bookcarsTypes.Notification>> => (
-  axiosInstance
+  notificationClient()
     .get(
       `/api/Notifications/${encodeURIComponent(userId)}/${page}/${env.PAGE_SIZE}`,
       { withCredentials: true }

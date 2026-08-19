@@ -132,6 +132,13 @@ const env = {
   MAP_ZOOM: Number(String(import.meta.env.VITE_BC_MAP_ZOOM || '5')),
   PASSWORD_MIN_LENGTH: 6,
   ADMIN_HOST: String(import.meta.env.VITE_BC_ADMIN_HOST || 'http://localhost:3001'),
+  FIREBASE_API_KEY: String(import.meta.env.VITE_FIREBASE_API_KEY || ''),
+  FIREBASE_AUTH_DOMAIN: String(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || ''),
+  FIREBASE_PROJECT_ID: String(import.meta.env.VITE_FIREBASE_PROJECT_ID || ''),
+  FIREBASE_STORAGE_BUCKET: String(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || ''),
+  FIREBASE_MESSAGING_SENDER_ID: String(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || ''),
+  FIREBASE_APP_ID: String(import.meta.env.VITE_FIREBASE_APP_ID || ''),
+  FIREBASE_VAPID_KEY: String(import.meta.env.VITE_FIREBASE_VAPID_KEY || ''),
 }
 
 export default env
