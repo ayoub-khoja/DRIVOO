@@ -7,8 +7,8 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, './src'),
-            ':bookcars-types': path.resolve(__dirname, '../packages/bookcars-types'),
+            '@': path.resolve(import.meta.dirname, './src'),
+            ':bookcars-types': path.resolve(import.meta.dirname, '../packages/bookcars-types'),
         },
     },
 });
