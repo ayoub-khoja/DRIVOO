@@ -1,5 +1,5 @@
 import React, { Dispatch, ReactNode, SetStateAction, useEffect, useRef, useState } from 'react'
-import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import L, { LatLngExpression } from 'leaflet'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import iconShadow from 'leaflet/dist/images/marker-shadow.png'
@@ -8,6 +8,7 @@ import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/lang/map'
 import * as LocationService from '@/services/LocationService'
 import * as helper from '@/utils/helper'
+import MapTileLayer from '@/components/MapTileLayer'
 
 import 'leaflet-boundary-canvas'
 import 'leaflet/dist/leaflet.css'
@@ -104,17 +105,6 @@ const Map = ({
     }
   }, [position, _initialZoom, map])
 
-  //
-  // Tile server
-  //
-
-  const tileURL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-  // const tileURL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-  // const language = UserService.getLanguage()
-  // if (language === 'fr') {
-  //   tileURL = 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png'
-  // }
-
   const getLocationMarkers = (): Marker[] => (
     (locations
       && locations
@@ -198,10 +188,7 @@ const Map = ({
         className={`${className ? `${className} ` : ''}map`}
         ref={map}
       >
-        <TileLayer
-          // attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url={tileURL}
-        />
+        <MapTileLayer />
         <ZoomTracker setZoom={setZoom} />
         <ZoomControlledLayer zoom={zoom} minZoom={7.5}>
           {

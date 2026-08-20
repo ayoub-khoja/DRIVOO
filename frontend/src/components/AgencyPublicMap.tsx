@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react'
-import { MapContainer, Marker, TileLayer } from 'react-leaflet'
+import { MapContainer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import iconShadow from 'leaflet/dist/images/marker-shadow.png'
+import MapTileLayer from '@/components/MapTileLayer'
 
 import 'leaflet/dist/leaflet.css'
 
@@ -32,7 +33,7 @@ const AgencyPublicMap = ({ latitude, longitude, label }: AgencyPublicMapProps) =
       className="agence-public-leaflet"
       attributionControl={false}
     >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <MapTileLayer />
       <Marker position={[latitude, longitude]} icon={pin} title={label} />
     </MapContainer>
   )

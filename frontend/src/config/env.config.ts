@@ -130,6 +130,8 @@ const env = {
   MAP_LATITUDE: Number(String(import.meta.env.VITE_BC_MAP_LATITUDE || '34.0268755')),
   MAP_LONGITUDE: Number(String(import.meta.env.VITE_BC_MAP_LONGITUDE || '1.6528399999999976')),
   MAP_ZOOM: Number(String(import.meta.env.VITE_BC_MAP_ZOOM || '5')),
+  /** Google Maps API key for Map Tiles. Empty → OpenStreetMap fallback. */
+  GOOGLE_MAPS_API_KEY: String(import.meta.env.VITE_BC_GOOGLE_MAPS_API_KEY || ''),
   PASSWORD_MIN_LENGTH: 6,
   ADMIN_HOST: String(import.meta.env.VITE_BC_ADMIN_HOST || 'http://localhost:3001'),
   FIREBASE_API_KEY: String(import.meta.env.VITE_FIREBASE_API_KEY || ''),
