@@ -20,13 +20,10 @@ import {
 import * as bookcarsHelper from ':bookcars-helper'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
-import AgencyAddReceiptDialog from '@/agency/pages/AgencyAddReceiptDialog'
-import AgencyReceiptPreview, {
-  formatDate,
-  paymentLabel,
-} from '@/agency/components/AgencyReceiptPreview'
+import AgencyReceiptPreview from '@/agency/components/AgencyReceiptPreview'
 import * as AgencyReceiptService from '@/agency/services/AgencyReceiptService'
 import type { AgencyReceipt } from '@/agency/types/receipt'
+import { formatReceiptDate, paymentLabel } from '@/agency/utils/receiptFormat'
 import env from '@/config/env.config'
 import * as helper from '@/utils/helper'
 import { printReceiptElement } from '@/agency/utils/printReceipt'
