@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { TileLayer } from 'react-leaflet'
 import mapConfig from '@/config/map.config'
 

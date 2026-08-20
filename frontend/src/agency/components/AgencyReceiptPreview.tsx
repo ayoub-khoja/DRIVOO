@@ -3,35 +3,9 @@ import * as bookcarsHelper from ':bookcars-helper'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/agency/lang/agency'
 import * as AgencyProfileService from '@/agency/services/AgencyProfileService'
-import type { AgencyReceipt, AgencyReceiptPaymentMethod } from '@/agency/types/receipt'
+import type { AgencyReceipt } from '@/agency/types/receipt'
+import { formatReceiptDate, paymentLabel } from '@/agency/utils/receiptFormat'
 import env from '@/config/env.config'
-
-const paymentLabel = (method: AgencyReceiptPaymentMethod) => {
-  switch (method) {
-    case 'cash':
-      return strings.RECEIPT_PAY_CASH
-    case 'card':
-      return strings.RECEIPT_PAY_CARD
-    case 'transfer':
-      return strings.RECEIPT_PAY_TRANSFER
-    case 'cheque':
-      return strings.RECEIPT_PAY_CHEQUE
-    default:
-      return method
-  }
-}
-
-const formatDate = (value: string, language: string) => {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-  return date.toLocaleDateString(language === 'ar' ? 'ar-TN' : language === 'fr' ? 'fr-TN' : 'en-GB', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  })
-}
 
 interface AgencyReceiptPreviewProps {
   receipt: AgencyReceipt
@@ -74,7 +48,7 @@ const AgencyReceiptPreview = ({
           <div className="agency-receipt-hero-doc">
             <span className="agency-receipt-badge">{strings.RECEIPT_DOC_TITLE}</span>
             <strong className="agency-receipt-doc-number">{receipt.number}</strong>
-            <p className="agency-receipt-doc-date">{formatDate(receipt.paidAt, language)}</p>
+            <p className="agency-receipt-doc-date">{formatReceiptDate(receipt.paidAt, language)}</p>
             <span className="agency-receipt-paid-stamp">{strings.RECEIPT_PAID}</span>
           </div>
         </div>
@@ -155,4 +129,3 @@ const AgencyReceiptPreview = ({
 }
 
 export default AgencyReceiptPreview
-export { paymentLabel, formatDate }

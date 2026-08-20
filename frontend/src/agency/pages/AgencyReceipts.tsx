@@ -20,6 +20,7 @@ import {
 import * as bookcarsHelper from ':bookcars-helper'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
+import AgencyAddReceiptDialog from '@/agency/pages/AgencyAddReceiptDialog'
 import AgencyReceiptPreview from '@/agency/components/AgencyReceiptPreview'
 import * as AgencyReceiptService from '@/agency/services/AgencyReceiptService'
 import type { AgencyReceipt } from '@/agency/types/receipt'
@@ -214,7 +215,7 @@ const AgencyReceipts = () => {
                     <td>
                       <span className="agency-receipt-number">{row.number}</span>
                     </td>
-                    <td>{formatDate(row.paidAt, language)}</td>
+                    <td>{formatReceiptDate(row.paidAt, language)}</td>
                     <td>
                       <div className="agency-receipt-client-cell">
                         <strong>{row.clientName}</strong>
