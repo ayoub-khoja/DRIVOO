@@ -17,6 +17,10 @@ import * as emailTemplate from '../utils/emailTemplate'
 import * as s3Storage from '../utils/s3Storage'
 import * as profileSlug from '../utils/profileSlug'
 import AgencyReview from '../models/AgencyReview'
+import SubscriptionPlan from '../models/SubscriptionPlan'
+import Notification from '../models/Notification'
+import NotificationCounter from '../models/NotificationCounter'
+import * as firebaseMessaging from '../services/firebase/messaging'
 import { findTunisiaPoint } from '../fixtures/geo'
 
 const MAX_LOGO_BYTES = 5 * 1024 * 1024
@@ -96,6 +100,67 @@ const toAgencyReviewDto = (review: {
   status: review.status || bookcarsTypes.AgencyReviewStatus.Pending,
   createdAt: review.createdAt,
 })
+
+/**
+ * Notify the agency when a client submits a new review.
+ */
+const notifyAgencyNewReview = async (
+  agency: {
+    _id: mongoose.Types.ObjectId
+    fullName?: string
+    email?: string
+    language?: string
+    enableEmailNotifications?: boolean
+  },
+  reviewerName: string,
+  rating: number,
+) => {
+  i18n.locale = agency.language || 'fr'
+  const message = `${reviewerName} ${i18n.t('AGENCY_REVIEW_NOTIFICATION', { rating })}`
+  const reviewsUrl = helper.joinURL(env.FRONTEND_HOST, 'agency/reviews')
+
+  const notification = new Notification({
+    user: agency._id,
+    message,
+  })
+  await notification.save()
+
+  let counter = await NotificationCounter.findOne({ user: agency._id })
+  if (counter && typeof counter.count !== 'undefined') {
+    counter.count += 1
+    await counter.save()
+  } else {
+    counter = new NotificationCounter({ user: agency._id, count: 1 })
+    await counter.save()
+  }
+
+  void firebaseMessaging.sendNotificationToUser(agency._id.toString(), {
+    title: i18n.t('HELLO') + (agency.fullName || ''),
+    body: message,
+    type: 'agency-review',
+    url: reviewsUrl,
+    data: { review: '1' },
+  }).catch((error) => {
+    logger.warn(`[agency.notifyAgencyNewReview] push skipped: ${error}`)
+  })
+
+  if (agency.enableEmailNotifications && agency.email) {
+    const mailOptions: nodemailer.SendMailOptions = {
+      from: env.SMTP_FROM,
+      to: agency.email,
+      subject: message,
+      html: emailTemplate.renderNotificationEmail({
+        hello: i18n.t('HELLO'),
+        greeting: agency.fullName || '',
+        messageHtml: message,
+        actionUrl: reviewsUrl,
+        regardsHtml: i18n.t('REGARDS'),
+        audience: 'agency',
+      }),
+    }
+    await mailHelper.sendMail(emailTemplate.withBanner('agency', mailOptions))
+  }
+}
 
 /**
  * List sub-agencies of the authenticated main agency.
@@ -672,6 +737,12 @@ export const createPublicReview = async (req: Request, res: Response) => {
       status: bookcarsTypes.AgencyReviewStatus.Pending,
     })
 
+    try {
+      await notifyAgencyNewReview(agency, name, rating)
+    } catch (notifyErr) {
+      logger.warn(`[agency.createPublicReview] notification failed for ${agency._id}`, notifyErr)
+    }
+
     res.status(201).json({
       ...toPublicReviewDto(review),
       status: review.status,
@@ -762,6 +833,46 @@ export const moderateReview = async (req: Request, res: Response) => {
     res.status(200).json(toAgencyReviewDto(review))
   } catch (err) {
     logger.error(`[agency.moderateReview] ${i18n.t('ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Assign a catalog subscription plan to the current main agency.
+ */
+export const selectSubscriptionPlan = async (req: Request, res: Response) => {
+  const { body }: { body: { planId?: string } } = req
+  try {
+    const sessionUser = await getSessionAgency(req.user?._id?.toString())
+    const gate = assertMainAgency(sessionUser)
+    if (gate === 'forbidden' || !sessionUser) {
+      res.sendStatus(403)
+      return
+    }
+
+    const planId = String(body.planId || '')
+    if (!helper.isValidObjectId(planId)) {
+      res.status(400).send('Invalid plan')
+      return
+    }
+
+    const plan = await SubscriptionPlan.findOne({
+      _id: planId,
+      active: true,
+      visible: true,
+    }).select('_id').lean()
+
+    if (!plan) {
+      res.status(404).send('Plan not found')
+      return
+    }
+
+    sessionUser.subscriptionPlan = plan._id
+    await sessionUser.save()
+
+    res.status(200).json({ subscriptionPlan: String(plan._id) })
+  } catch (err) {
+    logger.error(`[agency.selectSubscriptionPlan] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }

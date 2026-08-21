@@ -5,6 +5,8 @@ import * as subscriptionController from '../controllers/subscriptionController'
 
 const routes = express.Router()
 
+routes.route(routeNames.getPublicPlans).get(subscriptionController.getPublicPlans)
+
 routes.route(routeNames.getPlans)
   .get(authJwt.verifyToken, authJwt.authAdmin, subscriptionController.getPlans)
   .post(authJwt.verifyToken, authJwt.authAdmin, subscriptionController.createPlan)

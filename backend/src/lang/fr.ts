@@ -67,4 +67,5 @@ export const fr = {
   LOCATION_IMAGE_NOT_FOUND: 'Image de lieu introuvable',
   NEW_CAR_NOTIFICATION_PART1: 'Le fournisseur ',
   NEW_CAR_NOTIFICATION_PART2: ' a créé une nouvelle voiture.',
+  AGENCY_REVIEW_NOTIFICATION: 'a laissé un avis (%{rating}/5) à valider.',
 }

@@ -195,6 +195,11 @@ const userSchema = new Schema<env.User>(
       ref: 'User',
       index: true,
     },
+    subscriptionPlan: {
+      type: Schema.Types.ObjectId,
+      ref: 'SubscriptionPlan',
+      index: true,
+    },
     chatLastSeenAt: {
       type: Date,
     },

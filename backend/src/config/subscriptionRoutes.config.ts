@@ -1,4 +1,5 @@
 const routes = {
+  getPublicPlans: '/api/subscription-plans',
   getPlans: '/api/admin/subscription-plans',
   createPlan: '/api/admin/subscription-plans',
   updatePlan: '/api/admin/subscription-plans/:id',

@@ -10,15 +10,15 @@ const AgencyNotifications = () => {
   const value = useMemo(() => ({ notificationCount, setNotificationCount }), [notificationCount])
 
   return (
-    <div className="agency-page">
-      <section className="agency-hero">
-        <div className="agency-hero-copy">
-          <p className="agency-kicker">{strings.NOTIFICATIONS}</p>
-          <h2>{strings.NOTIFICATIONS}</h2>
-        </div>
-      </section>
+    <div className="agency-page agency-notifications-page">
+      <div className="agency-page-head">
+        <h2>{strings.NOTIFICATIONS}</h2>
+        <p>{strings.NOTIFICATIONS_SUBTITLE}</p>
+      </div>
       <NotificationContext.Provider value={value}>
-        <NotificationList user={agency || undefined} />
+        <div className="agency-notifications-panel">
+          <NotificationList user={agency || undefined} />
+        </div>
       </NotificationContext.Provider>
     </div>
   )

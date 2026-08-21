@@ -1625,6 +1625,7 @@ export const getUser = async (req: Request, res: Response) => {
       agencyApproved: 1,
       active: 1,
       parentAgency: 1,
+      subscriptionPlan: 1,
       profileSlug: 1,
     }).lean()
 

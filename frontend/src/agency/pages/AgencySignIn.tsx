@@ -11,6 +11,7 @@ import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/agency/lang/agency'
 import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
+import { needsAgencyPlan } from '@/agency/utils/subscriptionPlan'
 import PasswordInput from '@/components/PasswordInput'
 import Error from '@/components/Error'
 import logo from '@/assets/img/logoWhite.png'
@@ -52,9 +53,18 @@ const AgencySignIn = () => {
         language: user.language,
         type: user.type,
         agencyApproved: user.agencyApproved,
+        parentAgency: typeof user.parentAgency === 'object' && user.parentAgency
+          ? user.parentAgency._id
+          : user.parentAgency,
+        subscriptionPlan: user.subscriptionPlan || null,
       })
       await refreshAgency()
-      navigate('/agency/dashboard', { replace: true })
+
+      if (needsAgencyPlan(user)) {
+        navigate('/agency/choose-plan', { replace: true })
+      } else {
+        navigate('/agency/dashboard', { replace: true })
+      }
     } catch {
       setError(true)
     } finally {

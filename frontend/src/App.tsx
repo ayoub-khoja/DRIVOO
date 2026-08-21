@@ -57,6 +57,7 @@ const AgencyProvider = lazy(() => import('@/agency/context/AgencyContext').then(
 const AgencyLayout = lazy(() => import('@/agency/components/AgencyLayout'))
 const AgencySignIn = lazy(() => import('@/agency/pages/AgencySignIn'))
 const AgencyActivate = lazy(() => import('@/agency/pages/AgencyActivate'))
+const AgencyChoosePlan = lazy(() => import('@/agency/pages/AgencyChoosePlan'))
 const AgencyDashboard = lazy(() => import('@/agency/pages/AgencyDashboard'))
 const AgencyFleet = lazy(() => import('@/agency/pages/AgencyFleet'))
 const AgencyBranches = lazy(() => import('@/agency/pages/AgencyBranches'))
@@ -64,7 +65,7 @@ const AgencyBookings = lazy(() => import('@/agency/pages/AgencyPlaceholders').th
 const AgencyInvoices = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyInvoices })))
 const AgencyContact = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyContact })))
 const AgencyReceipts = lazy(() => import('@/agency/pages/AgencyReceipts'))
-const AgencySubscription = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencySubscription })))
+const AgencySubscription = lazy(() => import('@/agency/pages/AgencySubscription'))
 const AgencyMaintenance = lazy(() => import('@/agency/pages/AgencyMaintenance'))
 const AgencyProfile = lazy(() => import('@/agency/pages/AgencyProfile'))
 const AgencyReviews = lazy(() => import('@/agency/pages/AgencyReviews'))
@@ -145,6 +146,7 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'sign-in', element: <AgencySignIn /> },
       { path: 'activate', element: <AgencyActivate /> },
+      { path: 'choose-plan', element: <AgencyChoosePlan /> },
       { path: 'dashboard', element: <AgencyDashboard /> },
       { path: 'fleet', element: <AgencyFleet /> },
       { path: 'agencies', element: <AgencyBranches /> },

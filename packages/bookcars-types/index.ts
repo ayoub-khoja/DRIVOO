@@ -599,6 +599,7 @@ export interface User {
   whatsapp?: string
   agencyApproved?: boolean
   parentAgency?: User | string
+  subscriptionPlan?: string | null
   profileSlug?: string
 }
 

@@ -124,6 +124,35 @@ const sanitizePlan = (body: PlanPayload) => {
   }
 }
 
+export const getPublicPlans = async (_req: Request, res: Response) => {
+  try {
+    const plans = await SubscriptionPlan.find(
+      { active: true, visible: true },
+      {
+        name: 1,
+        subtitle: 1,
+        tokens: 1,
+        freeTokens: 1,
+        trialMonths: 1,
+        pricing: 1,
+        freePlan: 1,
+        mostPopular: 1,
+        firstTrialFree: 1,
+        unlimitedDuration: 1,
+        features: 1,
+        services: 1,
+        showPaymentButton: 1,
+      },
+    )
+      .sort({ mostPopular: -1, createdAt: -1 })
+      .lean()
+    res.json(plans)
+  } catch (err) {
+    logger.error(`[subscription.getPublicPlans] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
 export const getPlans = async (_req: Request, res: Response) => {
   try {
     const plans = await SubscriptionPlan.find().sort({ createdAt: -1 }).lean()

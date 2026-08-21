@@ -671,6 +671,7 @@ export interface User extends Document {
   whatsapp?: string
   agencyApproved?: boolean
   parentAgency?: Types.ObjectId
+  subscriptionPlan?: Types.ObjectId
   chatLastSeenAt?: Date
   profileSlug?: string
   createdAt?: Date

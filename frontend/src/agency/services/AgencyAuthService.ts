@@ -3,6 +3,33 @@ import * as bookcarsTypes from ':bookcars-types'
 import agencyAxiosInstance from './agencyAxios'
 
 const STORAGE_KEY = 'bc-agency-user'
+const ONBOARDING_KEY = 'bc-agency-onboarding'
+
+export type AgencyOnboardingCredentials = { email: string, password: string }
+
+export const setOnboardingCredentials = (email: string, password: string) => {
+  sessionStorage.setItem(ONBOARDING_KEY, JSON.stringify({ email, password }))
+}
+
+export const getOnboardingCredentials = (): AgencyOnboardingCredentials | null => {
+  const raw = sessionStorage.getItem(ONBOARDING_KEY)
+  if (!raw) {
+    return null
+  }
+  try {
+    const parsed = JSON.parse(raw) as AgencyOnboardingCredentials
+    if (!parsed?.email || !parsed?.password) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+export const clearOnboardingCredentials = () => {
+  sessionStorage.removeItem(ONBOARDING_KEY)
+}
 
 export const signin = (data: bookcarsTypes.SignInPayload): Promise<{ status: number, data: bookcarsTypes.User }> =>
   agencyAxiosInstance
@@ -14,6 +41,7 @@ export const signin = (data: bookcarsTypes.SignInPayload): Promise<{ status: num
 
 export const signout = async (redirect = true) => {
   localStorage.removeItem(STORAGE_KEY)
+  clearOnboardingCredentials()
   try {
     await agencyAxiosInstance.post('/api/sign-out', null)
   } catch {

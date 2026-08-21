@@ -7,6 +7,7 @@ const routes = {
   getShareLink: '/api/agency/share-link',
   getReviews: '/api/agency/reviews',
   moderateReview: '/api/agency/reviews/:id',
+  selectSubscriptionPlan: '/api/agency/subscription-plan',
   getPublicProfile: '/api/agency/public/:slug',
   getPublicCars: '/api/agency/public/:slug/cars',
   getPublicReviews: '/api/agency/public/:slug/reviews',

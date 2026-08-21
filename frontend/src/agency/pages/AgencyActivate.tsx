@@ -7,6 +7,7 @@ import * as bookcarsTypes from ':bookcars-types'
 import * as UserService from '@/services/UserService'
 import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
+import { needsAgencyPlan } from '@/agency/utils/subscriptionPlan'
 import PasswordInput from '@/components/PasswordInput'
 import Error from '@/components/Error'
 import { schema, FormFields } from '@/models/ActivateForm'
@@ -76,6 +77,8 @@ const AgencyActivate = () => {
         return
       }
 
+      await UserService.deleteTokens(userId)
+
       const signInResult = await AgencyAuthService.signin({ email, password })
       if (signInResult.status !== 200 || !signInResult.data?._id) {
         setSubmitError(true)
@@ -88,6 +91,14 @@ const AgencyActivate = () => {
         return
       }
 
+      if (needsAgencyPlan(user)) {
+        await AgencyAuthService.signout(false)
+        setAgency(null)
+        AgencyAuthService.setOnboardingCredentials(email, password)
+        navigate('/agency/choose-plan', { replace: true })
+        return
+      }
+
       AgencyAuthService.setCurrentUser({
         _id: user._id,
         email: user.email,
@@ -95,9 +106,12 @@ const AgencyActivate = () => {
         language: user.language,
         type: user.type,
         agencyApproved: user.agencyApproved,
+        parentAgency: typeof user.parentAgency === 'object' && user.parentAgency
+          ? user.parentAgency._id
+          : user.parentAgency,
+        subscriptionPlan: user.subscriptionPlan || null,
       })
       setAgency(user)
-      await UserService.deleteTokens(userId)
       navigate('/agency/dashboard', { replace: true })
     } catch {
       setSubmitError(true)
