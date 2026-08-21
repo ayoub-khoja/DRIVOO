@@ -7,7 +7,7 @@ import {
   MenuItem,
   TextField,
 } from '@mui/material'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { strings } from '@/agency/lang/agency'
 import { agencyReceiptSchema, AgencyReceiptFormFields } from '@/agency/models/AgencyReceiptForm'
@@ -52,7 +52,7 @@ const AgencyAddReceiptDialog = ({
     reset,
     formState: { errors },
   } = useForm<AgencyReceiptFormFields>({
-    resolver: zodResolver(agencyReceiptSchema),
+    resolver: zodResolver(agencyReceiptSchema) as Resolver<AgencyReceiptFormFields>,
     mode: 'onBlur',
     defaultValues: emptyValues,
   })

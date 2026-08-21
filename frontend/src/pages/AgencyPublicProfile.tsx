@@ -162,6 +162,7 @@ const AgencyPublicProfile = () => {
                       latitude={profile.latitude}
                       longitude={profile.longitude}
                       label={profile.fullName}
+                      logoUrl={logo || undefined}
                     />
                   </div>
                 ) : null}

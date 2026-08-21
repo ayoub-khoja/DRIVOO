@@ -45,9 +45,20 @@ const AgencyTopbar = () => {
       return
     }
 
-    NotificationService.getNotificationCounter(userId)
-      .then((counter) => setNotificationCount(counter.count || 0))
-      .catch(() => setNotificationCount(0))
+    const loadCounter = () => {
+      NotificationService.getNotificationCounter(userId)
+        .then((counter) => setNotificationCount(counter.count || 0))
+        .catch(() => setNotificationCount(0))
+    }
+
+    loadCounter()
+    const onFocus = () => loadCounter()
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onFocus)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onFocus)
+    }
   }, [agency?._id])
 
   const onLanguageSelect = async (event: React.MouseEvent<HTMLElement>) => {

@@ -230,7 +230,7 @@ const NotificationList = ({ user }: NotificationListProps) => {
                     <div className="message-container">
                       <div className="message">{row.message}</div>
                       <div className="actions">
-                        {row.booking && (
+                        {(row.booking || window.location.pathname.startsWith('/agency')) && (
                           <Tooltip title={strings.VIEW}>
                             <IconButton
                               onClick={async () => {
@@ -241,7 +241,11 @@ const NotificationList = ({ user }: NotificationListProps) => {
                                   }
 
                                   const __navigate__ = () => {
-                                    navigate(`/booking?b=${row.booking}`)
+                                    if (row.booking) {
+                                      navigate(`/booking?b=${row.booking}`)
+                                      return
+                                    }
+                                    navigate('/agency/reviews')
                                   }
 
                                   if (!row.isRead) {

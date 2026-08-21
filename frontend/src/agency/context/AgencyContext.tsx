@@ -63,6 +63,7 @@ export const AgencyProvider: React.FC<AgencyProviderProps> = ({ children }) => {
           parentAgency: typeof user.parentAgency === 'object' && user.parentAgency
             ? user.parentAgency._id
             : user.parentAgency,
+          subscriptionPlan: user.subscriptionPlan || null,
         })
       }
     } catch {

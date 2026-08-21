@@ -19,6 +19,7 @@ import env from '@/config/env.config'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
 import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
+import { needsAgencyPlan } from '@/agency/utils/subscriptionPlan'
 import agencyAxiosInstance from '@/agency/services/agencyAxios'
 import FirebaseMessagingBridge from '@/components/FirebaseMessagingBridge'
 import AgencyTopbar from '@/agency/components/AgencyTopbar'
@@ -33,7 +34,8 @@ const AgencyShell = () => {
   const { agency, agencyLoaded } = useAgencyContext()
   const isSignIn = location.pathname.endsWith('/sign-in')
   const isActivate = location.pathname.includes('/activate')
-  const isPublic = isSignIn || isActivate
+  const isChoosePlan = location.pathname.includes('/choose-plan')
+  const isPublic = isSignIn || isActivate || isChoosePlan
   const isMainAgency = !!agency && !agency.parentAgency
 
   React.useEffect(() => {
@@ -42,6 +44,10 @@ const AgencyShell = () => {
     }
     if (!agency) {
       navigate('/agency/sign-in', { replace: true })
+      return
+    }
+    if (needsAgencyPlan(agency)) {
+      navigate('/agency/choose-plan', { replace: true })
     }
   }, [agency, agencyLoaded, isPublic, navigate])
 
