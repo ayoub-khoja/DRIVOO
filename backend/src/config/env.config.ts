@@ -669,6 +669,12 @@ export interface User extends Document {
   legalRepTitle?: string
   legalRepCin?: string
   whatsapp?: string
+  phone2?: string
+  phone3?: string
+  website?: string
+  invoicePrefix?: string
+  invoiceVatRate?: number
+  invoiceStampDuty?: number
   agencyApproved?: boolean
   parentAgency?: Types.ObjectId
   subscriptionPlan?: Types.ObjectId
@@ -1127,6 +1133,42 @@ export interface AgencyReview extends Document {
   rating: number
   comment: string
   status: bookcarsTypes.AgencyReviewStatus
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+/**
+ * AgencyInvoice Document.
+ *
+ * @export
+ * @interface AgencyInvoice
+ * @typedef {AgencyInvoice}
+ * @extends {Document}
+ */
+export interface AgencyInvoice extends Document {
+  agency: Types.ObjectId
+  number: string
+  issueCity: string
+  issueDate: Date
+  clientCode?: string
+  clientName: string
+  clientIdNumber?: string
+  clientPhone?: string
+  clientAddress?: string
+  object: string
+  lines: bookcarsTypes.AgencyInvoiceLine[]
+  discount: number
+  vatRate: number
+  stampDuty: number
+  payments: bookcarsTypes.AgencyInvoicePayments
+  currency: string
+  notes?: string
+  totalGross: number
+  totalHT: number
+  totalVAT: number
+  totalTTC: number
+  totalPaid: number
+  balanceDue: number
   createdAt?: Date
   updatedAt?: Date
 }

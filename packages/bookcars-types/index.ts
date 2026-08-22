@@ -219,7 +219,10 @@ export interface SubAgency {
 export interface UpdateAgencyProfilePayload {
   fullName: string
   phone?: string
+  phone2?: string
+  phone3?: string
   whatsapp?: string
+  website?: string
   bio?: string
   address?: string
   city?: string
@@ -232,6 +235,89 @@ export interface UpdateAgencyProfilePayload {
   legalRepLastName?: string
   legalRepTitle?: string
   legalRepCin?: string
+  invoicePrefix?: string
+  invoiceVatRate?: number
+  invoiceStampDuty?: number
+}
+
+export interface AgencyInvoiceLine {
+  /** Free text designation, e.g. "Location véhicule Contrat N° RA218424" */
+  designation: string
+  /** Vehicle + license plate, e.g. "MAHINDRA KUV 100 · Immatriculation : 8810 TU 230" */
+  vehicleLabel?: string
+  /** Rental period start, ISO datetime */
+  periodFrom?: string
+  /** Rental period end, ISO datetime */
+  periodTo?: string
+  /** UNITE column */
+  quantity: number
+  /** PRIX UNIT. column (excluding tax) */
+  unitPrice: number
+  /** PRIX TOTAL column = quantity * unitPrice */
+  total: number
+}
+
+export interface AgencyInvoicePayments {
+  /** Espèce */
+  cash: number
+  /** Chèque */
+  cheque: number
+  /** Traite */
+  draft: number
+  /** TPE */
+  card: number
+  /** Virement */
+  transfer: number
+}
+
+export interface AgencyInvoice {
+  _id: string
+  /** Sequential number allocated server side, e.g. "FA0003-2025" */
+  number: string
+  issueCity: string
+  issueDate: string
+  clientCode?: string
+  clientName: string
+  clientIdNumber?: string
+  clientPhone?: string
+  clientAddress?: string
+  /** Objet, e.g. "Location d'un véhicule du … au …" */
+  object: string
+  lines: AgencyInvoiceLine[]
+  discount: number
+  /** VAT percentage, e.g. 19 */
+  vatRate: number
+  /** Timbre fiscal */
+  stampDuty: number
+  payments: AgencyInvoicePayments
+  currency: string
+  notes?: string
+  totalGross: number
+  totalHT: number
+  totalVAT: number
+  totalTTC: number
+  totalPaid: number
+  balanceDue: number
+  createdAt?: Date | string
+}
+
+export type CreateAgencyInvoicePayload = Omit<
+  AgencyInvoice,
+  '_id' | 'number' | 'createdAt' | 'totalGross' | 'totalHT' | 'totalVAT' | 'totalTTC' | 'totalPaid' | 'balanceDue'
+>
+
+export interface AgencyInvoiceStats {
+  count: number
+  monthTotal: number
+  lastNumber: string | null
+}
+
+export interface AgencyInvoiceResult {
+  rows: AgencyInvoice[]
+  totalRecords: number
+  page: number
+  pageSize: number
+  stats: AgencyInvoiceStats
 }
 
 export interface AgencyLogoPayload {
@@ -597,6 +683,12 @@ export interface User {
   legalRepTitle?: string
   legalRepCin?: string
   whatsapp?: string
+  phone2?: string
+  phone3?: string
+  website?: string
+  invoicePrefix?: string
+  invoiceVatRate?: number
+  invoiceStampDuty?: number
   agencyApproved?: boolean
   parentAgency?: User | string
   subscriptionPlan?: string | null
