@@ -35,6 +35,7 @@ const emptyValues: AgencyProfileFormFields = {
   invoicePrefix: '',
   invoiceVatRate: 19,
   invoiceStampDuty: 1,
+  contractPrefix: '',
 }
 
 const fromAgency = (agency: bookcarsTypes.User): AgencyProfileFormFields => ({
@@ -59,6 +60,7 @@ const fromAgency = (agency: bookcarsTypes.User): AgencyProfileFormFields => ({
   invoicePrefix: agency.invoicePrefix || '',
   invoiceVatRate: agency.invoiceVatRate ?? 19,
   invoiceStampDuty: agency.invoiceStampDuty ?? 1,
+  contractPrefix: agency.contractPrefix || '',
 })
 
 const AgencyProfile = () => {
@@ -195,6 +197,7 @@ const AgencyProfile = () => {
         invoicePrefix: values.invoicePrefix?.trim() || undefined,
         invoiceVatRate: values.invoiceVatRate,
         invoiceStampDuty: values.invoiceStampDuty,
+        contractPrefix: values.contractPrefix?.trim() || undefined,
       })
       applyUser(updated)
       reset(fromAgency({ ...agency, ...updated }))
@@ -368,6 +371,14 @@ const AgencyProfile = () => {
               {...register('invoiceStampDuty')}
               error={!!errors.invoiceStampDuty}
               helperText={errors.invoiceStampDuty?.message}
+            />
+            <TextField
+              label={strings.PROFILE_CONTRACT_PREFIX}
+              fullWidth
+              placeholder="CRA"
+              {...register('contractPrefix')}
+              error={!!errors.contractPrefix}
+              helperText={errors.contractPrefix?.message}
             />
           </div>
         </section>

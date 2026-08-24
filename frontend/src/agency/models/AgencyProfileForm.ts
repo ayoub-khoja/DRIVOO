@@ -25,6 +25,7 @@ export const agencyProfileSchema = z.object({
   invoicePrefix: z.string().trim().max(8).optional(),
   invoiceVatRate: z.coerce.number().min(0).max(100).optional(),
   invoiceStampDuty: z.coerce.number().min(0).max(1000).optional(),
+  contractPrefix: z.string().trim().max(8).optional(),
 })
 
 export type AgencyProfileFormFields = z.infer<typeof agencyProfileSchema>

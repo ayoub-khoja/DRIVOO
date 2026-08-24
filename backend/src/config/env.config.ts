@@ -675,6 +675,7 @@ export interface User extends Document {
   invoicePrefix?: string
   invoiceVatRate?: number
   invoiceStampDuty?: number
+  contractPrefix?: string
   agencyApproved?: boolean
   parentAgency?: Types.ObjectId
   subscriptionPlan?: Types.ObjectId
@@ -1164,6 +1165,54 @@ export interface AgencyInvoice extends Document {
   currency: string
   notes?: string
   totalGross: number
+  totalHT: number
+  totalVAT: number
+  totalTTC: number
+  totalPaid: number
+  balanceDue: number
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+/**
+ * AgencyContract Document.
+ *
+ * @export
+ * @interface AgencyContract
+ * @typedef {AgencyContract}
+ * @extends {Document}
+ */
+export interface AgencyContract extends Document {
+  agency: Types.ObjectId
+  number: string
+  issueCity: string
+  issueDate: Date
+  vehicleModel: string
+  vehiclePlate: string
+  vehicleCategory?: string
+  vehicleFuel?: string
+  driver: bookcarsTypes.AgencyContractParty
+  secondDriver?: bookcarsTypes.AgencyContractParty
+  departureDate: Date
+  departurePlace: string
+  departureKm: number
+  departureFuel?: string
+  returnDate: Date
+  returnPlace: string
+  returnKm?: number
+  returnFuel?: string
+  kmLimitPerDay?: number
+  extraKmPrice?: number
+  extraHourPrice?: number
+  extraDayPrice?: number
+  deposit: number
+  depositReason?: string
+  vatRate: number
+  supplements: bookcarsTypes.AgencyContractSupplement[]
+  payments: bookcarsTypes.AgencyContractPayment[]
+  checklist: bookcarsTypes.AgencyContractCheck[]
+  currency: string
+  notes?: string
   totalHT: number
   totalVAT: number
   totalTTC: number

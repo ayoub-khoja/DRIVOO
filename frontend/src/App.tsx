@@ -63,6 +63,7 @@ const AgencyFleet = lazy(() => import('@/agency/pages/AgencyFleet'))
 const AgencyBranches = lazy(() => import('@/agency/pages/AgencyBranches'))
 const AgencyBookings = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyBookings })))
 const AgencyInvoices = lazy(() => import('@/agency/pages/AgencyInvoices'))
+const AgencyContracts = lazy(() => import('@/agency/pages/AgencyContracts'))
 const AgencyContact = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyContact })))
 const AgencyReceipts = lazy(() => import('@/agency/pages/AgencyReceipts'))
 const AgencySubscription = lazy(() => import('@/agency/pages/AgencySubscription'))
@@ -153,6 +154,7 @@ const router = createBrowserRouter([
       { path: 'bookings', element: <AgencyBookings /> },
       { path: 'reviews', element: <AgencyReviews /> },
       { path: 'invoices', element: <AgencyInvoices /> },
+      { path: 'contracts', element: <AgencyContracts /> },
       { path: 'contact', element: <AgencyContact /> },
       { path: 'receipts', element: <AgencyReceipts /> },
       { path: 'subscription', element: <AgencySubscription /> },

@@ -167,6 +167,10 @@ const userSchema = new Schema<env.User>(
     invoiceStampDuty: {
       type: Number,
     },
+    contractPrefix: {
+      type: String,
+      trim: true,
+    },
     address: {
       type: String,
       trim: true,

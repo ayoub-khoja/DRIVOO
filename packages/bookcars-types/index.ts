@@ -238,6 +238,7 @@ export interface UpdateAgencyProfilePayload {
   invoicePrefix?: string
   invoiceVatRate?: number
   invoiceStampDuty?: number
+  contractPrefix?: string
 }
 
 export interface AgencyInvoiceLine {
@@ -320,6 +321,107 @@ export interface AgencyInvoiceResult {
   page: number
   pageSize: number
   stats: AgencyInvoiceStats
+}
+
+export interface AgencyContractParty {
+  fullName: string
+  birthDate?: string
+  /** CIN or passport number */
+  idNumber?: string
+  nationality?: string
+  licenseNumber?: string
+  /** Date the driving licence was issued */
+  licenseIssuedAt?: string
+  address?: string
+  phone?: string
+}
+
+export interface AgencyContractSupplement {
+  label: string
+  priceHT: number
+  vatRate: number
+  priceTTC: number
+}
+
+export interface AgencyContractPayment {
+  date?: string
+  amount: number
+  /** Espece, Cheque, Traite, TPE, Virement */
+  method: string
+  /** Recu, En attente... */
+  status?: string
+  /** Reste a payer after this instalment */
+  balance?: number
+}
+
+/** One row of the walk-around checklist ("Si Non : mauvais etat"). */
+export interface AgencyContractCheck {
+  key: string
+  ok: boolean
+}
+
+export interface AgencyContract {
+  _id: string
+  /** Sequential number allocated server side, e.g. "CRA0174-2025" */
+  number: string
+  issueCity: string
+  issueDate: string
+  vehicleModel: string
+  vehiclePlate: string
+  vehicleCategory?: string
+  vehicleFuel?: string
+  driver: AgencyContractParty
+  secondDriver?: AgencyContractParty
+  departureDate: string
+  departurePlace: string
+  departureKm: number
+  departureFuel?: string
+  returnDate: string
+  returnPlace: string
+  returnKm?: number
+  returnFuel?: string
+  /** Daily mileage allowance: 200, 300, 400... */
+  kmLimitPerDay?: number
+  /** Millimes charged per extra kilometre */
+  extraKmPrice?: number
+  extraHourPrice?: number
+  extraDayPrice?: number
+  deposit: number
+  depositReason?: string
+  vatRate: number
+  supplements: AgencyContractSupplement[]
+  payments: AgencyContractPayment[]
+  checklist: AgencyContractCheck[]
+  currency: string
+  notes?: string
+  totalHT: number
+  totalVAT: number
+  totalTTC: number
+  totalPaid: number
+  balanceDue: number
+  createdAt?: Date | string
+}
+
+export type CreateAgencyContractPayload = Omit<
+  AgencyContract,
+  '_id' | 'number' | 'createdAt' | 'totalHT' | 'totalVAT' | 'totalTTC' | 'totalPaid' | 'balanceDue'
+> & {
+  /** Rental price excluding tax, before supplements — totals are derived from it server side. */
+  rentalHT: number
+}
+
+export interface AgencyContractStats {
+  count: number
+  monthTotal: number
+  lastNumber: string | null
+}
+
+export interface AgencyContractResult {
+  rows: AgencyContract[]
+  totalRecords: number
+  page: number
+  pageSize: number
+  stats: AgencyContractStats
 }
 
 export interface AgencyLogoPayload {
@@ -691,6 +793,7 @@ export interface User {
   invoicePrefix?: string
   invoiceVatRate?: number
   invoiceStampDuty?: number
+  contractPrefix?: string
   agencyApproved?: boolean
   parentAgency?: User | string
   subscriptionPlan?: string | null

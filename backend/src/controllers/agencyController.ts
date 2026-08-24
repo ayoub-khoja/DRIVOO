@@ -20,6 +20,9 @@ import AgencyReview from '../models/AgencyReview'
 import AgencyInvoice from '../models/AgencyInvoice'
 import { computeInvoiceTotals, round3 } from '../utils/invoiceHelper'
 import { buildInvoicePdf } from '../utils/invoicePdf'
+import AgencyContract from '../models/AgencyContract'
+import { computeContractTotals } from '../utils/contractHelper'
+import { buildContractPdf } from '../utils/contractPdf'
 import SubscriptionPlan from '../models/SubscriptionPlan'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
@@ -409,6 +412,7 @@ const toProfileDto = (user: env.User) => ({
   invoicePrefix: user.invoicePrefix,
   invoiceVatRate: user.invoiceVatRate,
   invoiceStampDuty: user.invoiceStampDuty,
+  contractPrefix: user.contractPrefix,
   type: user.type,
   language: user.language,
   verified: user.verified,
@@ -475,6 +479,7 @@ export const updateProfile = async (req: Request, res: Response) => {
     sessionUser.invoicePrefix = clip(body.invoicePrefix, 8).toUpperCase() || undefined
     sessionUser.invoiceVatRate = clampNumber(body.invoiceVatRate, 0, 100)
     sessionUser.invoiceStampDuty = clampNumber(body.invoiceStampDuty, 0, 1000)
+    sessionUser.contractPrefix = clip(body.contractPrefix, 8).toUpperCase() || undefined
 
     await sessionUser.save()
     res.status(200).json(toProfileDto(sessionUser))
@@ -972,12 +977,11 @@ export const getInvoices = async (req: Request, res: Response) => {
     const size = Math.min(100, Math.max(1, Number.parseInt(req.params.size, 10) || 10))
     const keyword = String(req.query.s || '').trim()
 
-    // const filter: mongoose.FilterQuery<env.AgencyInvoice> = { agency: agencyId }
-    // if (keyword) {
-    //   const rx = new RegExp(escapeStringRegexp(keyword), 'i')
-    //   filter.$or = [{ number: rx }, { clientName: rx }, { object: rx }, { clientCode: rx }]
-    // }
-    const filter = { agency: agencyId }
+    const filter: mongoose.QueryFilter<env.AgencyInvoice> = { agency: agencyId }
+    if (keyword) {
+      const rx = new RegExp(escapeStringRegexp(keyword), 'i')
+      filter.$or = [{ number: rx }, { clientName: rx }, { object: rx }, { clientCode: rx }]
+    }
 
     const [rows, totalRecords, stats] = await Promise.all([
       AgencyInvoice.find(filter)
@@ -1125,7 +1129,6 @@ export const createInvoice = async (req: Request, res: Response) => {
     // Retry on duplicate key: a concurrent request may have taken the same number in between.
     for (let attempt = 0; attempt < 5; attempt += 1) {
       try {
-        // eslint-disable-next-line no-await-in-loop
         const number = await nextInvoiceNumber(sessionUser._id, prefix, year)
         const invoice = new AgencyInvoice({
           agency: sessionUser._id,
@@ -1153,7 +1156,7 @@ export const createInvoice = async (req: Request, res: Response) => {
           balanceDue: totals.balanceDue,
         })
 
-        // eslint-disable-next-line no-await-in-loop
+         
         await invoice.save()
         res.status(200).json(toInvoiceDto(invoice))
         return
@@ -1277,6 +1280,470 @@ export const getInvoicePdf = async (req: Request, res: Response) => {
     res.status(200).end(pdf)
   } catch (err) {
     logger.error(`[agency.getInvoicePdf] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+const CONTRACT_MAX_SUPPLEMENTS = 20
+const CONTRACT_MAX_PAYMENTS = 20
+const CONTRACT_MAX_CHECKS = 40
+
+const toPartyDto = (party: bookcarsTypes.AgencyContractParty): bookcarsTypes.AgencyContractParty => ({
+  fullName: party.fullName,
+  birthDate: party.birthDate,
+  idNumber: party.idNumber,
+  nationality: party.nationality,
+  licenseNumber: party.licenseNumber,
+  licenseIssuedAt: party.licenseIssuedAt,
+  address: party.address,
+  phone: party.phone,
+})
+
+const toContractDto = (contract: env.AgencyContract): bookcarsTypes.AgencyContract => ({
+  _id: String(contract._id),
+  number: contract.number,
+  issueCity: contract.issueCity || '',
+  issueDate: new Date(contract.issueDate).toISOString(),
+  vehicleModel: contract.vehicleModel,
+  vehiclePlate: contract.vehiclePlate,
+  vehicleCategory: contract.vehicleCategory,
+  vehicleFuel: contract.vehicleFuel,
+  driver: toPartyDto(contract.driver),
+  secondDriver: contract.secondDriver?.fullName ? toPartyDto(contract.secondDriver) : undefined,
+  departureDate: new Date(contract.departureDate).toISOString(),
+  departurePlace: contract.departurePlace || '',
+  departureKm: contract.departureKm,
+  departureFuel: contract.departureFuel,
+  returnDate: new Date(contract.returnDate).toISOString(),
+  returnPlace: contract.returnPlace || '',
+  returnKm: contract.returnKm,
+  returnFuel: contract.returnFuel,
+  kmLimitPerDay: contract.kmLimitPerDay,
+  extraKmPrice: contract.extraKmPrice,
+  extraHourPrice: contract.extraHourPrice,
+  extraDayPrice: contract.extraDayPrice,
+  deposit: contract.deposit,
+  depositReason: contract.depositReason,
+  vatRate: contract.vatRate,
+  supplements: contract.supplements,
+  payments: contract.payments,
+  checklist: contract.checklist,
+  currency: contract.currency,
+  notes: contract.notes,
+  totalHT: contract.totalHT,
+  totalVAT: contract.totalVAT,
+  totalTTC: contract.totalTTC,
+  totalPaid: contract.totalPaid,
+  balanceDue: contract.balanceDue,
+  createdAt: contract.createdAt,
+})
+
+/**
+ * Aggregate stats shown above the contract list: signed count, TTC contracted this
+ * month and the last allocated number.
+ */
+const getContractStats = async (agencyId: mongoose.Types.ObjectId): Promise<bookcarsTypes.AgencyContractStats> => {
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+
+  const [count, monthGroup, last] = await Promise.all([
+    AgencyContract.countDocuments({ agency: agencyId }),
+    AgencyContract.aggregate<{ total: number }>([
+      { $match: { agency: agencyId, issueDate: { $gte: monthStart, $lt: monthEnd } } },
+      { $group: { _id: null, total: { $sum: '$totalTTC' } } },
+    ]),
+    AgencyContract.findOne({ agency: agencyId }).sort({ createdAt: -1 }).select('number').lean(),
+  ])
+
+  return {
+    count,
+    monthTotal: round3(monthGroup[0]?.total || 0),
+    lastNumber: last?.number || null,
+  }
+}
+
+/**
+ * List the authenticated agency rental contracts, paginated and optionally filtered.
+ */
+export const getContracts = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const agencyId = sessionUser._id
+    const page = Math.max(1, Number.parseInt(req.params.page, 10) || 1)
+    const size = Math.min(100, Math.max(1, Number.parseInt(req.params.size, 10) || 10))
+    const keyword = String(req.query.s || '').trim()
+
+    const filter: mongoose.QueryFilter<env.AgencyContract> = { agency: agencyId }
+    if (keyword) {
+      const rx = new RegExp(escapeStringRegexp(keyword), 'i')
+      filter.$or = [
+        { number: rx },
+        { 'driver.fullName': rx },
+        { vehicleModel: rx },
+        { vehiclePlate: rx },
+      ]
+    }
+
+    const [rows, totalRecords, stats] = await Promise.all([
+      AgencyContract.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * size)
+        .limit(size),
+      AgencyContract.countDocuments(filter),
+      getContractStats(agencyId),
+    ])
+
+    const result: bookcarsTypes.AgencyContractResult = {
+      rows: rows.map(toContractDto),
+      totalRecords,
+      page,
+      pageSize: size,
+      stats,
+    }
+    res.status(200).json(result)
+  } catch (err) {
+    logger.error(`[agency.getContracts] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Retrieve a single contract belonging to the authenticated agency.
+ */
+export const getContract = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid contract id')
+      return
+    }
+
+    const contract = await AgencyContract.findOne({ _id: id, agency: sessionUser._id })
+    if (!contract) {
+      res.status(404).send('Contract not found')
+      return
+    }
+
+    res.status(200).json(toContractDto(contract))
+  } catch (err) {
+    logger.error(`[agency.getContract] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Allocate the next sequential contract number for an agency and a given year,
+ * e.g. CRA0174-2025. Same race-safe retry strategy as the invoice numbering.
+ */
+const nextContractNumber = async (
+  agencyId: mongoose.Types.ObjectId,
+  prefix: string,
+  year: number,
+) => {
+  const suffix = `-${year}`
+  const rx = new RegExp(`^${escapeStringRegexp(prefix)}\\d+${escapeStringRegexp(suffix)}$`)
+  const last = await AgencyContract.findOne({ agency: agencyId, number: rx })
+    .sort({ number: -1 })
+    .select('number')
+    .lean()
+
+  const lastSeq = last
+    ? Number.parseInt(last.number.slice(prefix.length, last.number.length - suffix.length), 10) || 0
+    : 0
+
+  return `${prefix}${String(lastSeq + 1).padStart(4, '0')}${suffix}`
+}
+
+/** Sanitize a driver / co-driver block coming from the client. */
+const cleanParty = (party?: bookcarsTypes.AgencyContractParty) => {
+  const fullName = clip(party?.fullName, 120)
+  if (!fullName) {
+    return null
+  }
+  return {
+    fullName,
+    birthDate: clip(party?.birthDate, 32) || undefined,
+    idNumber: clip(party?.idNumber, 40) || undefined,
+    nationality: clip(party?.nationality, 60) || undefined,
+    licenseNumber: clip(party?.licenseNumber, 40) || undefined,
+    licenseIssuedAt: clip(party?.licenseIssuedAt, 32) || undefined,
+    address: clip(party?.address, 240) || undefined,
+    phone: clip(party?.phone, 32) || undefined,
+  }
+}
+
+/**
+ * Create a rental contract for the authenticated agency. Every total is recomputed
+ * server-side — the client payload is only trusted for the raw inputs.
+ */
+export const createContract = async (req: Request, res: Response) => {
+  const { body }: { body: bookcarsTypes.CreateAgencyContractPayload } = req
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const driver = cleanParty(body.driver)
+    if (!driver) {
+      res.status(400).send('Invalid driver')
+      return
+    }
+
+    const vehicleModel = clip(body.vehicleModel, 120)
+    const vehiclePlate = clip(body.vehiclePlate, 40)
+    if (!vehicleModel || !vehiclePlate) {
+      res.status(400).send('Invalid vehicle')
+      return
+    }
+
+    const issueDate = body.issueDate ? new Date(body.issueDate) : new Date()
+    const departureDate = new Date(body.departureDate)
+    const returnDate = new Date(body.returnDate)
+    if ([issueDate, departureDate, returnDate].some((date) => Number.isNaN(date.getTime()))) {
+      res.status(400).send('Invalid date')
+      return
+    }
+    if (returnDate < departureDate) {
+      res.status(400).send('Return date is before departure date')
+      return
+    }
+
+    const vatRate = Math.min(100, Math.max(0, Number(body.vatRate ?? sessionUser.invoiceVatRate ?? 19) || 0))
+
+    const supplements = (Array.isArray(body.supplements) ? body.supplements : [])
+      .slice(0, CONTRACT_MAX_SUPPLEMENTS)
+      .filter((supplement) => clip(supplement?.label, 160).length > 0)
+      .map((supplement) => {
+        const priceHT = Math.max(0, Number(supplement.priceHT) || 0)
+        const rate = Math.min(100, Math.max(0, Number(supplement.vatRate ?? vatRate) || 0))
+        return {
+          label: clip(supplement.label, 160),
+          priceHT,
+          vatRate: rate,
+          priceTTC: round3(priceHT * (1 + rate / 100)),
+        }
+      })
+
+    const payments = (Array.isArray(body.payments) ? body.payments : [])
+      .slice(0, CONTRACT_MAX_PAYMENTS)
+      .filter((payment) => Number(payment?.amount) > 0)
+      .map((payment) => ({
+        date: clip(payment.date, 32) || undefined,
+        amount: Math.max(0, Number(payment.amount) || 0),
+        method: clip(payment.method, 40) || 'Espece',
+        status: clip(payment.status, 40) || undefined,
+        balance: payment.balance != null ? Math.max(0, Number(payment.balance) || 0) : undefined,
+      }))
+
+    const checklist = (Array.isArray(body.checklist) ? body.checklist : [])
+      .slice(0, CONTRACT_MAX_CHECKS)
+      .filter((item) => clip(item?.key, 40).length > 0)
+      .map((item) => ({ key: clip(item.key, 40), ok: item.ok !== false }))
+
+    const totals = computeContractTotals({
+      rentalHT: Math.max(0, Number(body.rentalHT) || 0),
+      supplements,
+      vatRate,
+      payments,
+    })
+
+    const prefix = (sessionUser.contractPrefix || 'CRA').toUpperCase()
+    const year = issueDate.getFullYear()
+
+    // Retry on duplicate key: a concurrent request may have taken the same number in between.
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      try {
+        const number = await nextContractNumber(sessionUser._id, prefix, year)
+        const contract = new AgencyContract({
+          agency: sessionUser._id,
+          number,
+          issueCity: clip(body.issueCity, 80) || sessionUser.city || '',
+          issueDate,
+          vehicleModel,
+          vehiclePlate,
+          vehicleCategory: clip(body.vehicleCategory, 60) || undefined,
+          vehicleFuel: clip(body.vehicleFuel, 40) || undefined,
+          driver,
+          secondDriver: cleanParty(body.secondDriver) || undefined,
+          departureDate,
+          departurePlace: clip(body.departurePlace, 160),
+          departureKm: Math.max(0, Number(body.departureKm) || 0),
+          departureFuel: clip(body.departureFuel, 40) || undefined,
+          returnDate,
+          returnPlace: clip(body.returnPlace, 160),
+          returnKm: body.returnKm != null ? Math.max(0, Number(body.returnKm) || 0) : undefined,
+          returnFuel: clip(body.returnFuel, 40) || undefined,
+          kmLimitPerDay: body.kmLimitPerDay ? Math.max(0, Number(body.kmLimitPerDay) || 0) : undefined,
+          extraKmPrice: body.extraKmPrice ? Math.max(0, Number(body.extraKmPrice) || 0) : undefined,
+          extraHourPrice: body.extraHourPrice ? Math.max(0, Number(body.extraHourPrice) || 0) : undefined,
+          extraDayPrice: body.extraDayPrice ? Math.max(0, Number(body.extraDayPrice) || 0) : undefined,
+          deposit: Math.max(0, Number(body.deposit) || 0),
+          depositReason: clip(body.depositReason, 240) || undefined,
+          vatRate,
+          supplements,
+          payments,
+          checklist,
+          currency: clip(body.currency, 8) || 'TND',
+          notes: clip(body.notes, 500) || undefined,
+          totalHT: totals.totalHT,
+          totalVAT: totals.totalVAT,
+          totalTTC: totals.totalTTC,
+          totalPaid: totals.totalPaid,
+          balanceDue: totals.balanceDue,
+        })
+
+         
+        await contract.save()
+        res.status(200).json(toContractDto(contract))
+        return
+      } catch (err) {
+        if ((err as { code?: number }).code !== 11000) {
+          throw err
+        }
+      }
+    }
+
+    res.status(409).send('Could not allocate a contract number, please retry')
+  } catch (err) {
+    logger.error(`[agency.createContract] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Delete a contract belonging to the authenticated agency.
+ */
+export const deleteContract = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid contract id')
+      return
+    }
+
+    const result = await AgencyContract.deleteOne({ _id: id, agency: sessionUser._id })
+    if (result.deletedCount === 0) {
+      res.status(404).send('Contract not found')
+      return
+    }
+
+    res.sendStatus(200)
+  } catch (err) {
+    logger.error(`[agency.deleteContract] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Stream the rental contract as a PDF: page 1 the contract itself, page 2 the
+ * general terms, both on the agency letterhead.
+ */
+export const getContractPdf = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid contract id')
+      return
+    }
+
+    const contract = await AgencyContract.findOne({ _id: id, agency: sessionUser._id })
+    if (!contract) {
+      res.status(404).send('Contract not found')
+      return
+    }
+
+    const pdf = await buildContractPdf(
+      {
+        number: contract.number,
+        issueCity: contract.issueCity || '',
+        issueDate: contract.issueDate,
+        vehicleModel: contract.vehicleModel,
+        vehiclePlate: contract.vehiclePlate,
+        vehicleCategory: contract.vehicleCategory,
+        vehicleFuel: contract.vehicleFuel,
+        driver: contract.driver,
+        secondDriver: contract.secondDriver,
+        departureDate: contract.departureDate,
+        departurePlace: contract.departurePlace || '',
+        departureKm: contract.departureKm,
+        departureFuel: contract.departureFuel,
+        returnDate: contract.returnDate,
+        returnPlace: contract.returnPlace || '',
+        returnKm: contract.returnKm,
+        returnFuel: contract.returnFuel,
+        kmLimitPerDay: contract.kmLimitPerDay,
+        extraKmPrice: contract.extraKmPrice,
+        extraHourPrice: contract.extraHourPrice,
+        extraDayPrice: contract.extraDayPrice,
+        deposit: contract.deposit,
+        depositReason: contract.depositReason,
+        vatRate: contract.vatRate,
+        supplements: contract.supplements,
+        payments: contract.payments,
+        checklist: contract.checklist,
+        currency: contract.currency,
+        notes: contract.notes,
+        totalHT: contract.totalHT,
+        totalVAT: contract.totalVAT,
+        totalTTC: contract.totalTTC,
+        totalPaid: contract.totalPaid,
+        balanceDue: contract.balanceDue,
+      },
+      {
+        fullName: sessionUser.fullName,
+        email: sessionUser.email,
+        avatar: sessionUser.avatar,
+        address: sessionUser.address,
+        city: sessionUser.city,
+        governorate: sessionUser.governorate,
+        postalCode: sessionUser.postalCode,
+        phone: sessionUser.phone,
+        phone2: sessionUser.phone2,
+        phone3: sessionUser.phone3,
+        website: sessionUser.website,
+        taxId: sessionUser.taxId,
+        rneNumber: sessionUser.rneNumber,
+        iban: sessionUser.iban,
+      },
+    )
+
+    const disposition = req.query.download ? 'attachment' : 'inline'
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Length', pdf.length)
+    res.setHeader('Content-Disposition', `${disposition}; filename="Contrat-${contract.number}.pdf"`)
+    res.status(200).end(pdf)
+  } catch (err) {
+    logger.error(`[agency.getContractPdf] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }

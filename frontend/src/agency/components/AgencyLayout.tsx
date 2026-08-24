@@ -9,6 +9,7 @@ import {
   ApartmentOutlined,
   StarOutline,
   ReceiptLongOutlined,
+  DescriptionOutlined,
   ContactMailOutlined,
   RequestQuoteOutlined,
   CardMembershipOutlined,
@@ -104,6 +105,10 @@ const AgencyShell = () => {
               <span>{strings.BRANCHES}</span>
             </NavLink>
           )}
+          <NavLink to="/agency/contracts" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <DescriptionOutlined />
+            <span>{strings.CONTRACTS}</span>
+          </NavLink>
           <NavLink to="/agency/invoices" className={({ isActive }) => (isActive ? 'active' : '')}>
             <ReceiptLongOutlined />
             <span>{strings.INVOICES}</span>
