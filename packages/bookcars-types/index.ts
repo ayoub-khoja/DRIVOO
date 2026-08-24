@@ -241,8 +241,10 @@ export interface UpdateAgencyProfilePayload {
 }
 
 export interface AgencyInvoiceLine {
-  /** Free text designation, e.g. "Location véhicule Contrat N° RA218424" */
+  /** Free text designation, e.g. "Location véhicule" */
   designation: string
+  /** Rental contract reference printed next to the designation, e.g. "RA218424" */
+  contractNumber?: string
   /** Vehicle + license plate, e.g. "MAHINDRA KUV 100 · Immatriculation : 8810 TU 230" */
   vehicleLabel?: string
   /** Rental period start, ISO datetime */

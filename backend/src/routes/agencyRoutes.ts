@@ -31,6 +31,7 @@ routes.route(routeNames.getInvoices).get(authJwt.verifyToken, authJwt.authSuppli
 routes.route(routeNames.createInvoice).post(authJwt.verifyToken, authJwt.authSupplier, agencyController.createInvoice)
 routes.route(routeNames.getInvoice).get(authJwt.verifyToken, authJwt.authSupplier, agencyController.getInvoice)
 routes.route(routeNames.deleteInvoice).delete(authJwt.verifyToken, authJwt.authSupplier, agencyController.deleteInvoice)
+routes.route(routeNames.getInvoicePdf).get(authJwt.verifyToken, authJwt.authSupplier, agencyController.getInvoicePdf)
 routes.route(routeNames.getPublicCars).get(agencyController.getPublicCars)
 routes.route(routeNames.getPublicReviews).get(agencyController.getPublicReviews)
 routes.route(routeNames.createPublicReview).post(agencyController.createPublicReview)

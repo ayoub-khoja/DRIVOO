@@ -12,6 +12,7 @@ const routes = {
   createInvoice: '/api/agency/invoices',
   getInvoice: '/api/agency/invoice/:id',
   deleteInvoice: '/api/agency/invoice/:id',
+  getInvoicePdf: '/api/agency/invoice/:id/pdf',
   getPublicProfile: '/api/agency/public/:slug',
   getPublicCars: '/api/agency/public/:slug/cars',
   getPublicReviews: '/api/agency/public/:slug/reviews',

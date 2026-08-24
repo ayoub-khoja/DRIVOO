@@ -19,6 +19,7 @@ import * as profileSlug from '../utils/profileSlug'
 import AgencyReview from '../models/AgencyReview'
 import AgencyInvoice from '../models/AgencyInvoice'
 import { computeInvoiceTotals, round3 } from '../utils/invoiceHelper'
+import { buildInvoicePdf } from '../utils/invoicePdf'
 import SubscriptionPlan from '../models/SubscriptionPlan'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
@@ -971,11 +972,12 @@ export const getInvoices = async (req: Request, res: Response) => {
     const size = Math.min(100, Math.max(1, Number.parseInt(req.params.size, 10) || 10))
     const keyword = String(req.query.s || '').trim()
 
-    const filter: mongoose.FilterQuery<env.AgencyInvoice> = { agency: agencyId }
-    if (keyword) {
-      const rx = new RegExp(escapeStringRegexp(keyword), 'i')
-      filter.$or = [{ number: rx }, { clientName: rx }, { object: rx }, { clientCode: rx }]
-    }
+    // const filter: mongoose.FilterQuery<env.AgencyInvoice> = { agency: agencyId }
+    // if (keyword) {
+    //   const rx = new RegExp(escapeStringRegexp(keyword), 'i')
+    //   filter.$or = [{ number: rx }, { clientName: rx }, { object: rx }, { clientCode: rx }]
+    // }
+    const filter = { agency: agencyId }
 
     const [rows, totalRecords, stats] = await Promise.all([
       AgencyInvoice.find(filter)
@@ -1080,6 +1082,7 @@ export const createInvoice = async (req: Request, res: Response) => {
       .filter((line) => clip(line?.designation, 240).length > 0)
       .map((line) => ({
         designation: clip(line.designation, 240),
+        contractNumber: clip(line.contractNumber, 40) || undefined,
         vehicleLabel: clip(line.vehicleLabel, 160) || undefined,
         periodFrom: clip(line.periodFrom, 32) || undefined,
         periodTo: clip(line.periodTo, 32) || undefined,
@@ -1195,6 +1198,85 @@ export const deleteInvoice = async (req: Request, res: Response) => {
     res.sendStatus(200)
   } catch (err) {
     logger.error(`[agency.deleteInvoice] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Stream the invoice as a PDF, rendered server side from the agency letterhead
+ * (logo, fiscal identifiers, contact footer) and the stored invoice totals.
+ */
+export const getInvoicePdf = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid invoice id')
+      return
+    }
+
+    const invoice = await AgencyInvoice.findOne({ _id: id, agency: sessionUser._id })
+    if (!invoice) {
+      res.status(404).send('Invoice not found')
+      return
+    }
+
+    const pdf = await buildInvoicePdf(
+      {
+        number: invoice.number,
+        issueCity: invoice.issueCity || '',
+        issueDate: invoice.issueDate,
+        clientCode: invoice.clientCode,
+        clientName: invoice.clientName,
+        clientIdNumber: invoice.clientIdNumber,
+        clientPhone: invoice.clientPhone,
+        clientAddress: invoice.clientAddress,
+        object: invoice.object || '',
+        lines: invoice.lines,
+        discount: invoice.discount,
+        vatRate: invoice.vatRate,
+        stampDuty: invoice.stampDuty,
+        payments: invoice.payments,
+        currency: invoice.currency,
+        notes: invoice.notes,
+        totalGross: invoice.totalGross,
+        totalHT: invoice.totalHT,
+        totalVAT: invoice.totalVAT,
+        totalTTC: invoice.totalTTC,
+        totalPaid: invoice.totalPaid,
+        balanceDue: invoice.balanceDue,
+      },
+      {
+        fullName: sessionUser.fullName,
+        email: sessionUser.email,
+        avatar: sessionUser.avatar,
+        address: sessionUser.address,
+        city: sessionUser.city,
+        governorate: sessionUser.governorate,
+        postalCode: sessionUser.postalCode,
+        phone: sessionUser.phone,
+        phone2: sessionUser.phone2,
+        phone3: sessionUser.phone3,
+        website: sessionUser.website,
+        taxId: sessionUser.taxId,
+        iban: sessionUser.iban,
+      },
+    )
+
+    // `inline` lets the browser preview it in a tab; the client adds ?download=1 to force a save.
+    const disposition = req.query.download ? 'attachment' : 'inline'
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Length', pdf.length)
+    res.setHeader('Content-Disposition', `${disposition}; filename="Facture-${invoice.number}.pdf"`)
+    res.status(200).end(pdf)
+  } catch (err) {
+    logger.error(`[agency.getInvoicePdf] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }

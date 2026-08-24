@@ -9,6 +9,11 @@ const agencyInvoiceLineSchema = new Schema(
       trim: true,
       maxlength: 240,
     },
+    contractNumber: {
+      type: String,
+      trim: true,
+      maxlength: 40,
+    },
     vehicleLabel: {
       type: String,
       trim: true,
