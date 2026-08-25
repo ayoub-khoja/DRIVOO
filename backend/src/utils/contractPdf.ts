@@ -22,11 +22,16 @@ import {
 } from './pdfShared'
 import {
   CONTRACT_CHECKLIST,
+  CONTRACT_TERMS_AR,
   CONTRACT_TERMS_FR,
   CONTRACT_TERMS_IMPORTANT_FR,
+  CONTRACT_TERMS_INTRO_AR,
+  CONTRACT_TERMS_INTRO_FR,
+  CONTRACT_TERMS_TITLE_AR,
   CONTRACT_TERMS_TITLE_FR,
   withAgencyName,
 } from './contractTerms'
+import { ARABIC_FONT, ARABIC_FONT_BOLD, loadArabicFonts } from './arabicText'
 
 /**
  * Server side rendering of a rental contract, laid out after the agency's paper form:
@@ -115,6 +120,15 @@ export const buildContractPdf = async (
       Subject: 'Contrat de location',
     },
   })
+
+  // Arabic needs an embedded font; without it the document stays French-only.
+  const arabicFonts = loadArabicFonts()
+  const arabicEnabled = !!arabicFonts
+  if (arabicFonts) {
+    for (const [name, buffer] of Object.entries(arabicFonts)) {
+      doc.registerFont(name, buffer)
+    }
+  }
 
   const chunks: Buffer[] = []
   doc.on('data', (chunk: Buffer) => chunks.push(chunk))
@@ -449,68 +463,123 @@ export const buildContractPdf = async (
   doc.undash()
 
   //
-  // Page 2 — general terms and conditions
+  // Page 2 — bilingual general terms: French on the left, Arabic on the right,
+  // laid out on a single page like the agency's printed form.
   //
   doc.addPage()
   y = PAGE_MARGIN
 
-  doc.font('Helvetica-Bold').fontSize(15).fillColor(NAVY)
-  doc.text(CONTRACT_TERMS_TITLE_FR, left, y, { width: CONTENT_WIDTH, align: 'center' })
-  y = doc.y + 8
+  const termGap = 20
+  const termColW = (CONTENT_WIDTH - termGap) / 2
+  const frenchX = left
+  const arabicX = left + termColW + termGap
+
+  /**
+   * Height a column needs at a given size, measured without drawing.
+   * `heightOfString` accounts for the Arabic shaping too, since it goes through the
+   * same fontkit layout as the actual rendering.
+   */
+  const columnHeight = (
+    articles: typeof CONTRACT_TERMS_FR,
+    intro: string,
+    size: number,
+    arabic: boolean,
+  ): number => {
+    const regular = arabic ? ARABIC_FONT : 'Helvetica'
+    const bold = arabic ? ARABIC_FONT_BOLD : 'Helvetica-Bold'
+    const options = { width: termColW, align: (arabic ? 'right' : 'justify') as 'right' | 'justify' }
+
+    doc.font(regular).fontSize(size)
+    let h = doc.heightOfString(withAgencyName(intro, agency.fullName), options) + 6
+
+    for (const article of articles) {
+      doc.font(bold).fontSize(size)
+      h += doc.heightOfString(withAgencyName(article.title, agency.fullName), options) + 2
+      doc.font(regular).fontSize(size)
+      for (const paragraph of article.paragraphs) {
+        h += doc.heightOfString(withAgencyName(paragraph, agency.fullName), options) + 2
+      }
+      h += 4
+    }
+    return h
+  }
+
+  /** Render one language column and return the y it ended at. */
+  const drawColumn = (
+    articles: typeof CONTRACT_TERMS_FR,
+    intro: string,
+    top: number,
+    size: number,
+    arabic: boolean,
+  ): number => {
+    const x = arabic ? arabicX : frenchX
+    const regular = arabic ? ARABIC_FONT : 'Helvetica'
+    const bold = arabic ? ARABIC_FONT_BOLD : 'Helvetica-Bold'
+    const options = { width: termColW, align: (arabic ? 'right' : 'justify') as 'right' | 'justify' }
+    let cy = top
+
+    doc.font(regular).fontSize(size).fillColor(MUTED)
+    doc.text(withAgencyName(intro, agency.fullName), x, cy, options)
+    cy = doc.y + 6
+
+    for (const article of articles) {
+      doc.font(bold).fontSize(size).fillColor(NAVY)
+      doc.text(withAgencyName(article.title, agency.fullName), x, cy, options)
+      cy = doc.y + 2
+
+      doc.font(regular).fontSize(size).fillColor(NAVY_DARK)
+      for (const paragraph of article.paragraphs) {
+        doc.text(withAgencyName(paragraph, agency.fullName), x, cy, options)
+        cy = doc.y + 2
+      }
+      cy += 4
+    }
+    return cy
+  }
+
+  // Title band: French title on the left, Arabic title on the right
+  doc.font('Helvetica-Bold').fontSize(13).fillColor(NAVY)
+  doc.text(CONTRACT_TERMS_TITLE_FR, frenchX, y, { width: termColW })
+  const titleBottom = doc.y
+  if (arabicEnabled) {
+    doc.font(ARABIC_FONT_BOLD).fontSize(14).fillColor(NAVY)
+    doc.text(CONTRACT_TERMS_TITLE_AR, arabicX, y - 2, { width: termColW, align: 'right' })
+  }
+  y = Math.max(titleBottom, doc.y) + 4
+
   doc.moveTo(left, y).lineTo(right, y).lineWidth(1.2).strokeColor(ORANGE).stroke()
-  y += 10
+  y += 8
 
   // Boxed warning, as on the paper form
-  doc.font('Helvetica-Bold').fontSize(8).fillColor(DANGER)
-  const warnH = doc.heightOfString(CONTRACT_TERMS_IMPORTANT_FR, { width: CONTENT_WIDTH - 20 }) + 12
+  doc.font('Helvetica-Bold').fontSize(7).fillColor(DANGER)
+  const warnH = doc.heightOfString(CONTRACT_TERMS_IMPORTANT_FR, { width: CONTENT_WIDTH - 20 }) + 10
   doc.rect(left, y, CONTENT_WIDTH, warnH).lineWidth(0.8).strokeColor(DANGER).dash(3, { space: 2 }).stroke()
   doc.undash()
-  doc.text(CONTRACT_TERMS_IMPORTANT_FR, left + 10, y + 6, { width: CONTENT_WIDTH - 20 })
-  y += warnH + 12
+  doc.text(CONTRACT_TERMS_IMPORTANT_FR, left + 10, y + 5, { width: CONTENT_WIDTH - 20 })
+  y += warnH + 8
 
-  // Two-column layout for the clauses
-  const termGap = 18
-  const termColW = (CONTENT_WIDTH - termGap) / 2
-  const columnX = [left, left + termColW + termGap]
-  let column = 0
-  let termY = y
-  const termsBottom = A4_HEIGHT - PAGE_MARGIN - FOOTER_HEIGHT
-
-  /** Flow into the next column, then the next page, when the current one is full. */
-  const ensureTermSpace = (height: number) => {
-    if (termY + height <= termsBottom) {
-      return
+  // Auto-fit: largest size at which both columns still fit on this page
+  const available = A4_HEIGHT - PAGE_MARGIN - FOOTER_HEIGHT - y
+  let termSize = 6.5
+  for (const candidate of [6.5, 6, 5.5, 5, 4.5, 4]) {
+    termSize = candidate
+    const needed = Math.max(
+      columnHeight(CONTRACT_TERMS_FR, CONTRACT_TERMS_INTRO_FR, candidate, false),
+      arabicEnabled ? columnHeight(CONTRACT_TERMS_AR, CONTRACT_TERMS_INTRO_AR, candidate, true) : 0,
+    )
+    if (needed <= available) {
+      break
     }
-    if (column === 0) {
-      column = 1
-      termY = y
-      return
-    }
-    doc.addPage()
-    column = 0
-    y = PAGE_MARGIN
-    termY = PAGE_MARGIN
   }
 
-  for (const article of CONTRACT_TERMS_FR) {
-    const title = withAgencyName(article.title, agency.fullName)
-
-    doc.font('Helvetica-Bold').fontSize(8)
-    ensureTermSpace(doc.heightOfString(title, { width: termColW }) + 6)
-    doc.fillColor(NAVY)
-    doc.text(title, columnX[column], termY, { width: termColW })
-    termY = doc.y + 2
-
-    for (const paragraph of article.paragraphs) {
-      const text = withAgencyName(paragraph, agency.fullName)
-      doc.font('Helvetica').fontSize(7.5)
-      ensureTermSpace(doc.heightOfString(text, { width: termColW, align: 'justify' }) + 4)
-      doc.fillColor(NAVY_DARK)
-      doc.text(text, columnX[column], termY, { width: termColW, align: 'justify' })
-      termY = doc.y + 3
-    }
-    termY += 4
+  drawColumn(CONTRACT_TERMS_FR, CONTRACT_TERMS_INTRO_FR, y, termSize, false)
+  if (arabicEnabled) {
+    drawColumn(CONTRACT_TERMS_AR, CONTRACT_TERMS_INTRO_AR, y, termSize, true)
   }
+
+  // Separator between the two language columns
+  doc.moveTo(arabicX - termGap / 2, y).lineTo(arabicX - termGap / 2, A4_HEIGHT - PAGE_MARGIN - FOOTER_HEIGHT)
+    .lineWidth(0.5).strokeColor(BORDER).stroke()
 
   //
   // Footer, repeated on every page
