@@ -150,6 +150,16 @@ export const isValidObjectId = (id?: string) => mongoose.isValidObjectId(id)
 export const isValidEmail = (email?: string) => !!email && validator.isEmail(email)
 
 /**
+ * Normalize a Tunisian RIB (digits only).
+ */
+export const normalizeRib = (value?: string) => String(value || '').replace(/\D/g, '')
+
+/**
+ * Tunisian RIB must contain exactly 20 digits.
+ */
+export const isValidRib = (value?: string) => /^\d{20}$/.test(normalizeRib(value))
+
+/**
  * Generate user token.
  *
  * @returns {string}

@@ -79,7 +79,7 @@ const AgencyShowcase = () => {
   }, [])
 
   const goJoin = () => navigate('/sign-up?role=agency')
-  const goLogin = () => navigate('/agency/sign-in')
+  const goLogin = () => navigate('/sign-in')
   const isAr = langHelper.getLanguage() === 'ar'
 
   return (

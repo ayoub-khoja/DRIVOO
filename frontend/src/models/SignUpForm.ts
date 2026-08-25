@@ -37,7 +37,9 @@ export const supplierAddressBankSchema = z.object({
   city: requiredString(strings.REQUIRED_FIELD),
   governorate: requiredString(strings.REQUIRED_FIELD),
   postalCode: requiredString(strings.REQUIRED_FIELD).regex(/^\d{4,5}$/, { message: strings.POSTAL_CODE_INVALID }),
-  iban: requiredString(strings.REQUIRED_FIELD).min(15, { message: strings.IBAN_INVALID }),
+  iban: requiredString(strings.REQUIRED_FIELD)
+    .transform((value) => value.replace(/\D/g, ''))
+    .refine((value) => /^\d{20}$/.test(value), { message: strings.IBAN_INVALID }),
 })
 
 export const supplierContactSchema = z.object({
@@ -45,9 +47,9 @@ export const supplierContactSchema = z.object({
   legalRepLastName: requiredString(strings.REQUIRED_FIELD),
   legalRepTitle: requiredString(strings.REQUIRED_FIELD),
   legalRepCin: requiredString(strings.REQUIRED_FIELD).regex(/^\d{8}$/, { message: strings.CIN_INVALID }),
-  phone: z.string().refine((value) => !!value && validator.isMobilePhone(value), { message: commonStrings.PHONE_NOT_VALID }),
-  whatsapp: z.string().refine((value) => !!value && validator.isMobilePhone(value), { message: commonStrings.PHONE_NOT_VALID }),
-  email: z.string().refine((value) => !!value && validator.isEmail(value), { message: commonStrings.EMAIL_NOT_VALID }),
+  phone: requiredString(strings.REQUIRED_FIELD).refine((value) => validator.isMobilePhone(value), { message: commonStrings.PHONE_NOT_VALID }),
+  whatsapp: requiredString(strings.REQUIRED_FIELD).refine((value) => validator.isMobilePhone(value), { message: commonStrings.PHONE_NOT_VALID }),
+  email: requiredString(strings.REQUIRED_FIELD).refine((value) => validator.isEmail(value), { message: commonStrings.EMAIL_NOT_VALID }),
   tos: z.boolean().refine((value) => value, { message: commonStrings.TOS_ERROR }),
 })
 
