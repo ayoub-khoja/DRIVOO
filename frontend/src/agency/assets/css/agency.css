@@ -3300,3 +3300,196 @@
     justify-content: flex-end;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Invoices — list cells, creation dialog and PDF preview
+   --------------------------------------------------------------------------- */
+
+.agency-invoice-object-cell {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #5b6b80;
+}
+
+.agency-invoice-due {
+  color: #c2410c;
+  font-weight: 700;
+}
+
+.agency-invoice-paid {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.agency-invoice-dialog .MuiDialog-paper {
+  max-height: 92vh;
+}
+
+.agency-invoice-section-title {
+  margin: 18px 0 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5b6b80;
+}
+
+.agency-invoice-lines-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.agency-invoice-line-card {
+  border: 1px solid #e6ebf2;
+  border-radius: 16px;
+  padding: 14px 16px 10px;
+  margin-bottom: 12px;
+  background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+}
+
+.agency-invoice-line-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.agency-invoice-line-head span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #12233a;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.agency-invoice-line-total {
+  margin: 10px 0 0;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #5b6b80;
+}
+
+.agency-invoice-line-total strong {
+  color: #0b1626;
+  font-size: 0.95rem;
+}
+
+.agency-invoice-bottom {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-top: 6px;
+}
+
+.agency-invoice-fiscal {
+  margin-top: 14px;
+}
+
+.agency-invoice-totals-card {
+  position: sticky;
+  top: 8px;
+  border: 1px solid #e6ebf2;
+  border-radius: 18px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #fff 0%, #f7f9fc 100%);
+  box-shadow: 0 8px 24px rgb(11 22 38 / 5%);
+}
+
+.agency-invoice-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px dashed #e6ebf2;
+  font-size: 0.88rem;
+  color: #5b6b80;
+}
+
+.agency-invoice-total-row:last-child {
+  border-bottom: 0;
+}
+
+.agency-invoice-total-row strong {
+  color: #0b1626;
+  font-variant-numeric: tabular-nums;
+}
+
+.agency-invoice-total-row.is-strong {
+  margin: 6px -18px;
+  padding: 10px 18px;
+  background: #12233a;
+  border-bottom: 0;
+  color: #fff;
+}
+
+.agency-invoice-total-row.is-strong strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.agency-invoice-total-row.is-due strong {
+  color: #c2410c;
+}
+
+.agency-invoice-pdf-frame {
+  width: 100%;
+  height: 74vh;
+  border: 1px solid #e6ebf2;
+  border-radius: 14px;
+  background: #f2f5f9;
+}
+
+.agency-invoice-preview-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 40vh;
+  color: #5b6b80;
+}
+
+@media (width <= 900px) {
+  .agency-invoice-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .agency-invoice-totals-card {
+    position: static;
+  }
+
+  .agency-invoice-pdf-frame {
+    height: 60vh;
+  }
+}
+
+.agency-profile-hint {
+  margin: -6px 0 14px;
+  color: #5b6b80;
+  font-size: 0.85rem;
+}
+
+.agency-contract-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 2px 12px;
+  border: 1px solid #e6ebf2;
+  border-radius: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+}
+
+.agency-contract-checklist .MuiFormControlLabel-label {
+  font-size: 0.85rem;
+}

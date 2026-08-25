@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Autocomplete, Button, CircularProgress, TextField } from '@mui/material'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/agency/lang/agency'
@@ -16,7 +16,10 @@ import { agencyProfileSchema, AgencyProfileFormFields } from '@/agency/models/Ag
 const emptyValues: AgencyProfileFormFields = {
   fullName: '',
   phone: '',
+  phone2: '',
+  phone3: '',
   whatsapp: '',
+  website: '',
   bio: '',
   address: '',
   city: '',
@@ -29,12 +32,19 @@ const emptyValues: AgencyProfileFormFields = {
   legalRepLastName: '',
   legalRepTitle: '',
   legalRepCin: '',
+  invoicePrefix: '',
+  invoiceVatRate: 19,
+  invoiceStampDuty: 1,
+  contractPrefix: '',
 }
 
 const fromAgency = (agency: bookcarsTypes.User): AgencyProfileFormFields => ({
   fullName: agency.fullName || '',
   phone: agency.phone || '',
+  phone2: agency.phone2 || '',
+  phone3: agency.phone3 || '',
   whatsapp: agency.whatsapp || '',
+  website: agency.website || '',
   bio: agency.bio || '',
   address: agency.address || '',
   city: agency.city || '',
@@ -47,6 +57,10 @@ const fromAgency = (agency: bookcarsTypes.User): AgencyProfileFormFields => ({
   legalRepLastName: agency.legalRepLastName || '',
   legalRepTitle: agency.legalRepTitle || '',
   legalRepCin: agency.legalRepCin || '',
+  invoicePrefix: agency.invoicePrefix || '',
+  invoiceVatRate: agency.invoiceVatRate ?? 19,
+  invoiceStampDuty: agency.invoiceStampDuty ?? 1,
+  contractPrefix: agency.contractPrefix || '',
 })
 
 const AgencyProfile = () => {
@@ -68,7 +82,7 @@ const AgencyProfile = () => {
     watch,
     formState: { errors, isDirty },
   } = useForm<AgencyProfileFormFields>({
-    resolver: zodResolver(agencyProfileSchema),
+    resolver: zodResolver(agencyProfileSchema) as Resolver<AgencyProfileFormFields>,
     mode: 'onBlur',
     defaultValues: emptyValues,
   })
@@ -165,7 +179,10 @@ const AgencyProfile = () => {
       const updated = await AgencyProfileService.updateProfile({
         fullName: values.fullName.trim(),
         phone: values.phone?.trim() || undefined,
+        phone2: values.phone2?.trim() || undefined,
+        phone3: values.phone3?.trim() || undefined,
         whatsapp: values.whatsapp?.trim() || undefined,
+        website: values.website?.trim() || undefined,
         bio: values.bio?.trim() || undefined,
         address: values.address?.trim() || undefined,
         city: values.city?.trim() || undefined,
@@ -178,6 +195,10 @@ const AgencyProfile = () => {
         legalRepLastName: values.legalRepLastName?.trim() || undefined,
         legalRepTitle: values.legalRepTitle?.trim() || undefined,
         legalRepCin: values.legalRepCin?.trim() || undefined,
+        invoicePrefix: values.invoicePrefix?.trim() || undefined,
+        invoiceVatRate: values.invoiceVatRate,
+        invoiceStampDuty: values.invoiceStampDuty,
+        contractPrefix: values.contractPrefix?.trim() || undefined,
       })
       applyUser(updated)
       reset(fromAgency({ ...agency, ...updated }))
@@ -254,6 +275,9 @@ const AgencyProfile = () => {
           <div className="agency-profile-grid">
             <TextField label={strings.PROFILE_PHONE} fullWidth {...register('phone')} />
             <TextField label={strings.PROFILE_WHATSAPP} fullWidth {...register('whatsapp')} />
+            <TextField label={strings.PROFILE_PHONE2} fullWidth {...register('phone2')} />
+            <TextField label={strings.PROFILE_PHONE3} fullWidth {...register('phone3')} />
+            <TextField label={strings.PROFILE_WEBSITE} fullWidth className="agency-profile-span-2" {...register('website')} />
             <TextField label={strings.PROFILE_ADDRESS} fullWidth className="agency-profile-span-2" {...register('address')} />
             <Autocomplete
               options={cities}
@@ -332,6 +356,47 @@ const AgencyProfile = () => {
             <TextField label={strings.PROFILE_REP_LAST} fullWidth {...register('legalRepLastName')} />
             <TextField label={strings.PROFILE_REP_TITLE} fullWidth {...register('legalRepTitle')} />
             <TextField label={strings.PROFILE_REP_CIN} fullWidth {...register('legalRepCin')} />
+          </div>
+        </section>
+
+        <section className="agency-profile-panel">
+          <h3>{strings.PROFILE_INVOICING}</h3>
+          <p className="agency-profile-hint">{strings.PROFILE_INVOICING_HINT}</p>
+          <div className="agency-profile-grid">
+            <TextField
+              label={strings.PROFILE_INVOICE_PREFIX}
+              fullWidth
+              placeholder="FA"
+              {...register('invoicePrefix')}
+              error={!!errors.invoicePrefix}
+              helperText={errors.invoicePrefix?.message}
+            />
+            <TextField
+              label={strings.PROFILE_INVOICE_VAT}
+              type="number"
+              fullWidth
+              inputProps={{ min: 0, max: 100, step: '0.1' }}
+              {...register('invoiceVatRate')}
+              error={!!errors.invoiceVatRate}
+              helperText={errors.invoiceVatRate?.message}
+            />
+            <TextField
+              label={strings.PROFILE_INVOICE_STAMP}
+              type="number"
+              fullWidth
+              inputProps={{ min: 0, step: '0.001' }}
+              {...register('invoiceStampDuty')}
+              error={!!errors.invoiceStampDuty}
+              helperText={errors.invoiceStampDuty?.message}
+            />
+            <TextField
+              label={strings.PROFILE_CONTRACT_PREFIX}
+              fullWidth
+              placeholder="CRA"
+              {...register('contractPrefix')}
+              error={!!errors.contractPrefix}
+              helperText={errors.contractPrefix?.message}
+            />
           </div>
         </section>
 

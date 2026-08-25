@@ -146,6 +146,32 @@ const userSchema = new Schema<env.User>(
       type: String,
       trim: true,
     },
+    phone2: {
+      type: String,
+      trim: true,
+    },
+    phone3: {
+      type: String,
+      trim: true,
+    },
+    website: {
+      type: String,
+      trim: true,
+    },
+    invoicePrefix: {
+      type: String,
+      trim: true,
+    },
+    invoiceVatRate: {
+      type: Number,
+    },
+    invoiceStampDuty: {
+      type: Number,
+    },
+    contractPrefix: {
+      type: String,
+      trim: true,
+    },
     address: {
       type: String,
       trim: true,
