@@ -657,11 +657,27 @@ const SupplierSignupWizard = ({
 
         <div className="buttons signup-step-actions">
           {step < LAST_STEP ? (
-            <Button type="button" variant="contained" className="btn-primary" onClick={() => { void goNext() }} disabled={uploading}>
+            <Button
+              type="button"
+              variant="contained"
+              className="btn-primary"
+              onClick={() => {
+                void goNext()
+              }}
+              disabled={uploading}
+            >
               {strings.CONTINUE}
             </Button>
           ) : (
-            <Button type="button" variant="contained" className="btn-primary" onClick={() => { void submitRequest() }} disabled={isSubmitting || uploading}>
+            <Button
+              type="button"
+              variant="contained"
+              className="btn-primary"
+              onClick={() => {
+                void submitRequest()
+              }}
+              disabled={isSubmitting || uploading}
+            >
               {strings.SUBMIT_REQUEST}
             </Button>
           )}
