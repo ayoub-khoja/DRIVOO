@@ -1,0 +1,58 @@
+# ===========================================
+# GitHub Actions Workflow CD
+# -------------------------------------------
+# Deploys DRIVOO (frontend + backend) to the
+# production server on every merge/push to main.
+#
+# Required repository secrets:
+#   SSH_PRIVATE_KEY  private key authorized on the server
+#   SSH_USER         ssh user (e.g. ubuntu)
+#   SERVER_IP        server host or IP
+# ===========================================
+
+name: cd
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            set -e
+
+            BRANCH="${{ github.ref_name }}"
+            APP_DIR="$HOME/DRIVOO"
+
+            cd "$APP_DIR"
+            git pull origin "$BRANCH"
+
+            # ---------- frontend ----------
+            cd frontend
+            npm i
+            npm run build
+            sudo rsync -av --delete build/ /var/www/drivoo/frontend/
+            sudo systemctl daemon-reload
+            sudo systemctl restart nginx
+
+            # ---------- backend ----------
+            cd ../backend
+            npm i
+            npm run build
+            pm2 restart all
+          EOF
