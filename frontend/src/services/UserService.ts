@@ -148,7 +148,9 @@ export const signin = (data: bookcarsTypes.SignInPayload): Promise<{ status: num
       { withCredentials: true }
     )
     .then((res) => {
-      localStorage.setItem('bc-fe-user', JSON.stringify(res.data))
+      if (res.status === 200 && res.data) {
+        localStorage.setItem('bc-fe-user', JSON.stringify(res.data))
+      }
       return { status: res.status, data: res.data }
     })
 

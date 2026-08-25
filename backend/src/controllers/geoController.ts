@@ -3,7 +3,7 @@ import * as geo from '../fixtures/geo'
 import * as logger from '../utils/logger'
 import i18n from '../lang/i18n'
 
-const CACHE_CONTROL = 'public, max-age=86400'
+const CACHE_CONTROL = 'public, max-age=300, must-revalidate'
 
 /**
  * Full Tunisia geo catalog (cities + municipalities).

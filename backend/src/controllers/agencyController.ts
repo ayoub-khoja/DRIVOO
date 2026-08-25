@@ -471,7 +471,12 @@ export const updateProfile = async (req: Request, res: Response) => {
     sessionUser.postalCode = clip(body.postalCode, 12) || undefined
     sessionUser.taxId = clip(body.taxId, 64) || undefined
     sessionUser.rneNumber = clip(body.rneNumber, 64) || undefined
-    sessionUser.iban = clip(body.iban, 64) || undefined
+    const ibanRaw = clip(body.iban, 64)
+    if (ibanRaw && !helper.isValidRib(ibanRaw)) {
+      res.status(400).send('Invalid RIB / IBAN: must contain exactly 20 digits')
+      return
+    }
+    sessionUser.iban = ibanRaw ? helper.normalizeRib(ibanRaw) : undefined
     sessionUser.legalRepFirstName = clip(body.legalRepFirstName, 80) || undefined
     sessionUser.legalRepLastName = clip(body.legalRepLastName, 80) || undefined
     sessionUser.legalRepTitle = clip(body.legalRepTitle, 80) || undefined

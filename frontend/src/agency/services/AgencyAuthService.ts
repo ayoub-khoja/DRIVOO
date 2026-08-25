@@ -35,7 +35,9 @@ export const signin = (data: bookcarsTypes.SignInPayload): Promise<{ status: num
   agencyAxiosInstance
     .post('/api/sign-in/agency', data)
     .then((res) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(res.data))
+      if (res.status === 200 && res.data) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(res.data))
+      }
       return { status: res.status, data: res.data }
     })
 
@@ -48,7 +50,7 @@ export const signout = async (redirect = true) => {
     // ignore
   }
   if (redirect) {
-    window.location.href = '/agency/sign-in'
+    window.location.href = '/sign-in'
   }
 }
 

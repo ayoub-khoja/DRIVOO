@@ -162,7 +162,7 @@ const AgencyChoosePlan = () => {
     }
 
     if (!agency && !AgencyAuthService.getOnboardingCredentials()) {
-      navigate('/agency/sign-in', { replace: true })
+      navigate('/sign-in', { replace: true })
     }
   }, [agency, agencyLoaded, navigate])
 
@@ -229,7 +229,7 @@ const AgencyChoosePlan = () => {
       if (!user?._id) {
         AgencyAuthService.clearOnboardingCredentials()
         setSubmitError(strings.PLAN_SESSION_ERROR)
-        navigate('/agency/sign-in', { replace: true })
+        navigate('/sign-in', { replace: true })
         return
       }
 
@@ -276,7 +276,7 @@ const AgencyChoosePlan = () => {
       <Button
         variant="contained"
         className="btn-primary"
-        onClick={() => navigate('/agency/sign-in', { replace: true })}
+        onClick={() => navigate('/sign-in', { replace: true })}
       >
         {strings.SIGN_IN}
       </Button>

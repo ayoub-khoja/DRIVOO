@@ -285,6 +285,39 @@ div.signup .signup-panel-intro-spaced {
   margin-top: 18px;
 }
 
+div.signup .supplier-wizard .social-login {
+  margin: 8px 0 4px;
+}
+
+div.signup .supplier-wizard .social-login div.separator {
+  margin: 22px 0;
+  align-items: center;
+}
+
+div.signup .supplier-wizard .social-login div.separator hr {
+  border: 0;
+  border-bottom: 1px solid var(--drivoo-border);
+  width: 100%;
+  top: 0;
+}
+
+div.signup .supplier-wizard .social-login div.separator span {
+  margin: 0 14px;
+  color: var(--drivoo-muted);
+  font-size: 0.85rem;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+div.signup .supplier-wizard .social-login div.login-buttons {
+  margin: 8px 0 4px;
+  justify-content: center;
+}
+
+div.signup .supplier-wizard .social-login img.social:hover {
+  transform: scale(1.08);
+}
+
 div.signup .signup-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;

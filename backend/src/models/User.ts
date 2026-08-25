@@ -2,6 +2,7 @@ import validator from 'validator'
 import { Schema, model } from 'mongoose'
 import * as bookcarsTypes from ':bookcars-types'
 import * as env from '../config/env.config'
+import * as helper from '../utils/helper'
 
 export const USER_EXPIRE_AT_INDEX_NAME = 'expireAt'
 
@@ -190,6 +191,10 @@ const userSchema = new Schema<env.User>(
     iban: {
       type: String,
       trim: true,
+      validate: {
+        validator: (value: string) => !value || helper.isValidRib(value),
+        message: 'RIB must contain exactly 20 digits',
+      },
     },
     legalRepFirstName: {
       type: String,

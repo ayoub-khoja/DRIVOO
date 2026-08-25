@@ -520,6 +520,7 @@ export interface GeoMunicipality {
   names: LocalizedName
   latitude: number
   longitude: number
+  postalCode: string
 }
 
 export interface GeoCatalog {

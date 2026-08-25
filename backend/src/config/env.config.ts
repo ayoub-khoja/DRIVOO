@@ -356,7 +356,7 @@ export const FRONTEND_HOST = __env__('BC_FRONTEND_HOST', true)
 
 /**
  * Backend public host (API + CDN). Used for absolute URLs in emails.
- * Local: http://localhost:4002 — Prod: https://api.drivoo.net
+ * Local: http://localhost:4002 — Prod: https://drivoo.net (IP 52.211.177.106)
  *
  * @type {string}
  */
@@ -594,18 +594,25 @@ export const APPLE_CLIENT_ID_WEB = __env__('BC_APPLE_CLIENT_ID_WEB', false, 'APP
 export const APPLE_CLIENT_ID_MOBILE = __env__('BC_APPLE_CLIENT_ID_MOBILE', false, 'APPLE_CLIENT_ID_MOBILE')
 
 /**
- * Google client ID.
+ * Google client ID (web OAuth / GIS — audience for ID token verification).
  *
  * @type {string}
  */
 export const GOOGLE_CLIENT_ID = __env__('BC_GOOGLE_CLIENT_ID', false, 'GOOGLE_CLIENT_ID')
 
 /**
- * Google mobile app Web client ID.
+ * Google mobile app Web client ID (Expo / native — also accepted as ID token audience).
  *
  * @type {string}
  */
 export const GOOGLE_MOBILE_CLIENT_ID = __env__('BC_GOOGLE_MOBILE_CLIENT_ID', false, 'GOOGLE_MOBILE_CLIENT_ID')
+
+/**
+ * Google OAuth client secret (server-side only; not required for GIS idToken login).
+ *
+ * @type {string}
+ */
+export const GOOGLE_CLIENT_SECRET = __env__('BC_GOOGLE_CLIENT_SECRET', false, '')
 
 /**
  * Facebook App ID.
