@@ -355,6 +355,12 @@ export const supplierSignup = async (req: Request, res: Response) => {
     return
   }
 
+  if (!helper.isValidRib(body.iban)) {
+    res.status(400).send('Invalid RIB / IBAN: must contain exactly 20 digits')
+    return
+  }
+  body.iban = helper.normalizeRib(body.iban)
+
   // Password set later via activation email after admin approval
   body.password = helper.generateToken()
   body.agencyApproved = false
@@ -2710,7 +2716,12 @@ export const updateAgency = async (req: Request, res: Response) => {
     user.postalCode = clip(body.postalCode, 12) || undefined
     user.taxId = clip(body.taxId, 64) || undefined
     user.rneNumber = clip(body.rneNumber, 64) || undefined
-    user.iban = clip(body.iban, 64) || undefined
+    const ibanRaw = clip(body.iban, 64)
+    if (ibanRaw && !helper.isValidRib(ibanRaw)) {
+      res.status(400).send('Invalid RIB / IBAN: must contain exactly 20 digits')
+      return
+    }
+    user.iban = ibanRaw ? helper.normalizeRib(ibanRaw) : undefined
     user.legalRepFirstName = clip(body.legalRepFirstName, 80) || undefined
     user.legalRepLastName = clip(body.legalRepLastName, 80) || undefined
     user.legalRepTitle = clip(body.legalRepTitle, 80) || undefined

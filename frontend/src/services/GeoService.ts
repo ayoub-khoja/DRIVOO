@@ -1,12 +1,15 @@
 import * as bookcarsTypes from ':bookcars-types'
 import axiosInstance from './axiosInstance'
 
+/** Bump when catalog shape changes (e.g. postalCode) so browsers skip stale Cache-Control responses. */
+const GEO_CATALOG_VERSION = '2'
+
 let catalogPromise: Promise<bookcarsTypes.GeoCatalog> | null = null
 
 export const getTunisiaCatalog = (): Promise<bookcarsTypes.GeoCatalog> => {
   if (!catalogPromise) {
     catalogPromise = axiosInstance
-      .get('/api/geo/tunisia')
+      .get(`/api/geo/tunisia?v=${GEO_CATALOG_VERSION}`)
       .then((res) => res.data as bookcarsTypes.GeoCatalog)
       .catch((err) => {
         catalogPromise = null

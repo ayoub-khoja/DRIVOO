@@ -75,6 +75,7 @@ const AgencyProfile = () => {
 
   const governorate = watch('governorate')
   const city = watch('city')
+  const postalCode = watch('postalCode')
 
   useEffect(() => {
     if (agency) {
@@ -267,6 +268,7 @@ const AgencyProfile = () => {
                   { shouldValidate: true, shouldDirty: true },
                 )
                 setValue('city', '', { shouldValidate: true, shouldDirty: true })
+                setValue('postalCode', '', { shouldValidate: true, shouldDirty: true })
               }}
               renderInput={(params) => (
                 <TextField
@@ -290,6 +292,11 @@ const AgencyProfile = () => {
                   nextMunicipality ? GeoService.getGeoLabel(nextMunicipality.names, language) : '',
                   { shouldValidate: true, shouldDirty: true },
                 )
+                setValue(
+                  'postalCode',
+                  nextMunicipality?.postalCode?.trim() || '',
+                  { shouldValidate: true, shouldDirty: true },
+                )
               }}
               renderInput={(params) => (
                 <TextField
@@ -301,7 +308,17 @@ const AgencyProfile = () => {
                 />
               )}
             />
-            <TextField label={strings.PROFILE_POSTAL} fullWidth {...register('postalCode')} />
+            <TextField
+              label={strings.PROFILE_POSTAL}
+              fullWidth
+              name="postalCode"
+              value={postalCode}
+              onChange={(event) => {
+                setValue('postalCode', event.target.value, { shouldValidate: true, shouldDirty: true })
+              }}
+              InputLabelProps={{ shrink: postalCode ? true : undefined }}
+              helperText={!city ? strings.PROFILE_GEO_MUNICIPALITY : undefined}
+            />
           </div>
         </section>
 

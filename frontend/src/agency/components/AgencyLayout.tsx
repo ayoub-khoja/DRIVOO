@@ -43,7 +43,7 @@ const AgencyShell = () => {
       return
     }
     if (!agency) {
-      navigate('/agency/sign-in', { replace: true })
+      navigate('/sign-in', { replace: true })
       return
     }
     if (needsAgencyPlan(agency)) {
