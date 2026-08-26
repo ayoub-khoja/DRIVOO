@@ -23,6 +23,11 @@ import { buildInvoicePdf } from '../utils/invoicePdf'
 import AgencyContract from '../models/AgencyContract'
 import { computeContractTotals } from '../utils/contractHelper'
 import { buildContractPdf } from '../utils/contractPdf'
+import AgencyReceipt from '../models/AgencyReceipt'
+import AgencyReminder from '../models/AgencyReminder'
+import AgencyReminderDismiss from '../models/AgencyReminderDismiss'
+import Booking from '../models/Booking'
+import * as reminderHelper from '../utils/reminderHelper'
 import SubscriptionPlan from '../models/SubscriptionPlan'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
@@ -1749,6 +1754,864 @@ export const getContractPdf = async (req: Request, res: Response) => {
     res.status(200).end(pdf)
   } catch (err) {
     logger.error(`[agency.getContractPdf] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+const RECEIPT_PAYMENT_METHODS = new Set(['cash', 'card', 'transfer', 'cheque'])
+
+const toReceiptDto = (receipt: env.AgencyReceipt): bookcarsTypes.AgencyReceipt => ({
+  _id: String(receipt._id),
+  number: receipt.number,
+  paidAt: new Date(receipt.paidAt).toISOString().slice(0, 10),
+  clientName: receipt.clientName,
+  clientEmail: receipt.clientEmail,
+  clientPhone: receipt.clientPhone,
+  vehicleLabel: receipt.vehicleLabel,
+  description: receipt.description,
+  amount: receipt.amount,
+  currency: receipt.currency,
+  paymentMethod: receipt.paymentMethod,
+  notes: receipt.notes,
+  createdAt: receipt.createdAt,
+})
+
+/**
+ * Aggregate stats shown above the receipt list: issued count, amount collected
+ * this month and the last allocated number.
+ */
+const getReceiptStats = async (agencyId: mongoose.Types.ObjectId): Promise<bookcarsTypes.AgencyReceiptStats> => {
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+
+  const [count, monthGroup, last] = await Promise.all([
+    AgencyReceipt.countDocuments({ agency: agencyId }),
+    AgencyReceipt.aggregate<{ total: number }>([
+      { $match: { agency: agencyId, paidAt: { $gte: monthStart, $lt: monthEnd } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    AgencyReceipt.findOne({ agency: agencyId }).sort({ createdAt: -1 }).select('number').lean(),
+  ])
+
+  return {
+    count,
+    monthTotal: round3(monthGroup[0]?.total || 0),
+    lastNumber: last?.number || null,
+  }
+}
+
+/**
+ * List the authenticated agency receipts, paginated and optionally filtered by keyword.
+ */
+export const getReceipts = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const agencyId = sessionUser._id
+    const page = Math.max(1, Number.parseInt(req.params.page, 10) || 1)
+    const size = Math.min(100, Math.max(1, Number.parseInt(req.params.size, 10) || 10))
+    const keyword = String(req.query.s || '').trim()
+
+    const filter: mongoose.QueryFilter<env.AgencyReceipt> = { agency: agencyId }
+    if (keyword) {
+      const rx = new RegExp(escapeStringRegexp(keyword), 'i')
+      filter.$or = [
+        { number: rx },
+        { clientName: rx },
+        { vehicleLabel: rx },
+        { description: rx },
+        { clientPhone: rx },
+      ]
+    }
+
+    const [rows, totalRecords, stats] = await Promise.all([
+      AgencyReceipt.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * size)
+        .limit(size),
+      AgencyReceipt.countDocuments(filter),
+      getReceiptStats(agencyId),
+    ])
+
+    const result: bookcarsTypes.AgencyReceiptResult = {
+      rows: rows.map(toReceiptDto),
+      totalRecords,
+      page,
+      pageSize: size,
+      stats,
+    }
+    res.status(200).json(result)
+  } catch (err) {
+    logger.error(`[agency.getReceipts] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Retrieve a single receipt belonging to the authenticated agency.
+ */
+export const getReceipt = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid receipt id')
+      return
+    }
+
+    const receipt = await AgencyReceipt.findOne({ _id: id, agency: sessionUser._id })
+    if (!receipt) {
+      res.status(404).send('Receipt not found')
+      return
+    }
+
+    res.status(200).json(toReceiptDto(receipt))
+  } catch (err) {
+    logger.error(`[agency.getReceipt] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Allocate the next sequential receipt number for an agency and a given year,
+ * e.g. REC0001-2025. Same race-safe retry strategy as invoice numbering.
+ */
+const nextReceiptNumber = async (
+  agencyId: mongoose.Types.ObjectId,
+  prefix: string,
+  year: number,
+) => {
+  const suffix = `-${year}`
+  const rx = new RegExp(`^${escapeStringRegexp(prefix)}\\d+${escapeStringRegexp(suffix)}$`)
+  const last = await AgencyReceipt.findOne({ agency: agencyId, number: rx })
+    .sort({ number: -1 })
+    .select('number')
+    .lean()
+
+  const lastSeq = last
+    ? Number.parseInt(last.number.slice(prefix.length, last.number.length - suffix.length), 10) || 0
+    : 0
+
+  return `${prefix}${String(lastSeq + 1).padStart(4, '0')}${suffix}`
+}
+
+/**
+ * Create a payment receipt for the authenticated agency.
+ */
+export const createReceipt = async (req: Request, res: Response) => {
+  const { body }: { body: bookcarsTypes.CreateAgencyReceiptPayload } = req
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const clientName = clip(body.clientName, 120)
+    if (clientName.length < 2) {
+      res.status(400).send('Invalid client name')
+      return
+    }
+
+    const description = clip(body.description, 500)
+    if (description.length < 3) {
+      res.status(400).send('Invalid description')
+      return
+    }
+
+    const amount = Math.max(0, Number(body.amount) || 0)
+    if (amount <= 0) {
+      res.status(400).send('Invalid amount')
+      return
+    }
+
+    const paymentMethod = String(body.paymentMethod || '')
+    if (!RECEIPT_PAYMENT_METHODS.has(paymentMethod)) {
+      res.status(400).send('Invalid payment method')
+      return
+    }
+
+    const paidAt = body.paidAt ? new Date(body.paidAt) : new Date()
+    if (Number.isNaN(paidAt.getTime())) {
+      res.status(400).send('Invalid payment date')
+      return
+    }
+
+    const clientEmail = clip(body.clientEmail, 120)
+    if (clientEmail && !validator.isEmail(clientEmail)) {
+      res.status(400).send('Invalid client email')
+      return
+    }
+
+    const prefix = 'REC'
+    const year = paidAt.getFullYear()
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      try {
+        const number = await nextReceiptNumber(sessionUser._id, prefix, year)
+        const receipt = new AgencyReceipt({
+          agency: sessionUser._id,
+          number,
+          paidAt,
+          clientName,
+          clientEmail: clientEmail || undefined,
+          clientPhone: clip(body.clientPhone, 32) || undefined,
+          vehicleLabel: clip(body.vehicleLabel, 160) || undefined,
+          description,
+          amount: round3(amount),
+          currency: clip(body.currency, 8) || 'TND',
+          paymentMethod: paymentMethod as bookcarsTypes.AgencyReceiptPaymentMethod,
+          notes: clip(body.notes, 500) || undefined,
+        })
+
+        await receipt.save()
+        res.status(200).json(toReceiptDto(receipt))
+        return
+      } catch (err) {
+        if ((err as { code?: number }).code !== 11000) {
+          throw err
+        }
+      }
+    }
+
+    res.status(409).send('Could not allocate a receipt number, please retry')
+  } catch (err) {
+    logger.error(`[agency.createReceipt] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Delete a receipt belonging to the authenticated agency.
+ */
+export const deleteReceipt = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid receipt id')
+      return
+    }
+
+    const result = await AgencyReceipt.deleteOne({ _id: id, agency: sessionUser._id })
+    if (result.deletedCount === 0) {
+      res.status(404).send('Receipt not found')
+      return
+    }
+
+    res.sendStatus(200)
+  } catch (err) {
+    logger.error(`[agency.deleteReceipt] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+const AGENDA_ACTIVE_BOOKING_STATUSES = [
+  bookcarsTypes.BookingStatus.Pending,
+  bookcarsTypes.BookingStatus.Deposit,
+  bookcarsTypes.BookingStatus.Paid,
+  bookcarsTypes.BookingStatus.PaidInFull,
+  bookcarsTypes.BookingStatus.Reserved,
+]
+
+const toDayKey = (value: Date) => {
+  const y = value.getFullYear()
+  const m = String(value.getMonth() + 1).padStart(2, '0')
+  const d = String(value.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+const parseAgendaBound = (raw: unknown, endOfDay = false) => {
+  const value = String(raw || '').trim()
+  if (!value) {
+    return null
+  }
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return null
+  }
+  if (endOfDay) {
+    date.setHours(23, 59, 59, 999)
+  } else {
+    date.setHours(0, 0, 0, 0)
+  }
+  return date
+}
+
+/**
+ * Aggregate calendar events for the authenticated agency over a date range.
+ * Pulls rental contracts + marketplace bookings in one round-trip and computes
+ * fleet availability for the "today" snapshot.
+ */
+export const getAgenda = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const rangeStart = parseAgendaBound(req.query.from, false)
+    const rangeEnd = parseAgendaBound(req.query.to, true)
+    if (!rangeStart || !rangeEnd || rangeStart > rangeEnd) {
+      res.status(400).send('Invalid date range')
+      return
+    }
+
+    // Cap the window to keep the payload lean (about 3 months).
+    const maxMs = 100 * 24 * 60 * 60 * 1000
+    if (rangeEnd.getTime() - rangeStart.getTime() > maxMs) {
+      res.status(400).send('Date range too large')
+      return
+    }
+
+    const agencyId = sessionUser._id
+    const now = new Date()
+
+    const [cars, contracts, bookings] = await Promise.all([
+      Car.find({ supplier: agencyId })
+        .select({ name: 1, licensePlate: 1, available: 1 })
+        .sort({ name: 1 })
+        .lean(),
+      AgencyContract.find({
+        agency: agencyId,
+        departureDate: { $lte: rangeEnd },
+        returnDate: { $gte: rangeStart },
+      })
+        .select({
+          number: 1,
+          vehicleModel: 1,
+          vehiclePlate: 1,
+          driver: 1,
+          departureDate: 1,
+          returnDate: 1,
+        })
+        .lean(),
+      Booking.find({
+        supplier: agencyId,
+        expireAt: null,
+        status: { $in: AGENDA_ACTIVE_BOOKING_STATUSES },
+        from: { $lte: rangeEnd },
+        to: { $gte: rangeStart },
+      })
+        .populate<{ car: { _id: mongoose.Types.ObjectId, name?: string, licensePlate?: string } | null }>({
+          path: 'car',
+          select: 'name licensePlate',
+        })
+        .populate<{ driver: { _id: mongoose.Types.ObjectId, fullName?: string } | null }>({
+          path: 'driver',
+          select: 'fullName',
+        })
+        .select({ car: 1, driver: 1, from: 1, to: 1, status: 1 })
+        .lean(),
+    ])
+
+    const events: bookcarsTypes.AgencyAgendaEvent[] = []
+    const busyVehicleKeys = new Set<string>()
+
+    const markBusy = (vehicleId?: string, plate?: string) => {
+      if (vehicleId) {
+        busyVehicleKeys.add(`id:${vehicleId}`)
+      }
+      if (plate) {
+        busyVehicleKeys.add(`plate:${plate.toUpperCase()}`)
+      }
+    }
+
+    const isInRangeDay = (date: Date) => date >= rangeStart && date <= rangeEnd
+
+    for (const contract of contracts) {
+      const departure = new Date(contract.departureDate)
+      const ret = new Date(contract.returnDate)
+      const plate = clip(contract.vehiclePlate, 40)
+      const vehicleLabel = [clip(contract.vehicleModel, 120), plate].filter(Boolean).join(' · ')
+      const clientName = clip(contract.driver?.fullName, 120) || '—'
+      const sourceId = String(contract._id)
+
+      if (now >= departure && now <= ret) {
+        markBusy(undefined, plate)
+      }
+
+      if (isInRangeDay(departure)) {
+        events.push({
+          _id: `contract-dep-${sourceId}`,
+          type: 'departure',
+          source: 'contract',
+          sourceId,
+          date: toDayKey(departure),
+          startAt: departure.toISOString(),
+          endAt: ret.toISOString(),
+          vehicleLabel,
+          vehiclePlate: plate || undefined,
+          clientName,
+          number: contract.number,
+        })
+      }
+
+      if (isInRangeDay(ret)) {
+        events.push({
+          _id: `contract-ret-${sourceId}`,
+          type: 'return',
+          source: 'contract',
+          sourceId,
+          date: toDayKey(ret),
+          startAt: ret.toISOString(),
+          endAt: ret.toISOString(),
+          vehicleLabel,
+          vehiclePlate: plate || undefined,
+          clientName,
+          number: contract.number,
+        })
+      }
+
+      // Mid-rental days (excluding departure/return) as circulation markers — week/day views only benefit;
+      // keep them sparse: only emit for "today" when today falls strictly inside the rental.
+      if (now > departure && now < ret && isInRangeDay(now)) {
+        events.push({
+          _id: `contract-cir-${sourceId}-${toDayKey(now)}`,
+          type: 'circulation',
+          source: 'contract',
+          sourceId,
+          date: toDayKey(now),
+          startAt: departure.toISOString(),
+          endAt: ret.toISOString(),
+          vehicleLabel,
+          vehiclePlate: plate || undefined,
+          clientName,
+          number: contract.number,
+        })
+      }
+    }
+
+    for (const booking of bookings) {
+      const from = new Date(booking.from)
+      const to = new Date(booking.to)
+      const carDoc = booking.car && typeof booking.car === 'object' ? booking.car : null
+      const driverDoc = booking.driver && typeof booking.driver === 'object' ? booking.driver : null
+      const vehicleId = carDoc?._id ? String(carDoc._id) : undefined
+      const plate = clip(carDoc?.licensePlate, 40)
+      const vehicleLabel = [clip(carDoc?.name, 120), plate].filter(Boolean).join(' · ') || 'Véhicule'
+      const clientName = clip(driverDoc?.fullName, 120) || '—'
+      const sourceId = String(booking._id)
+
+      if (now >= from && now <= to) {
+        markBusy(vehicleId, plate)
+      }
+
+      if (isInRangeDay(from)) {
+        events.push({
+          _id: `booking-dep-${sourceId}`,
+          type: 'reservation_departure',
+          source: 'booking',
+          sourceId,
+          date: toDayKey(from),
+          startAt: from.toISOString(),
+          endAt: to.toISOString(),
+          vehicleLabel,
+          vehiclePlate: plate || undefined,
+          vehicleId,
+          clientName,
+          status: booking.status,
+        })
+      }
+
+      if (isInRangeDay(to)) {
+        events.push({
+          _id: `booking-ret-${sourceId}`,
+          type: 'reservation_return',
+          source: 'booking',
+          sourceId,
+          date: toDayKey(to),
+          startAt: to.toISOString(),
+          endAt: to.toISOString(),
+          vehicleLabel,
+          vehiclePlate: plate || undefined,
+          vehicleId,
+          clientName,
+          status: booking.status,
+        })
+      }
+
+      if (now > from && now < to && isInRangeDay(now)) {
+        events.push({
+          _id: `booking-cir-${sourceId}-${toDayKey(now)}`,
+          type: 'circulation',
+          source: 'booking',
+          sourceId,
+          date: toDayKey(now),
+          startAt: from.toISOString(),
+          endAt: to.toISOString(),
+          vehicleLabel,
+          vehiclePlate: plate || undefined,
+          vehicleId,
+          clientName,
+          status: booking.status,
+        })
+      }
+    }
+
+    events.sort((a, b) => {
+      if (a.date !== b.date) {
+        return a.date.localeCompare(b.date)
+      }
+      return a.startAt.localeCompare(b.startAt)
+    })
+
+    const vehicles: bookcarsTypes.AgencyAgendaVehicle[] = cars.map((car) => {
+      const plate = clip(car.licensePlate, 40)
+      const name = clip(car.name, 120)
+      return {
+        id: String(car._id),
+        label: [name, plate].filter(Boolean).join(' · ') || String(car._id),
+        plate: plate || undefined,
+      }
+    })
+
+    let inCirculation = 0
+    for (const car of cars) {
+      const id = String(car._id)
+      const plate = clip(car.licensePlate, 40).toUpperCase()
+      if (busyVehicleKeys.has(`id:${id}`) || (plate && busyVehicleKeys.has(`plate:${plate}`))) {
+        inCirculation += 1
+      }
+    }
+
+    const total = cars.length
+    const result: bookcarsTypes.AgencyAgendaResult = {
+      from: toDayKey(rangeStart),
+      to: toDayKey(rangeEnd),
+      events,
+      vehicles,
+      fleet: {
+        total,
+        inCirculation,
+        available: Math.max(0, total - inCirculation),
+      },
+    }
+
+    res.status(200).json(result)
+  } catch (err) {
+    logger.error(`[agency.getAgenda] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+const REMINDER_MODULES = new Set(['maintenance', 'documents', 'mileage', 'contracts'])
+
+/**
+ * Build the full reminder feed for the authenticated agency: fleet document
+ * deadlines, mileage thresholds (from car.odometerKm), and manual reminders
+ * stored in MongoDB — excluding soft-dismissed synthetic keys.
+ */
+export const getReminders = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const agencyId = sessionUser._id
+    const [cars, manuals, dismissed] = await Promise.all([
+      Car.find({ supplier: agencyId })
+        .select({
+          name: 1,
+          licensePlate: 1,
+          insuranceExpiry: 1,
+          technicalVisitExpiry: 1,
+          nextOilChange: 1,
+          odometerKm: 1,
+        })
+        .lean(),
+      AgencyReminder.find({ agency: agencyId }).sort({ createdAt: -1 }).lean(),
+      AgencyReminderDismiss.find({ agency: agencyId }).select({ key: 1 }).lean(),
+    ])
+
+    const dismissedKeys = new Set(dismissed.map((row) => row.key))
+    const now = new Date()
+
+    const manualRows: bookcarsTypes.AgencyReminder[] = manuals.map((row) => {
+      const due = row.dueDate ? new Date(row.dueDate) : null
+      let severity = row.severity as bookcarsTypes.AgencyReminderSeverity
+      let detail = row.detail || ''
+      if (due && !Number.isNaN(due.getTime())) {
+        const days = reminderHelper.daysUntil(due, now)
+        severity = reminderHelper.severityFromDays(days)
+        if (days < 0) {
+          detail = `En retard de ${Math.abs(days)} j`
+        } else if (days === 0) {
+          detail = 'Échéance aujourd’hui'
+        }
+      }
+      return {
+        _id: String(row._id),
+        module: row.module,
+        category: row.category,
+        title: row.title,
+        detail,
+        vehicleLabel: row.vehicleLabel,
+        vehicleId: row.vehicleId ? String(row.vehicleId) : undefined,
+        dueDate: due && !Number.isNaN(due.getTime()) ? due.toISOString().slice(0, 10) : undefined,
+        severity,
+        source: 'manual',
+        createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : now.toISOString(),
+      }
+    })
+
+    const fleetRows = [
+      ...reminderHelper.buildFleetReminders(cars),
+      ...reminderHelper.buildMileageReminders(cars),
+    ].filter((row) => !dismissedKeys.has(row._id))
+
+    const rows = reminderHelper.sortReminders([...fleetRows, ...manualRows])
+    const result: bookcarsTypes.AgencyReminderResult = {
+      rows,
+      stats: reminderHelper.reminderStats(rows),
+    }
+    res.status(200).json(result)
+  } catch (err) {
+    logger.error(`[agency.getReminders] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Create a manual reminder for the authenticated agency.
+ */
+export const createReminder = async (req: Request, res: Response) => {
+  const { body }: { body: bookcarsTypes.CreateAgencyReminderPayload } = req
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const title = clip(body.title, 160)
+    if (title.length < 2) {
+      res.status(400).send('Invalid title')
+      return
+    }
+
+    const module = String(body.module || '')
+    if (!REMINDER_MODULES.has(module)) {
+      res.status(400).send('Invalid module')
+      return
+    }
+
+    let dueDate: Date | undefined
+    if (body.dueDate) {
+      dueDate = new Date(body.dueDate)
+      if (Number.isNaN(dueDate.getTime())) {
+        res.status(400).send('Invalid due date')
+        return
+      }
+    }
+
+    let vehicleId: mongoose.Types.ObjectId | undefined
+    if (body.vehicleId) {
+      if (!mongoose.isValidObjectId(body.vehicleId)) {
+        res.status(400).send('Invalid vehicle id')
+        return
+      }
+      const car = await Car.findOne({ _id: body.vehicleId, supplier: sessionUser._id }).select({ _id: 1 })
+      if (!car) {
+        res.status(404).send('Vehicle not found')
+        return
+      }
+      vehicleId = car._id
+    }
+
+    const severity = dueDate
+      ? reminderHelper.severityFromDays(reminderHelper.daysUntil(dueDate))
+      : 'info'
+
+    const reminder = new AgencyReminder({
+      agency: sessionUser._id,
+      module,
+      category: clip(body.category, 40) || 'custom',
+      title,
+      detail: clip(body.detail, 400),
+      vehicleLabel: clip(body.vehicleLabel, 160) || undefined,
+      vehicleId,
+      dueDate,
+      severity,
+    })
+
+    await reminder.save()
+
+    const dto: bookcarsTypes.AgencyReminder = {
+      _id: String(reminder._id),
+      module: reminder.module,
+      category: reminder.category,
+      title: reminder.title,
+      detail: reminder.detail || '',
+      vehicleLabel: reminder.vehicleLabel,
+      vehicleId: reminder.vehicleId ? String(reminder.vehicleId) : undefined,
+      dueDate: reminder.dueDate ? reminder.dueDate.toISOString().slice(0, 10) : undefined,
+      severity: reminder.severity,
+      source: 'manual',
+      createdAt: reminder.createdAt?.toISOString() || new Date().toISOString(),
+    }
+
+    res.status(200).json(dto)
+  } catch (err) {
+    logger.error(`[agency.createReminder] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Dismiss a reminder: delete if it is a manual Mongo document, otherwise
+ * soft-dismiss the synthetic fleet key so it stays hidden.
+ */
+export const dismissReminder = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const key = String(id || '').trim()
+    if (!key || key.length > 120) {
+      res.status(400).send('Invalid reminder id')
+      return
+    }
+
+    if (mongoose.isValidObjectId(key)) {
+      const deleted = await AgencyReminder.deleteOne({ _id: key, agency: sessionUser._id })
+      if (deleted.deletedCount > 0) {
+        res.sendStatus(200)
+        return
+      }
+    }
+
+    await AgencyReminderDismiss.updateOne(
+      { agency: sessionUser._id, key },
+      { $setOnInsert: { agency: sessionUser._id, key } },
+      { upsert: true },
+    )
+    res.sendStatus(200)
+  } catch (err) {
+    logger.error(`[agency.dismissReminder] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Persist the current odometer reading on a fleet car owned by the agency.
+ */
+export const updateCarOdometer = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { body }: { body: bookcarsTypes.UpdateCarOdometerPayload } = req
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid car id')
+      return
+    }
+
+    const odometerKm = Math.max(0, Math.floor(Number(body.odometerKm)))
+    if (!Number.isFinite(odometerKm)) {
+      res.status(400).send('Invalid odometer')
+      return
+    }
+
+    const car = await Car.findOneAndUpdate(
+      { _id: id, supplier: sessionUser._id },
+      { $set: { odometerKm } },
+      { new: true },
+    ).select({ _id: 1, odometerKm: 1, name: 1, licensePlate: 1 })
+
+    if (!car) {
+      res.status(404).send('Car not found')
+      return
+    }
+
+    // Re-enable mileage reminders for this car after a fresh reading
+    await AgencyReminderDismiss.deleteMany({
+      agency: sessionUser._id,
+      key: { $regex: `^mileage-${id}-` },
+    })
+
+    res.status(200).json({
+      _id: String(car._id),
+      odometerKm: car.odometerKm,
+    })
+  } catch (err) {
+    logger.error(`[agency.updateCarOdometer] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Toggle whether a fleet car is offered for rental.
+ */
+export const updateCarAvailability = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { body }: { body: { available?: boolean } } = req
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid car id')
+      return
+    }
+
+    if (typeof body.available !== 'boolean') {
+      res.status(400).send('Invalid availability')
+      return
+    }
+
+    const car = await Car.findOneAndUpdate(
+      { _id: id, supplier: sessionUser._id },
+      { $set: { available: body.available } },
+      { new: true },
+    )
+      .populate<{ supplier: env.UserInfo }>('supplier')
+      .lean()
+
+    if (!car) {
+      res.status(404).send('Car not found')
+      return
+    }
+
+    res.status(200).json(car)
+  } catch (err) {
+    logger.error(`[agency.updateCarAvailability] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }

@@ -813,6 +813,7 @@ export interface Car extends Omit<Document, 'model'> {
   insuranceExpiry?: Date
   technicalVisitExpiry?: Date
   nextOilChange?: Date
+  odometerKm?: number
   deliveryType?: bookcarsTypes.DeliveryType
 
   hourlyPrice: number | null
@@ -837,6 +838,7 @@ export interface Car extends Omit<Document, 'model'> {
   gearbox: bookcarsTypes.GearboxType
   aircon: boolean
   image: string | null
+  images?: string[]
   seats: number
   doors: number
   fuelPolicy: bookcarsTypes.FuelPolicy
@@ -1225,6 +1227,58 @@ export interface AgencyContract extends Document {
   totalTTC: number
   totalPaid: number
   balanceDue: number
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+/**
+ * AgencyReceipt Document.
+ *
+ * @export
+ * @interface AgencyReceipt
+ * @typedef {AgencyReceipt}
+ * @extends {Document}
+ */
+export interface AgencyReceipt extends Document {
+  agency: Types.ObjectId
+  number: string
+  paidAt: Date
+  clientName: string
+  clientEmail?: string
+  clientPhone?: string
+  vehicleLabel?: string
+  description: string
+  amount: number
+  currency: string
+  paymentMethod: bookcarsTypes.AgencyReceiptPaymentMethod
+  notes?: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+/**
+ * Manual agency reminder Document.
+ */
+export interface AgencyReminderDoc extends Document {
+  agency: Types.ObjectId
+  module: bookcarsTypes.AgencyReminderModule
+  category: string
+  title: string
+  detail: string
+  vehicleLabel?: string
+  vehicleId?: Types.ObjectId
+  dueDate?: Date
+  severity: bookcarsTypes.AgencyReminderSeverity
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+/**
+ * Soft-dismissed synthetic fleet reminder key.
+ */
+export interface AgencyReminderDismiss extends Document {
+  agency: Types.ObjectId
+  key: string
   createdAt?: Date
   updatedAt?: Date
 }

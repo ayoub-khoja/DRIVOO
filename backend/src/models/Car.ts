@@ -44,6 +44,11 @@ const carSchema = new Schema<env.Car>(
     nextOilChange: {
       type: Date,
     },
+    /** Current dashboard odometer reading (km), used by agency maintenance reminders. */
+    odometerKm: {
+      type: Number,
+      min: 0,
+    },
     deliveryType: {
       type: String,
       enum: [
@@ -154,6 +159,10 @@ const carSchema = new Schema<env.Car>(
     },
     image: {
       type: String,
+    },
+    images: {
+      type: [String],
+      default: [],
     },
     seats: {
       type: Number,

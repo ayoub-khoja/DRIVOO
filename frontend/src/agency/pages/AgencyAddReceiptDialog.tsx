@@ -17,7 +17,6 @@ import env from '@/config/env.config'
 
 interface AgencyAddReceiptDialogProps {
   open: boolean
-  agencyId: string
   onClose: () => void
   onCreated: (receipt: AgencyReceipt) => void
 }
@@ -38,7 +37,6 @@ const emptyValues: AgencyReceiptFormFields = {
 
 const AgencyAddReceiptDialog = ({
   open,
-  agencyId,
   onClose,
   onCreated,
 }: AgencyAddReceiptDialogProps) => {
@@ -68,7 +66,7 @@ const AgencyAddReceiptDialog = ({
     setSubmitting(true)
     setSubmitError('')
     try {
-      const created = await AgencyReceiptService.createReceipt(agencyId, {
+      const created = await AgencyReceiptService.createReceipt({
         clientName: values.clientName,
         clientEmail: values.clientEmail || undefined,
         clientPhone: values.clientPhone || undefined,

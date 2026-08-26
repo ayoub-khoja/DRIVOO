@@ -16,7 +16,7 @@ import {
   Stepper,
   TextField,
 } from '@mui/material'
-import { CloudUploadOutlined, DirectionsCarFilledOutlined } from '@mui/icons-material'
+import { CloudUploadOutlined, CloseRounded } from '@mui/icons-material'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
@@ -30,6 +30,8 @@ import {
   STEPS,
   stepFields,
 } from '@/agency/models/AgencyCarForm'
+
+const MAX_CAR_IMAGES = 8
 
 interface AgencyAddCarStepperProps {
   open: boolean
@@ -46,6 +48,7 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
   const [submitError, setSubmitError] = useState('')
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingDoc, setUploadingDoc] = useState(false)
+  const [imagePreviews, setImagePreviews] = useState<Record<string, string>>({})
 
   const {
     control,
@@ -65,7 +68,7 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
       model: '',
       year: String(currentYear),
       range: bookcarsTypes.CarRange.Midi,
-      image: '',
+      images: [],
       licensePlate: '',
       chassisNumber: '',
       registrationDoc: '',
@@ -87,9 +90,15 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
     },
   })
 
-  const image = watch('image')
+  const images = watch('images')
   const registrationDoc = watch('registrationDoc')
   const deliveryType = watch('deliveryType')
+  const imagePreviewsRef = React.useRef(imagePreviews)
+  imagePreviewsRef.current = imagePreviews
+
+  useEffect(() => () => {
+    Object.values(imagePreviewsRef.current).forEach((url) => URL.revokeObjectURL(url))
+  }, [])
 
   useEffect(() => {
     if (!open) {
@@ -123,28 +132,77 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
     strings.CAR_STEP_PRICING,
   ], [])
 
+  const clearImagePreviews = () => {
+    Object.values(imagePreviews).forEach((url) => URL.revokeObjectURL(url))
+    setImagePreviews({})
+  }
+
   const handleClose = () => {
     if (submitting) {
       return
     }
+    clearImagePreviews()
     reset()
     setActiveStep(0)
     setSubmitError('')
     onClose()
   }
 
-  const onUploadImage = async (file?: File | null) => {
-    if (!file) {
+  const onUploadImages = async (fileList?: FileList | null) => {
+    if (!fileList?.length) {
       return
     }
+
+    const current = getValues('images') || []
+    const remaining = MAX_CAR_IMAGES - current.length
+    if (remaining <= 0) {
+      setSubmitError(strings.CAR_PHOTOS_MAX)
+      return
+    }
+
+    const files = Array.from(fileList).slice(0, remaining)
     setUploadingImage(true)
+    setSubmitError('')
     try {
-      const filename = await AgencyCarService.createImage(file)
-      setValue('image', filename, { shouldValidate: true })
+      const uploaded: string[] = []
+      const previews: Record<string, string> = {}
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+          continue
+        }
+        const filename = await AgencyCarService.createImage(file)
+        uploaded.push(filename)
+        previews[filename] = URL.createObjectURL(file)
+      }
+      if (uploaded.length === 0) {
+        setSubmitError(strings.CAR_UPLOAD_ERROR)
+        return
+      }
+      setImagePreviews((prev) => ({ ...prev, ...previews }))
+      setValue('images', [...current, ...uploaded], { shouldValidate: true })
     } catch {
       setSubmitError(strings.CAR_UPLOAD_ERROR)
     } finally {
       setUploadingImage(false)
+    }
+  }
+
+  const onRemoveImage = async (filename: string) => {
+    const current = getValues('images') || []
+    const next = current.filter((name) => name !== filename)
+    setValue('images', next, { shouldValidate: true })
+    setImagePreviews((prev) => {
+      const url = prev[filename]
+      if (url) {
+        URL.revokeObjectURL(url)
+      }
+      const { [filename]: _removed, ...rest } = prev
+      return rest
+    })
+    try {
+      await AgencyCarService.deleteTempImage(filename)
+    } catch {
+      // Temp cleanup is best-effort — create still validates presence.
     }
   }
 
@@ -204,7 +262,8 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
         deliveryType: values.deliveryType,
         minimumAge: env.MINIMUM_AGE,
         locations: [locationId],
-        image: values.image,
+        image: values.images[0],
+        images: values.images,
         range: values.range,
         type: values.type,
         gearbox: values.gearbox,
@@ -238,6 +297,7 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
       }
 
       const car = await AgencyCarService.create(payload)
+      clearImagePreviews()
       onCreated(car)
       reset()
       setActiveStep(0)
@@ -294,26 +354,47 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
                 />
                 {errors.range && <FormHelperText>{errors.range.message}</FormHelperText>}
               </FormControl>
-              <div className="agency-car-upload agency-car-span-2">
+              <div className="agency-car-upload agency-car-span-2 is-gallery">
                 <div className="agency-car-upload-meta">
-                  <strong>{strings.CAR_PHOTO}</strong>
-                  <span>{strings.CAR_PHOTO_HINT}</span>
-                  {errors.image && <em>{errors.image.message}</em>}
+                  <strong>{strings.CAR_PHOTOS}</strong>
+                  <span>{strings.CAR_PHOTOS_HINT}</span>
+                  {errors.images && <em>{errors.images.message as string}</em>}
                 </div>
-                <label className="agency-car-upload-btn">
+                <label className={`agency-car-upload-btn${(images?.length || 0) >= MAX_CAR_IMAGES ? ' is-disabled' : ''}`}>
                   <CloudUploadOutlined />
                   {uploadingImage ? strings.LOADING : strings.CAR_UPLOAD}
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     hidden
-                    onChange={(e) => void onUploadImage(e.target.files?.[0])}
+                    disabled={(images?.length || 0) >= MAX_CAR_IMAGES || uploadingImage}
+                    onChange={(e) => {
+                      void onUploadImages(e.target.files)
+                      e.target.value = ''
+                    }}
                   />
                 </label>
-                {image && (
-                  <div className="agency-car-preview">
-                    <DirectionsCarFilledOutlined />
-                    <span>{image}</span>
+                {(images?.length || 0) > 0 && (
+                  <div className="agency-car-gallery">
+                    {images.map((filename, index) => (
+                      <figure key={filename} className={`agency-car-gallery-item${index === 0 ? ' is-cover' : ''}`}>
+                        {imagePreviews[filename] ? (
+                          <img src={imagePreviews[filename]} alt="" />
+                        ) : (
+                          <span className="agency-car-gallery-fallback">{filename}</span>
+                        )}
+                        {index === 0 && <em>{strings.CAR_PHOTO_COVER}</em>}
+                        <button
+                          type="button"
+                          className="agency-car-gallery-remove"
+                          aria-label={strings.CAR_PHOTO_REMOVE}
+                          onClick={() => void onRemoveImage(filename)}
+                        >
+                          <CloseRounded fontSize="small" />
+                        </button>
+                      </figure>
+                    ))}
                   </div>
                 )}
               </div>

@@ -1,38 +1,7 @@
-export type AgencyReceiptPaymentMethod = 'cash' | 'card' | 'transfer' | 'cheque'
+import type * as bookcarsTypes from ':bookcars-types'
 
-export interface AgencyReceipt {
-  _id: string
-  number: string
-  agencyId: string
-  createdAt: string
-  paidAt: string
-  clientName: string
-  clientEmail?: string
-  clientPhone?: string
-  vehicleLabel?: string
-  description: string
-  amount: number
-  currency: string
-  paymentMethod: AgencyReceiptPaymentMethod
-  notes?: string
-}
-
-export interface AgencyReceiptInput {
-  clientName: string
-  clientEmail?: string
-  clientPhone?: string
-  vehicleLabel?: string
-  description: string
-  amount: number
-  currency?: string
-  paymentMethod: AgencyReceiptPaymentMethod
-  paidAt: string
-  notes?: string
-}
-
-export interface AgencyReceiptListResult {
-  rows: AgencyReceipt[]
-  totalRecords: number
-  page: number
-  pageSize: number
-}
+export type AgencyReceiptPaymentMethod = bookcarsTypes.AgencyReceiptPaymentMethod
+export type AgencyReceipt = bookcarsTypes.AgencyReceipt
+export type AgencyReceiptInput = bookcarsTypes.CreateAgencyReceiptPayload
+export type AgencyReceiptStats = bookcarsTypes.AgencyReceiptStats
+export type AgencyReceiptListResult = bookcarsTypes.AgencyReceiptResult
