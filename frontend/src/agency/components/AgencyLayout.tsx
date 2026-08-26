@@ -4,13 +4,13 @@ import {
   DashboardOutlined,
   DirectionsCarOutlined,
   EventNoteOutlined,
+  CalendarMonthOutlined,
   LogoutOutlined,
   PersonOutline,
   ApartmentOutlined,
   StarOutline,
   ReceiptLongOutlined,
   DescriptionOutlined,
-  ContactMailOutlined,
   RequestQuoteOutlined,
   CardMembershipOutlined,
   BuildOutlined,
@@ -95,6 +95,10 @@ const AgencyShell = () => {
             <EventNoteOutlined />
             <span>{strings.BOOKINGS}</span>
           </NavLink>
+          <NavLink to="/agency/agenda" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <CalendarMonthOutlined />
+            <span>{strings.AGENDA}</span>
+          </NavLink>
           <NavLink to="/agency/reviews" className={({ isActive }) => (isActive ? 'active' : '')}>
             <StarOutline />
             <span>{strings.REVIEWS}</span>
@@ -112,10 +116,6 @@ const AgencyShell = () => {
           <NavLink to="/agency/invoices" className={({ isActive }) => (isActive ? 'active' : '')}>
             <ReceiptLongOutlined />
             <span>{strings.INVOICES}</span>
-          </NavLink>
-          <NavLink to="/agency/contact" className={({ isActive }) => (isActive ? 'active' : '')}>
-            <ContactMailOutlined />
-            <span>{strings.CONTACT}</span>
           </NavLink>
           <NavLink to="/agency/receipts" className={({ isActive }) => (isActive ? 'active' : '')}>
             <RequestQuoteOutlined />

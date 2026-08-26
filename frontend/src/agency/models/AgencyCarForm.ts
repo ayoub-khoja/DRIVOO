@@ -11,7 +11,7 @@ export const agencyCarSchema = z.object({
     return Number.isInteger(n) && n >= 1980 && n <= new Date().getFullYear() + 1
   }, 'Année invalide'),
   range: z.string().min(1, required),
-  image: z.string().min(1, 'Photo obligatoire'),
+  images: z.array(z.string().min(1)).min(1, 'Au moins une photo est obligatoire').max(8, 'Maximum 8 photos'),
 
   licensePlate: z.string().min(1, required),
   chassisNumber: z.string().min(1, required),
@@ -51,7 +51,7 @@ export const STEPS = [
 export type AgencyCarStep = typeof STEPS[number]
 
 export const stepFields: Record<AgencyCarStep, (keyof AgencyCarFormFields)[]> = {
-  basic: ['brand', 'model', 'year', 'range', 'image'],
+  basic: ['brand', 'model', 'year', 'range', 'images'],
   admin: ['licensePlate', 'chassisNumber', 'registrationDoc'],
   ops: ['gearbox', 'type', 'seats', 'doors', 'aircon'],
   maintenance: ['insuranceExpiry', 'technicalVisitExpiry', 'nextOilChange'],

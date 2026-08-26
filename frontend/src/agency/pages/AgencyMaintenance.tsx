@@ -21,7 +21,8 @@ import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
 import * as AgencyCarService from '@/agency/services/AgencyCarService'
 import * as AgencyReminderService from '@/agency/services/AgencyReminderService'
-import type { AgencyReminder, ReminderModule } from '@/agency/types/reminder'
+import type { AgencyReminder, ReminderModule, ReminderStats } from '@/agency/types/reminder'
+import * as helper from '@/utils/helper'
 
 type ModuleFilter = ReminderModule | 'all'
 
@@ -32,6 +33,8 @@ const MODULES: { key: ModuleFilter; icon: React.ReactNode }[] = [
   { key: 'mileage', icon: <SpeedOutlined /> },
   { key: 'contracts', icon: <EventAvailableOutlined /> },
 ]
+
+const EMPTY_STATS: ReminderStats = { total: 0, critical: 0, warning: 0, upcoming: 0 }
 
 const moduleLabel = (key: ModuleFilter) => {
   switch (key) {
@@ -81,12 +84,14 @@ const severityLabel = (severity: AgencyReminder['severity']) => {
 const AgencyMaintenance = () => {
   const { agency, agencyLoaded } = useAgencyContext()
   const [cars, setCars] = useState<bookcarsTypes.Car[]>([])
+  const [reminders, setReminders] = useState<AgencyReminder[]>([])
+  const [stats, setStats] = useState<ReminderStats>(EMPTY_STATS)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [module, setModule] = useState<ModuleFilter>('all')
-  const [tick, setTick] = useState(0)
   const [openForm, setOpenForm] = useState(false)
   const [openOdo, setOpenOdo] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     module: 'maintenance' as ReminderModule,
     title: '',
@@ -96,44 +101,42 @@ const AgencyMaintenance = () => {
   })
   const [odoForm, setOdoForm] = useState({ vehicleId: '', km: '' })
 
-  const load = useCallback(async () => {
+  const loadCars = useCallback(async () => {
     if (!agency?._id) {
       setCars([])
-      setLoading(false)
       return
     }
-    setLoading(true)
-    setError('')
     try {
       const result = await AgencyCarService.getCars('', { suppliers: [agency._id] }, 1, 200)
       setCars(result?.[0]?.resultData || [])
     } catch {
-      setError(strings.REM_LOAD_ERROR)
       setCars([])
-    } finally {
-      setLoading(false)
     }
   }, [agency?._id])
 
+  const loadReminders = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const result = await AgencyReminderService.listReminders()
+      setReminders(result.rows || [])
+      setStats(result.stats || EMPTY_STATS)
+    } catch {
+      setError(strings.REM_LOAD_ERROR)
+      setReminders([])
+      setStats(EMPTY_STATS)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    if (agencyLoaded) {
-      void load()
+    if (!agencyLoaded || !agency?._id) {
+      return
     }
-  }, [agencyLoaded, load])
-
-  const reminders = useMemo(() => {
-    if (!agency?._id) {
-      return []
-    }
-    // tick forces recompute after dismiss / odometer update
-    void tick
-    return AgencyReminderService.withoutDismissed(
-      agency._id,
-      AgencyReminderService.buildReminders(agency._id, cars),
-    )
-  }, [agency?._id, cars, tick])
-
-  const stats = useMemo(() => AgencyReminderService.getStats(reminders), [reminders])
+    void loadCars()
+    void loadReminders()
+  }, [agencyLoaded, agency?._id, loadCars, loadReminders])
 
   const visible = useMemo(
     () => AgencyReminderService.filterByModule(reminders, module),
@@ -157,51 +160,69 @@ const AgencyMaintenance = () => {
     return base
   }, [reminders, stats.critical])
 
-  const dismiss = (id: string) => {
-    if (!agency?._id) {
-      return
+  const dismiss = async (id: string) => {
+    try {
+      await AgencyReminderService.dismissReminder(id)
+      helper.info(strings.REM_DISMISSED)
+      await loadReminders()
+    } catch {
+      helper.error(undefined, strings.REM_SAVE_ERROR)
     }
-    AgencyReminderService.dismissReminder(agency._id, id)
-    setTick((n) => n + 1)
   }
 
-  const submitReminder = (e: React.FormEvent) => {
+  const submitReminder = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!agency?._id || !form.title.trim()) {
+    if (!form.title.trim()) {
       return
     }
-    AgencyReminderService.addManualReminder(agency._id, {
-      module: form.module,
-      category: 'custom',
-      title: form.title.trim(),
-      detail: form.detail.trim() || strings.REM_CUSTOM_DETAIL,
-      vehicleLabel: form.vehicleLabel.trim() || undefined,
-      dueDate: form.dueDate || undefined,
-    })
-    setOpenForm(false)
-    setForm({
-      module: 'maintenance',
-      title: '',
-      detail: '',
-      vehicleLabel: '',
-      dueDate: '',
-    })
-    setTick((n) => n + 1)
+    setSaving(true)
+    try {
+      await AgencyReminderService.createReminder({
+        module: form.module,
+        category: 'custom',
+        title: form.title.trim(),
+        detail: form.detail.trim() || strings.REM_CUSTOM_DETAIL,
+        vehicleLabel: form.vehicleLabel.trim() || undefined,
+        dueDate: form.dueDate || undefined,
+      })
+      setOpenForm(false)
+      setForm({
+        module: 'maintenance',
+        title: '',
+        detail: '',
+        vehicleLabel: '',
+        dueDate: '',
+      })
+      helper.info(strings.REM_CREATED)
+      await loadReminders()
+    } catch {
+      helper.error(undefined, strings.REM_SAVE_ERROR)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const submitOdo = (e: React.FormEvent) => {
+  const submitOdo = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!agency?._id || !odoForm.vehicleId) {
+    if (!odoForm.vehicleId) {
       return
     }
     const km = Number(odoForm.km)
     if (!Number.isFinite(km) || km < 0) {
       return
     }
-    AgencyReminderService.setOdometer(agency._id, odoForm.vehicleId, km)
-    setOpenOdo(false)
-    setOdoForm({ vehicleId: '', km: '' })
-    setTick((n) => n + 1)
+    setSaving(true)
+    try {
+      await AgencyReminderService.updateCarOdometer(odoForm.vehicleId, km)
+      setOpenOdo(false)
+      setOdoForm({ vehicleId: '', km: '' })
+      helper.info(strings.REM_KM_SAVED)
+      await loadReminders()
+    } catch {
+      helper.error(undefined, strings.REM_SAVE_ERROR)
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (!agencyLoaded || !agency) {
@@ -296,7 +317,7 @@ const AgencyMaintenance = () => {
       ) : error ? (
         <div className="agency-empty-stage">
           <p>{error}</p>
-          <Button onClick={() => void load()}>{strings.RETRY}</Button>
+          <Button onClick={() => void loadReminders()}>{strings.RETRY}</Button>
         </div>
       ) : visible.length === 0 ? (
         <div className="agency-empty-stage">
@@ -325,7 +346,7 @@ const AgencyMaintenance = () => {
                 )}
               </div>
               <div className="agency-rem-card-actions">
-                <Button size="small" onClick={() => dismiss(row._id)}>
+                <Button size="small" onClick={() => void dismiss(row._id)}>
                   {strings.REM_DISMISS}
                 </Button>
               </div>
@@ -334,7 +355,7 @@ const AgencyMaintenance = () => {
         </div>
       )}
 
-      <Dialog open={openForm} onClose={() => setOpenForm(false)} fullWidth maxWidth="sm" className="agency-branch-dialog">
+      <Dialog open={openForm} onClose={saving ? undefined : () => setOpenForm(false)} fullWidth maxWidth="sm" className="agency-branch-dialog">
         <DialogContent className="agency-branch-dialog-content">
           <div className="agency-car-dialog-head">
             <div>
@@ -342,7 +363,7 @@ const AgencyMaintenance = () => {
               <p>{strings.REM_ADD_SUBTITLE}</p>
             </div>
           </div>
-          <form className="agency-branch-form" onSubmit={submitReminder}>
+          <form className="agency-branch-form" onSubmit={(e) => void submitReminder(e)}>
             <div className="agency-car-grid">
               <TextField
                 select
@@ -385,14 +406,16 @@ const AgencyMaintenance = () => {
               />
             </div>
             <div className="agency-car-actions">
-              <Button onClick={() => setOpenForm(false)}>{strings.CANCEL}</Button>
-              <Button type="submit" variant="contained" className="btn-primary">{strings.REM_SAVE}</Button>
+              <Button onClick={() => setOpenForm(false)} disabled={saving}>{strings.CANCEL}</Button>
+              <Button type="submit" variant="contained" className="btn-primary" disabled={saving}>
+                {saving ? <CircularProgress size={20} color="inherit" /> : strings.REM_SAVE}
+              </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={openOdo} onClose={() => setOpenOdo(false)} fullWidth maxWidth="xs" className="agency-branch-dialog">
+      <Dialog open={openOdo} onClose={saving ? undefined : () => setOpenOdo(false)} fullWidth maxWidth="xs" className="agency-branch-dialog">
         <DialogContent className="agency-branch-dialog-content">
           <div className="agency-car-dialog-head">
             <div>
@@ -400,7 +423,7 @@ const AgencyMaintenance = () => {
               <p>{strings.REM_SET_KM_SUBTITLE}</p>
             </div>
           </div>
-          <form className="agency-branch-form" onSubmit={submitOdo}>
+          <form className="agency-branch-form" onSubmit={(e) => void submitOdo(e)}>
             <div className="agency-car-grid">
               <TextField
                 className="agency-car-span-2"
@@ -413,6 +436,7 @@ const AgencyMaintenance = () => {
                 {cars.map((car) => (
                   <MenuItem key={car._id} value={car._id}>
                     {car.name}{car.licensePlate ? ` · ${car.licensePlate}` : ''}
+                    {typeof car.odometerKm === 'number' ? ` (${car.odometerKm.toLocaleString('fr-FR')} km)` : ''}
                   </MenuItem>
                 ))}
               </TextField>
@@ -427,8 +451,10 @@ const AgencyMaintenance = () => {
               />
             </div>
             <div className="agency-car-actions">
-              <Button onClick={() => setOpenOdo(false)}>{strings.CANCEL}</Button>
-              <Button type="submit" variant="contained" className="btn-primary">{strings.REM_SAVE}</Button>
+              <Button onClick={() => setOpenOdo(false)} disabled={saving}>{strings.CANCEL}</Button>
+              <Button type="submit" variant="contained" className="btn-primary" disabled={saving}>
+                {saving ? <CircularProgress size={20} color="inherit" /> : strings.REM_SAVE}
+              </Button>
             </div>
           </form>
         </DialogContent>

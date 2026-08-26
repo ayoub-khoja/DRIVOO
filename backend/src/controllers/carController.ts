@@ -33,12 +33,13 @@ export const create = async (req: Request, res: Response) => {
   const { body }: { body: bookcarsTypes.CreateCarPayload } = req
 
   try {
-    if (!body.image) {
+    const hasImages = (Array.isArray(body.images) && body.images.length > 0) || !!body.image
+    if (!hasImages) {
       throw new Error('Image not found in payload')
     }
 
     // date based price
-    const { dateBasedPrices, ...carFields } = body
+    const { dateBasedPrices, images: _images, ...carFields } = body
     const dateBasedPriceIds: string[] = []
     if (body.isDateBasedPrice) {
       for (const dateBasePrice of dateBasedPrices) {
@@ -48,45 +49,52 @@ export const create = async (req: Request, res: Response) => {
       }
     }
 
-    const car = new Car({ ...carFields, dateBasedPrices: dateBasedPriceIds })
+    const car = new Car({ ...carFields, dateBasedPrices: dateBasedPriceIds, images: [] })
     await car.save()
 
-    // --------- image ---------
-    // 1. Sanitize filename
-    const safeImage = path.basename(body.image)
+    // --------- images (cover + gallery) ---------
+    const tempImageNames = Array.from(new Set([
+      ...(Array.isArray(body.images) ? body.images : []),
+      ...(body.image ? [body.image] : []),
+    ].map((name) => String(name || '').trim()).filter(Boolean)))
 
-    // If basename modified it → traversal attempt
-    if (safeImage !== body.image) {
+    if (tempImageNames.length === 0) {
       await Car.deleteOne({ _id: car._id })
-      logger.warn(`[car.create] Directory traversal attempt (image): ${body.image}`)
-      throw new Error('Invalid image filename')
+      throw new Error('Image not found in payload')
     }
 
     const tempDir = path.resolve(env.CDN_TEMP_CARS)
     const carsDir = path.resolve(env.CDN_CARS)
+    const finalImages: string[] = []
 
-    const sourcePath = path.resolve(tempDir, safeImage)
+    for (const tempName of tempImageNames) {
+      const safeImage = path.basename(tempName)
+      if (safeImage !== tempName) {
+        await Car.deleteOne({ _id: car._id })
+        logger.warn(`[car.create] Directory traversal attempt (image): ${tempName}`)
+        throw new Error('Invalid image filename')
+      }
 
-    // 2. Ensure source stays inside temp directory
-    if (!sourcePath.startsWith(tempDir + path.sep)) {
-      await Car.deleteOne({ _id: car._id })
-      logger.warn(`[car.create] Source path escape attempt: ${sourcePath}`)
-      throw new Error('Invalid image path')
-    }
+      const sourcePath = path.resolve(tempDir, safeImage)
+      if (!sourcePath.startsWith(tempDir + path.sep)) {
+        await Car.deleteOne({ _id: car._id })
+        logger.warn(`[car.create] Source path escape attempt: ${sourcePath}`)
+        throw new Error('Invalid image path')
+      }
 
-    if (await helper.pathExists(sourcePath)) {
+      if (!(await helper.pathExists(sourcePath))) {
+        await Car.deleteOne({ _id: car._id })
+        throw new Error(`Image ${safeImage} not found`)
+      }
+
       const ext = path.extname(safeImage).toLowerCase()
-
-      // 3. Restrict allowed extensions
       if (!env.allowedImageExtensions.includes(ext)) {
         await Car.deleteOne({ _id: car._id })
         throw new Error('Invalid image type')
       }
 
-      const filename = `${car._id}_${Date.now()}${ext}`
+      const filename = `${car._id}_${Date.now()}_${finalImages.length}${ext}`
       const newPath = path.resolve(carsDir, filename)
-
-      // 4. Ensure destination stays inside cars directory
       if (!newPath.startsWith(carsDir + path.sep)) {
         await Car.deleteOne({ _id: car._id })
         logger.warn(`[car.create] Destination path escape attempt: ${newPath}`)
@@ -94,21 +102,18 @@ export const create = async (req: Request, res: Response) => {
       }
 
       await asyncFs.rename(sourcePath, newPath)
-
-      car.image = filename
-      await car.save()
-    } else {
-      await Car.deleteOne({ _id: car._id })
-      throw new Error(`Image ${safeImage} not found`)
+      finalImages.push(filename)
     }
-    // --------- image ---------
+
+    car.image = finalImages[0]
+    car.images = finalImages
+    await car.save()
+    // --------- images ---------
 
     // --------- registration document (carte grise) ---------
     if (body.registrationDoc) {
       const safeDoc = path.basename(body.registrationDoc)
       if (safeDoc === body.registrationDoc) {
-        const tempDir = path.resolve(env.CDN_TEMP_CARS)
-        const carsDir = path.resolve(env.CDN_CARS)
         const sourcePath = path.resolve(tempDir, safeDoc)
         if (sourcePath.startsWith(tempDir + path.sep) && await helper.pathExists(sourcePath)) {
           const ext = path.extname(safeDoc).toLowerCase()
@@ -491,6 +496,17 @@ export const deleteCar = async (req: Request, res: Response) => {
         const image = path.join(env.CDN_CARS, car.image)
         if (await helper.pathExists(image)) {
           await asyncFs.unlink(image)
+        }
+      }
+      if (Array.isArray(car.images)) {
+        for (const filename of car.images) {
+          if (!filename || filename === car.image) {
+            continue
+          }
+          const image = path.join(env.CDN_CARS, filename)
+          if (await helper.pathExists(image)) {
+            await asyncFs.unlink(image)
+          }
         }
       }
       await Booking.deleteMany({ car: car._id })

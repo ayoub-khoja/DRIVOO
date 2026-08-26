@@ -1,33 +1,15 @@
-export type ReminderModule = 'maintenance' | 'documents' | 'mileage' | 'contracts'
+import type * as bookcarsTypes from ':bookcars-types'
 
-export type ReminderSeverity = 'critical' | 'warning' | 'info' | 'ok'
-
-export interface AgencyReminder {
-  _id: string
-  module: ReminderModule
-  category: string
-  title: string
-  detail: string
-  vehicleLabel?: string
-  vehicleId?: string
-  dueDate?: string
-  dueKm?: number
-  currentKm?: number
-  severity: ReminderSeverity
-  source: 'fleet' | 'manual'
-  createdAt: string
-}
+export type ReminderModule = bookcarsTypes.AgencyReminderModule
+export type ReminderSeverity = bookcarsTypes.AgencyReminderSeverity
+export type AgencyReminder = bookcarsTypes.AgencyReminder
+export type ReminderStats = bookcarsTypes.AgencyReminderStats
+export type AgencyReminderResult = bookcarsTypes.AgencyReminderResult
+export type CreateAgencyReminderPayload = bookcarsTypes.CreateAgencyReminderPayload
 
 export interface ReminderModuleMeta {
   key: ReminderModule
   count: number
   critical: number
   warning: number
-}
-
-export interface ReminderStats {
-  total: number
-  critical: number
-  warning: number
-  upcoming: number
 }

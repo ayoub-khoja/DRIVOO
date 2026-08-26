@@ -424,6 +424,137 @@ export interface AgencyContractResult {
   stats: AgencyContractStats
 }
 
+export type AgencyReceiptPaymentMethod = 'cash' | 'card' | 'transfer' | 'cheque'
+
+export interface AgencyReceipt {
+  _id: string
+  /** Sequential number allocated server side, e.g. "REC0001-2025" */
+  number: string
+  paidAt: string
+  clientName: string
+  clientEmail?: string
+  clientPhone?: string
+  vehicleLabel?: string
+  description: string
+  amount: number
+  currency: string
+  paymentMethod: AgencyReceiptPaymentMethod
+  notes?: string
+  createdAt?: Date | string
+}
+
+export type CreateAgencyReceiptPayload = Omit<
+  AgencyReceipt,
+  '_id' | 'number' | 'createdAt'
+>
+
+export interface AgencyReceiptStats {
+  count: number
+  monthTotal: number
+  lastNumber: string | null
+}
+
+export interface AgencyReceiptResult {
+  rows: AgencyReceipt[]
+  totalRecords: number
+  page: number
+  pageSize: number
+  stats: AgencyReceiptStats
+}
+
+/** Marker placed on a calendar day (departure, return, reservation…). */
+export type AgencyAgendaEventType =
+  | 'departure'
+  | 'return'
+  | 'reservation_departure'
+  | 'reservation_return'
+  | 'circulation'
+
+export type AgencyAgendaEventSource = 'contract' | 'booking'
+
+export interface AgencyAgendaEvent {
+  _id: string
+  type: AgencyAgendaEventType
+  source: AgencyAgendaEventSource
+  sourceId: string
+  /** Calendar day key YYYY-MM-DD */
+  date: string
+  startAt: string
+  endAt?: string
+  vehicleLabel: string
+  vehiclePlate?: string
+  vehicleId?: string
+  clientName: string
+  number?: string
+  status?: string
+}
+
+export interface AgencyAgendaVehicle {
+  id: string
+  label: string
+  plate?: string
+}
+
+export interface AgencyAgendaFleetStats {
+  total: number
+  inCirculation: number
+  available: number
+}
+
+export interface AgencyAgendaResult {
+  from: string
+  to: string
+  events: AgencyAgendaEvent[]
+  vehicles: AgencyAgendaVehicle[]
+  fleet: AgencyAgendaFleetStats
+}
+
+export type AgencyReminderModule = 'maintenance' | 'documents' | 'mileage' | 'contracts'
+export type AgencyReminderSeverity = 'critical' | 'warning' | 'info' | 'ok'
+export type AgencyReminderSource = 'fleet' | 'manual'
+
+export interface AgencyReminder {
+  _id: string
+  module: AgencyReminderModule
+  category: string
+  title: string
+  detail: string
+  vehicleLabel?: string
+  vehicleId?: string
+  dueDate?: string
+  dueKm?: number
+  currentKm?: number
+  severity: AgencyReminderSeverity
+  source: AgencyReminderSource
+  createdAt: string
+}
+
+export interface CreateAgencyReminderPayload {
+  module: AgencyReminderModule
+  category?: string
+  title: string
+  detail?: string
+  vehicleLabel?: string
+  vehicleId?: string
+  dueDate?: string
+}
+
+export interface AgencyReminderStats {
+  total: number
+  critical: number
+  warning: number
+  upcoming: number
+}
+
+export interface AgencyReminderResult {
+  rows: AgencyReminder[]
+  stats: AgencyReminderStats
+}
+
+export interface UpdateCarOdometerPayload {
+  odometerKm: number
+}
+
 export interface AgencyLogoPayload {
   avatar: string
 }
@@ -545,6 +676,8 @@ export interface CreateCarPayload {
   insuranceExpiry?: Date | string
   technicalVisitExpiry?: Date | string
   nextOilChange?: Date | string
+  /** Current dashboard odometer reading in kilometres */
+  odometerKm?: number
   deliveryType?: DeliveryType | string
 
   // price fields
@@ -570,6 +703,8 @@ export interface CreateCarPayload {
   gearbox: string
   aircon: boolean
   image?: string
+  /** Additional gallery filenames stored under CDN_CARS (cover stays in `image`). */
+  images?: string[]
   seats: number
   doors: number
   fuelPolicy: string
@@ -873,6 +1008,7 @@ export interface Car {
   insuranceExpiry?: Date
   technicalVisitExpiry?: Date
   nextOilChange?: Date
+  odometerKm?: number
   deliveryType?: DeliveryType | string
 
   // price fields
@@ -899,6 +1035,7 @@ export interface Car {
   gearbox: GearboxType
   aircon: boolean
   image?: string
+  images?: string[]
   seats: number
   doors: number
   fuelPolicy: FuelPolicy

@@ -23,13 +23,15 @@ import { useAgencyContext } from '@/agency/context/AgencyContext'
 import AgencyAddReceiptDialog from '@/agency/pages/AgencyAddReceiptDialog'
 import AgencyReceiptPreview from '@/agency/components/AgencyReceiptPreview'
 import * as AgencyReceiptService from '@/agency/services/AgencyReceiptService'
-import type { AgencyReceipt } from '@/agency/types/receipt'
+import type { AgencyReceipt, AgencyReceiptStats } from '@/agency/types/receipt'
 import { formatReceiptDate, paymentLabel } from '@/agency/utils/receiptFormat'
 import env from '@/config/env.config'
 import * as helper from '@/utils/helper'
 import { printReceiptElement } from '@/agency/utils/printReceipt'
 
 const PAGE_SIZE = 8
+
+const EMPTY_STATS: AgencyReceiptStats = { count: 0, monthTotal: 0, lastNumber: null }
 
 const AgencyReceipts = () => {
   const { agency, agencyLoaded } = useAgencyContext()
@@ -44,26 +46,22 @@ const AgencyReceipts = () => {
   const [openForm, setOpenForm] = useState(false)
   const [preview, setPreview] = useState<AgencyReceipt | null>(null)
   const [printReceipt, setPrintReceipt] = useState<AgencyReceipt | null>(null)
-  const [stats, setStats] = useState({ count: 0, monthTotal: 0, lastNumber: null as string | null })
+  const [stats, setStats] = useState<AgencyReceiptStats>(EMPTY_STATS)
 
   const load = useCallback(async (search = '', nextPage = 1) => {
-    if (!agency?._id) {
-      setRows([])
-      setLoading(false)
-      return
-    }
-
     setLoading(true)
     try {
-      const result = await AgencyReceiptService.listReceipts(agency._id, search, nextPage, PAGE_SIZE)
+      const result = await AgencyReceiptService.listReceipts(search, nextPage, PAGE_SIZE)
       setRows(result.rows)
       setTotalRecords(result.totalRecords)
+      setStats(result.stats || EMPTY_STATS)
       setPage(nextPage)
-      setStats(AgencyReceiptService.getReceiptStats(agency._id))
+    } catch {
+      helper.error(undefined, strings.RECEIPT_LOAD_ERROR)
     } finally {
       setLoading(false)
     }
-  }, [agency?._id])
+  }, [])
 
   useEffect(() => {
     if (agencyLoaded && agency?._id) {
@@ -100,16 +98,17 @@ const AgencyReceipts = () => {
   }, [printReceipt])
 
   const handleDelete = async (receipt: AgencyReceipt) => {
-    if (!agency?._id) {
-      return
-    }
     if (!window.confirm(strings.RECEIPT_DELETE_CONFIRM)) {
       return
     }
-    await AgencyReceiptService.deleteReceipt(agency._id, receipt._id)
-    helper.info(strings.RECEIPT_DELETED)
-    const nextPage = rows.length === 1 && page > 1 ? page - 1 : page
-    void load(query, nextPage)
+    try {
+      await AgencyReceiptService.deleteReceipt(receipt._id)
+      helper.info(strings.RECEIPT_DELETED)
+      const nextPage = rows.length === 1 && page > 1 ? page - 1 : page
+      void load(query, nextPage)
+    } catch {
+      helper.error(undefined, strings.RECEIPT_SAVE_ERROR)
+    }
   }
 
   if (!agencyLoaded || !agency) {
@@ -278,7 +277,6 @@ const AgencyReceipts = () => {
 
       <AgencyAddReceiptDialog
         open={openForm}
-        agencyId={agency._id!}
         onClose={() => setOpenForm(false)}
         onCreated={() => {
           setOpenForm(false)

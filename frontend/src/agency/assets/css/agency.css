@@ -1154,64 +1154,277 @@
   margin-bottom: 8px;
 }
 
+.agency-fleet-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.agency-fleet-stats article {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid #e6ebf2;
+  background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agency-fleet-stats span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #5b6b80;
+}
+
+.agency-fleet-stats strong {
+  font-size: 1.35rem;
+  color: #0b1626;
+}
+
+.agency-fleet-stats .is-live strong { color: #157347; }
+.agency-fleet-stats .is-off strong { color: #b36b00; }
+
 .agency-fleet-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
 }
 
 .agency-fleet-card {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 20px;
   background: #fff;
   border: 1px solid #e6ebf2;
-  box-shadow: 0 8px 24px rgb(11 22 38 / 5%);
+  box-shadow: 0 10px 28px rgb(11 22 38 / 6%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.agency-fleet-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgb(11 22 38 / 9%);
+  border-color: #d7dee8;
+}
+
+.agency-fleet-card.is-offline {
+  opacity: 0.92;
+}
+
+.agency-fleet-card.is-busy {
+  pointer-events: none;
+  opacity: 0.7;
 }
 
 .agency-fleet-card-media {
-  height: 150px;
+  position: relative;
+  height: 180px;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
-  background: #f4f7fb;
+  background:
+    radial-gradient(420px 180px at 80% 0%, rgb(245 166 35 / 14%), transparent 60%),
+    #edf2f7;
   color: #f5a623;
+  overflow: hidden;
 }
 
 .agency-fleet-card-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.agency-fleet-card-body {
-  padding: 14px 16px 16px;
+.agency-fleet-card-fallback {
+  font-size: 3rem !important;
 }
 
-.agency-fleet-card-body h3 {
-  margin: 0 0 4px;
-  font-size: 1.05rem;
-  color: #0b1626;
+.agency-fleet-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  backdrop-filter: blur(6px);
 }
 
-.agency-fleet-card-body p {
-  margin: 0 0 10px;
-  color: #5b6b80;
-  font-size: 0.9rem;
+.agency-fleet-badge.is-live {
+  color: #0f5c38;
+  background: rgb(232 250 240 / 92%);
 }
 
-.agency-fleet-card-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 0.82rem;
+.agency-fleet-badge.is-off {
+  color: #8a5a00;
+  background: rgb(255 246 223 / 94%);
+}
+
+.agency-fleet-photo-count {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgb(11 22 38 / 72%);
+  color: #fff;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
-.agency-fleet-card-meta .is-live {
-  color: #157347;
+.agency-fleet-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(11 22 38 / 62%);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
 }
 
-.agency-fleet-card-meta .is-pending {
-  color: #b36b00;
+.agency-fleet-card:hover .agency-fleet-nav,
+.agency-fleet-card:focus-within .agency-fleet-nav {
+  opacity: 1;
+}
+
+.agency-fleet-nav:hover {
+  background: rgb(11 22 38 / 84%);
+}
+
+.agency-fleet-nav.is-prev { left: 10px; }
+.agency-fleet-nav.is-next { right: 10px; }
+
+.agency-fleet-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  z-index: 2;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: rgb(11 22 38 / 35%);
+}
+
+.agency-fleet-dot {
+  width: 7px;
+  height: 7px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: rgb(255 255 255 / 55%);
+  cursor: pointer;
+}
+
+.agency-fleet-dot.is-active {
+  background: #f5a623;
+  width: 16px;
+}
+
+@media (hover: none) {
+  .agency-fleet-nav {
+    opacity: 1;
+  }
+}
+
+.agency-fleet-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px 14px;
+  min-height: 0;
+}
+
+.agency-fleet-card-title h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  color: #0b1626;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agency-fleet-card-title p {
+  margin: 0;
+  color: #5b6b80;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.agency-fleet-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.agency-fleet-card-tags span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f4f7fb;
+  color: #3d4f66;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.agency-fleet-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.agency-fleet-card-price strong {
+  font-size: 1.15rem;
+  color: #0b1626;
+}
+
+.agency-fleet-card-price span {
+  color: #7a8899;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.agency-fleet-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
+.agency-fleet-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #3d4f66;
+}
+
+.agency-fleet-card-buttons {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.agency-fleet-card-buttons .MuiIconButton-root {
+  border: 1px solid #e6ebf2;
+  border-radius: 10px;
 }
 
 /* Add car stepper dialog */
@@ -1328,6 +1541,85 @@
   color: #ffc766;
   cursor: pointer;
   font-weight: 700;
+}
+
+.agency-car-upload-btn.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.agency-car-upload.is-gallery {
+  align-items: flex-start;
+}
+
+.agency-car-gallery {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.agency-car-gallery-item {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: rgb(0 0 0 / 25%);
+}
+
+.agency-car-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.agency-car-gallery-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 8px;
+  font-size: 0.65rem;
+  color: #9eb0c7;
+  word-break: break-all;
+  text-align: center;
+}
+
+.agency-car-gallery-item.is-cover {
+  outline: 2px solid #f5a623;
+  outline-offset: 1px;
+}
+
+.agency-car-gallery-item em {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgb(11 22 38 / 82%);
+  color: #ffc766;
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.agency-car-gallery-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(11 22 38 / 78%);
+  color: #fff;
+  cursor: pointer;
 }
 
 .agency-car-preview {
@@ -3492,4 +3784,505 @@
 
 .agency-contract-checklist .MuiFormControlLabel-label {
   font-size: 0.85rem;
+}
+
+/* --- Agency Agenda ------------------------------------------- */
+
+.agency-agenda-page.is-pending {
+  opacity: 0.92;
+  transition: opacity 0.15s ease;
+}
+
+.agency-agenda-head {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.agency-agenda-fleet-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.agency-agenda-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+}
+
+.agency-agenda-pill.is-busy {
+  color: #8a5a00;
+  background: linear-gradient(180deg, #fff7e6 0%, #ffe8b8 100%);
+  border-color: #f0c66a;
+}
+
+.agency-agenda-pill.is-free {
+  color: #0f5c38;
+  background: linear-gradient(180deg, #eefaf3 0%, #d8f3e4 100%);
+  border-color: #8fd6b0;
+}
+
+.agency-agenda-focus-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0 18px;
+  padding: 4px;
+  border-radius: 14px;
+  background: #f4f7fb;
+  border: 1px solid #e6ebf2;
+}
+
+.agency-agenda-focus-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: #5b6b7f;
+  position: relative;
+}
+
+.agency-agenda-focus-tab.is-active {
+  background: #fff;
+  color: #0b1626;
+  box-shadow: 0 1px 3px rgb(12 28 48 / 8%);
+}
+
+.agency-agenda-focus-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 4px;
+  height: 3px;
+  border-radius: 999px;
+}
+
+.agency-agenda-focus-tab.is-departure.is-active::after { background: #22a06b; }
+.agency-agenda-focus-tab.is-return.is-active::after { background: #e6a700; }
+.agency-agenda-focus-tab.is-circulation.is-active::after { background: #5b9bd5; }
+.agency-agenda-focus-tab.is-reservation.is-active::after { background: #2f6fed; }
+.agency-agenda-focus-tab.is-all.is-active::after { background: #f5a623; }
+
+.agency-agenda-shell {
+  border: 1px solid #e6ebf2;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+  overflow: hidden;
+}
+
+.agency-agenda-panel-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #e6ebf2;
+  background: #fff;
+}
+
+.agency-agenda-panel-tabs button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #5b6b7f;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.agency-agenda-panel-tabs button.is-active {
+  color: #0b1626;
+  border-bottom-color: #f5a623;
+}
+
+.agency-agenda-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.agency-agenda-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.agency-agenda-nav .MuiButton-root {
+  text-transform: none;
+  font-weight: 700;
+  color: #12233a;
+  border: 1px solid #e6ebf2;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.agency-agenda-title {
+  margin: 0;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0b1626;
+  letter-spacing: -0.02em;
+}
+
+.agency-agenda-view-switch {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.agency-agenda-view-switch > button {
+  appearance: none;
+  border: 1px solid #e6ebf2;
+  background: #fff;
+  cursor: pointer;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5b6b7f;
+}
+
+.agency-agenda-view-switch > button.is-active {
+  background: #0b1626;
+  border-color: #0b1626;
+  color: #fff;
+}
+
+.agency-agenda-print {
+  margin-left: 4px;
+  border: 1px solid #e6ebf2 !important;
+  border-radius: 10px !important;
+}
+
+.agency-agenda-filters {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+  padding: 12px 16px 16px;
+}
+
+.agency-agenda-filter {
+  width: 100%;
+  background: #fff;
+}
+
+.agency-agenda-filter .MuiOutlinedInput-root {
+  border-radius: 12px;
+  background: #fff;
+}
+
+.agency-agenda-grid {
+  padding: 0 12px 16px;
+}
+
+.agency-agenda-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.agency-agenda-weekday {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: #7a8899;
+  padding: 6px 0;
+}
+
+.agency-agenda-cells {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.agency-agenda-grid.is-week .agency-agenda-cell {
+  min-height: 180px;
+}
+
+.agency-agenda-cell {
+  min-height: 118px;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+  background: #fff;
+  padding: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agency-agenda-cell:hover {
+  border-color: #c9d4e3;
+  box-shadow: 0 6px 18px rgb(12 28 48 / 6%);
+}
+
+.agency-agenda-cell.is-outside {
+  background: #f7f9fc;
+  opacity: 0.72;
+}
+
+.agency-agenda-cell.is-today {
+  border-color: #f5a623;
+  box-shadow: inset 0 0 0 1px rgb(245 166 35 / 35%);
+}
+
+.agency-agenda-cell.is-selected {
+  border-color: #2f6fed;
+}
+
+.agency-agenda-cell-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agency-agenda-cell-day {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #12233a;
+}
+
+.agency-agenda-cell.is-today .agency-agenda-cell-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #f5a623;
+  color: #0b1626;
+}
+
+.agency-agenda-cell-count {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #5b6b7f;
+  background: #eef2f7;
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
+.agency-agenda-cell-events {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 0;
+}
+
+.agency-agenda-chip {
+  appearance: none;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  row-gap: 0;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #f4f7fb;
+  font: inherit;
+}
+
+.agency-agenda-chip-dot {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #5b6b7f;
+}
+
+.agency-agenda-chip-plate {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #0b1626;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agency-agenda-chip-client {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #5b6b7f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agency-agenda-chip.is-depart { background: #eaf8f1; }
+.agency-agenda-chip.is-depart .agency-agenda-chip-dot { background: #22a06b; }
+.agency-agenda-chip.is-retour { background: #fff6df; }
+.agency-agenda-chip.is-retour .agency-agenda-chip-dot { background: #e6a700; }
+.agency-agenda-chip.is-resa-dep,
+.agency-agenda-chip.is-resa-ret { background: #eaf1ff; }
+.agency-agenda-chip.is-resa-dep .agency-agenda-chip-dot,
+.agency-agenda-chip.is-resa-ret .agency-agenda-chip-dot { background: #2f6fed; }
+.agency-agenda-chip.is-circ { background: #eef6fc; }
+.agency-agenda-chip.is-circ .agency-agenda-chip-dot { background: #5b9bd5; }
+
+.agency-agenda-cell-more {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #2f6fed;
+  padding: 2px 4px;
+}
+
+.agency-agenda-day-view {
+  padding: 8px 16px 20px;
+}
+
+.agency-agenda-day-list {
+  display: grid;
+  gap: 10px;
+}
+
+.agency-agenda-day-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #e6ebf2;
+  background: #fff;
+  border-left-width: 4px;
+}
+
+.agency-agenda-day-card.is-depart { border-left-color: #22a06b; }
+.agency-agenda-day-card.is-retour { border-left-color: #e6a700; }
+.agency-agenda-day-card.is-resa-dep,
+.agency-agenda-day-card.is-resa-ret { border-left-color: #2f6fed; }
+.agency-agenda-day-card.is-circ { border-left-color: #5b9bd5; }
+
+.agency-agenda-day-card-type {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6b7f;
+}
+
+.agency-agenda-day-card strong {
+  font-size: 1rem;
+  color: #0b1626;
+}
+
+.agency-agenda-day-card p {
+  margin: 0;
+  color: #5b6b7f;
+  font-size: 0.9rem;
+}
+
+.agency-agenda-day-card-ref {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #12233a;
+}
+
+.agency-agenda-table-wrap {
+  padding: 0 16px 20px;
+  overflow-x: auto;
+}
+
+.agency-agenda-type-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.agency-agenda-type-chip.is-depart { background: #eaf8f1; color: #0f5c38; }
+.agency-agenda-type-chip.is-retour { background: #fff6df; color: #8a5a00; }
+.agency-agenda-type-chip.is-resa-dep,
+.agency-agenda-type-chip.is-resa-ret { background: #eaf1ff; color: #1d4ed8; }
+.agency-agenda-type-chip.is-circ { background: #eef6fc; color: #2b6cb0; }
+
+@media (max-width: 1100px) {
+  .agency-agenda-toolbar {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .agency-agenda-title {
+    order: -1;
+  }
+
+  .agency-agenda-view-switch {
+    justify-content: flex-start;
+  }
+
+  .agency-agenda-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .agency-agenda-cell {
+    min-height: 88px;
+    padding: 6px;
+  }
+
+  .agency-agenda-chip-client {
+    display: none;
+  }
+
+  .agency-agenda-weekday {
+    font-size: 0.62rem;
+  }
+}
+
+@media print {
+  .agency-sidebar,
+  .agency-topbar,
+  .agency-agenda-focus-tabs,
+  .agency-agenda-panel-tabs,
+  .agency-agenda-toolbar,
+  .agency-agenda-filters,
+  .agency-agenda-fleet-pills,
+  .agency-page-head .btn-primary,
+  .messenger-widget {
+    display: none !important;
+  }
+
+  .agency-main {
+    margin-left: 0 !important;
+  }
+
+  .agency-agenda-shell {
+    border: 0;
+  }
+
+  .agency-agenda-cell {
+    break-inside: avoid;
+  }
 }
