@@ -148,7 +148,8 @@ const AgencyFleet = () => {
         suppliers: [agency._id],
       }, nextPage, PAGE_SIZE)
       setCars(result?.[0]?.resultData || [])
-      setTotalRecords(result?.[0]?.pageInfo?.[0]?.totalRecords || 0)
+      const pageInfo = result?.[0]?.pageInfo as unknown as { totalRecords?: number }[] | { totalRecords?: number } | undefined
+      setTotalRecords((Array.isArray(pageInfo) ? pageInfo[0]?.totalRecords : pageInfo?.totalRecords) || 0)
       setPage(nextPage)
     } catch {
       setError(strings.CAR_LOAD_ERROR)
