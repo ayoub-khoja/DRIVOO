@@ -23,6 +23,7 @@ interface CheckoutOptionsProps {
   language: string
   clientSecret: string | null
   payPalLoaded: boolean
+  initialOptions?: Partial<bookcarsTypes.CarOptions>
   onPriceChange: (value: number) => void
   onAdManuallyCheckedChange: (value: boolean) => void
   onCancellationChange: (value: boolean) => void
@@ -40,6 +41,7 @@ const CheckoutOptions = ({
   language,
   clientSecret,
   payPalLoaded,
+  initialOptions,
   onPriceChange,
   onAdManuallyCheckedChange,
   onCancellationChange,
@@ -87,14 +89,46 @@ const CheckoutOptions = ({
 
   useEffect(() => {
     if (car) {
-      setCancellation(car.cancellation === 0)
-      setAmendments(car.amendments === 0)
-      setTheftProtection(car.theftProtection === 0)
-      setCollisionDamageWaiver(car.collisionDamageWaiver === 0)
-      setFullInsurance(car.fullInsurance === 0)
-      setAdditionalDriver(car.additionalDriver === 0)
+      setCancellation(initialOptions?.cancellation ?? car.cancellation === 0)
+      setAmendments(initialOptions?.amendments ?? car.amendments === 0)
+      setTheftProtection(initialOptions?.theftProtection ?? car.theftProtection === 0)
+      setCollisionDamageWaiver(initialOptions?.collisionDamageWaiver ?? car.collisionDamageWaiver === 0)
+      setFullInsurance(initialOptions?.fullInsurance ?? car.fullInsurance === 0)
+      setAdditionalDriver(initialOptions?.additionalDriver ?? car.additionalDriver === 0)
     }
-  }, [car])
+  }, [car, initialOptions])
+
+  useEffect(() => {
+    const applyInitialPrice = async () => {
+      if (!car || !from || !to || !initialOptions || loading) {
+        return
+      }
+
+      const options: bookcarsTypes.CarOptions = {
+        cancellation: initialOptions.cancellation ?? car.cancellation === 0,
+        amendments: initialOptions.amendments ?? car.amendments === 0,
+        theftProtection: initialOptions.theftProtection ?? car.theftProtection === 0,
+        collisionDamageWaiver: initialOptions.collisionDamageWaiver ?? car.collisionDamageWaiver === 0,
+        fullInsurance: initialOptions.fullInsurance ?? car.fullInsurance === 0,
+        additionalDriver: initialOptions.additionalDriver ?? car.additionalDriver === 0,
+      }
+      const _price = await PaymentService.convertPrice(
+        bookcarsHelper.calculateTotalPrice(car, from, to, car.supplier.priceChangeRate || 0, options),
+      )
+      onPriceChange(_price)
+      onCancellationChange(options.cancellation ?? false)
+      onAmendmentsChange(options.amendments ?? false)
+      onTheftProtectionChange(options.theftProtection ?? false)
+      onCollisionDamageWaiverChange(options.collisionDamageWaiver ?? false)
+      onFullInsuranceChange(options.fullInsurance ?? false)
+      onAdditionalDriverChange(options.additionalDriver ?? false)
+      if (options.additionalDriver) {
+        onAdManuallyCheckedChange(true)
+      }
+    }
+
+    applyInitialPrice()
+  }, [car, from, to, initialOptions, loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return null

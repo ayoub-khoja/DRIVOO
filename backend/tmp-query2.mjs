@@ -1,0 +1,10 @@
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
+await mongoose.connect(process.env.BC_DB_URI);
+const db = mongoose.connection.db;
+const sup = await db.collection("User").findOne({ _id: new mongoose.Types.ObjectId("6a7ce00980d260d2663df24e") });
+console.log("supplier", sup?._id, sup?.fullName, sup?.type);
+const car = await db.collection("Car").findOne({ _id: new mongoose.Types.ObjectId("6a7ce15f80d260d2663df282") });
+console.log("car supplier ref", car?.supplier);
+await mongoose.disconnect();

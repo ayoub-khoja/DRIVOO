@@ -29,6 +29,18 @@ import * as helper from '@/utils/helper'
 
 const PAGE_SIZE = 8
 
+type FleetRentalState = 'available' | 'rented' | 'offline'
+
+const fleetRentalState = (car: bookcarsTypes.Car): FleetRentalState => {
+  if (!car.available) {
+    return 'offline'
+  }
+  if (car.fullyBooked) {
+    return 'rented'
+  }
+  return 'available'
+}
+
 const carGallery = (car: bookcarsTypes.Car) => {
   const fromImages = (car.images || []).filter(Boolean)
   if (fromImages.length > 0) {
@@ -40,11 +52,13 @@ const carGallery = (car: bookcarsTypes.Car) => {
 const AgencyFleetCardMedia = ({
   car,
   availableLabel,
+  rentedLabel,
   unavailableLabel,
   photosLabel,
 }: {
   car: bookcarsTypes.Car
   availableLabel: string
+  rentedLabel: string
   unavailableLabel: string
   photosLabel: string
 }) => {
@@ -52,6 +66,7 @@ const AgencyFleetCardMedia = ({
   const [index, setIndex] = useState(0)
   const safeIndex = photos.length === 0 ? 0 : ((index % photos.length) + photos.length) % photos.length
   const current = photos[safeIndex]
+  const rentalState = fleetRentalState(car)
 
   useEffect(() => {
     setIndex(0)
@@ -66,6 +81,11 @@ const AgencyFleetCardMedia = ({
     setIndex((prev) => (prev + delta + photos.length) % photos.length)
   }
 
+  const badgeClass =
+    rentalState === 'available' ? 'is-live' : rentalState === 'rented' ? 'is-rented' : 'is-off'
+  const badgeLabel =
+    rentalState === 'available' ? availableLabel : rentalState === 'rented' ? rentedLabel : unavailableLabel
+
   return (
     <div className="agency-fleet-card-media">
       {current ? (
@@ -74,8 +94,8 @@ const AgencyFleetCardMedia = ({
         <DirectionsCarFilledOutlined className="agency-fleet-card-fallback" />
       )}
 
-      <span className={`agency-fleet-badge ${car.available ? 'is-live' : 'is-off'}`}>
-        {car.available ? availableLabel : unavailableLabel}
+      <span className={`agency-fleet-badge ${badgeClass}`}>
+        {badgeLabel}
       </span>
 
       {photos.length > 1 && (
@@ -171,11 +191,14 @@ const AgencyFleet = () => {
   const to = Math.min(page * PAGE_SIZE, totalRecords)
 
   const stats = useMemo(() => {
-    const available = cars.filter((car) => car.available).length
+    const available = cars.filter((car) => fleetRentalState(car) === 'available').length
+    const rented = cars.filter((car) => fleetRentalState(car) === 'rented').length
+    const offline = cars.filter((car) => fleetRentalState(car) === 'offline').length
     return {
       pageCount: cars.length,
       available,
-      offline: cars.length - available,
+      rented,
+      offline,
       total: totalRecords,
     }
   }, [cars, totalRecords])
@@ -245,6 +268,10 @@ const AgencyFleet = () => {
           <span>{strings.FLEET_STAT_AVAILABLE}</span>
           <strong>{stats.available}</strong>
         </article>
+        <article className="is-rented">
+          <span>{strings.FLEET_STAT_RENTED}</span>
+          <strong>{stats.rented}</strong>
+        </article>
         <article className="is-off">
           <span>{strings.FLEET_STAT_OFF}</span>
           <strong>{stats.offline}</strong>
@@ -297,6 +324,7 @@ const AgencyFleet = () => {
           <div className="agency-fleet-grid">
             {cars.map((car) => {
               const busy = busyId === car._id
+              const rentalState = fleetRentalState(car)
               const priceLabel = bookcarsHelper.formatPrice(
                 Number(car.dailyPrice) || 0,
                 env.BASE_CURRENCY || 'TND',
@@ -306,11 +334,12 @@ const AgencyFleet = () => {
               return (
                 <article
                   key={car._id}
-                  className={`agency-fleet-card${car.available ? '' : ' is-offline'}${busy ? ' is-busy' : ''}`}
+                  className={`agency-fleet-card${rentalState === 'offline' ? ' is-offline' : ''}${rentalState === 'rented' ? ' is-rented' : ''}${busy ? ' is-busy' : ''}`}
                 >
                   <AgencyFleetCardMedia
                     car={car}
                     availableLabel={strings.CAR_AVAILABLE}
+                    rentedLabel={strings.CAR_RENTED}
                     unavailableLabel={strings.CAR_UNAVAILABLE}
                     photosLabel={strings.CAR_PHOTOS_COUNT}
                   />

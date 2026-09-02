@@ -1,34 +1,25 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Button } from '@mui/material'
-import { Tune as FiltersIcon } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
-import { strings } from '@/lang/search'
 import * as helper from '@/utils/helper'
 import env from '@/config/env.config'
 import * as LocationService from '@/services/LocationService'
 import * as SupplierService from '@/services/SupplierService'
-// import * as UserService from '@/services/UserService'
 import Layout from '@/components/Layout'
 import NoMatch from './NoMatch'
 import CarFilter from '@/components/CarFilter'
-import CarSpecsFilter from '@/components/CarSpecsFilter'
-import SupplierFilter from '@/components/SupplierFilter'
-import CarType from '@/components/CarTypeFilter'
-import GearboxFilter from '@/components/GearboxFilter'
-import MileageFilter from '@/components/MileageFilter'
-import FuelPolicyFilter from '@/components/FuelPolicyFilter'
-import DepositFilter from '@/components/DepositFilter'
+import SearchFiltersSidebar from '@/components/SearchFiltersSidebar'
 import CarList from '@/components/CarList'
-import CarRatingFilter from '@/components/CarRatingFilter'
-import CarRangeFilter from '@/components/CarRangeFilter'
-import CarMultimediaFilter from '@/components/CarMultimediaFilter'
-import CarSeatsFilter from '@/components/CarSeatsFilter'
 import Map from '@/components/Map'
-// import Progress from '@/components/Progress'
 import ViewOnMapButton from '@/components/ViewOnMapButton'
 import MapDialog from '@/components/MapDialog'
+import {
+  CarSortOption,
+  PriceBucket,
+  SearchFacets,
+  computeSearchFacets,
+} from '@/utils/searchFacetsHelper'
 
 import '@/assets/css/search.css'
 
@@ -57,9 +48,16 @@ const Search = () => {
   const [rating, setRating] = useState(-1)
   const [seats, setSeats] = useState(-1)
   const [openMapDialog, setOpenMapDialog] = useState(false)
-  // const [distance, setDistance] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  // const [loadingPage, setLoadingPage] = useState(true)
+  const [baselineCars, setBaselineCars] = useState<bookcarsTypes.Car[]>([])
+  const [sortBy, setSortBy] = useState<CarSortOption>('recommended')
+  const [priceBuckets, setPriceBuckets] = useState<PriceBucket[]>([])
+  const [deliveryTypes, setDeliveryTypes] = useState<string[]>([])
+  const [requireAdditionalDriver, setRequireAdditionalDriver] = useState(false)
+
+  const facets: SearchFacets = useMemo(
+    () => computeSearchFacets(baselineCars),
+    [baselineCars],
+  )
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -115,48 +113,24 @@ const Search = () => {
     setTo(filter.to)
   }
 
-  const handleSupplierFilterChange = (newSuppliers: string[]) => {
-    setSupplierIds(newSuppliers)
-  }
-
-  const handleRatingFilterChange = (value: number) => {
-    setRating(value)
-  }
-
-  const handleRangeFilterChange = (value: bookcarsTypes.CarRange[]) => {
-    setRanges(value)
-  }
-
-  const handleMultimediaFilterChange = (value: bookcarsTypes.CarMultimedia[]) => {
-    setMultimedia(value)
-  }
-
-  const handleSeatsFilterChange = (value: number) => {
-    setSeats(value)
-  }
-
-  const handleCarSpecsFilterChange = (value: bookcarsTypes.CarSpecs) => {
-    setCarSpecs(value)
-  }
-
-  const handleCarTypeFilterChange = (values: bookcarsTypes.CarType[]) => {
-    setCarType(values)
-  }
-
-  const handleGearboxFilterChange = (values: bookcarsTypes.GearboxType[]) => {
-    setGearbox(values)
-  }
-
-  const handleMileageFilterChange = (values: bookcarsTypes.Mileage[]) => {
-    setMileage(values)
-  }
-
-  const handleFuelPolicyFilterChange = (values: bookcarsTypes.FuelPolicy[]) => {
-    setFuelPolicy(values)
-  }
-
-  const handleDepositFilterChange = (value: number) => {
-    setDeposit(value)
+  const handleClearAllFilters = () => {
+    setCarSpecs({})
+    setCarType(bookcarsHelper.getAllCarTypes())
+    setGearbox([bookcarsTypes.GearboxType.Automatic, bookcarsTypes.GearboxType.Manual])
+    setMileage([bookcarsTypes.Mileage.Limited, bookcarsTypes.Mileage.Unlimited])
+    setFuelPolicy(bookcarsHelper.getAllFuelPolicies())
+    setDeposit(-1)
+    setRanges(bookcarsHelper.getAllRanges())
+    setMultimedia([])
+    setRating(-1)
+    setSeats(-1)
+    setPriceBuckets([])
+    setDeliveryTypes([])
+    setRequireAdditionalDriver(false)
+    setSortBy('recommended')
+    if (supplierIds) {
+      setSupplierIds(bookcarsHelper.flattenSuppliers(suppliers))
+    }
   }
 
   const onLoad = async (user?: bookcarsTypes.User) => {
@@ -230,20 +204,13 @@ const Search = () => {
         setRanges(_ranges)
       }
 
-      // if (_pickupLocation.latitude && _pickupLocation.longitude) {
-      //   const l = await helper.getLocation()
-      //   if (l) {
-      //     const d = bookcarsHelper.distance(_pickupLocation.latitude, _pickupLocation.longitude, l[0], l[1], 'K')
-      //     setDistance(bookcarsHelper.formatDistance(d, UserService.getLanguage()))
-      //   }
-      // }
-
       setLoading(false)
       if (!user || (user && user.verified)) {
         setVisible(true)
       }
     } catch (err) {
       helper.error(err)
+      setLoading(false)
     }
   }
 
@@ -251,7 +218,7 @@ const Search = () => {
     <>
       <Layout onLoad={onLoad} strict={false}>
         {visible && supplierIds && pickupLocation && dropOffLocation && from && to && (
-          <div className="search">
+          <div className="search search-pro">
             <div className="col-1">
               {!loading && (
                 <>
@@ -278,35 +245,41 @@ const Search = () => {
                     onSubmit={handleCarFilterSubmit}
                   />
 
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<FiltersIcon />}
-                    disableElevation
-                    fullWidth
-                    className="btn btn-filters"
-                    onClick={() => setShowFilters((prev) => !prev)}
-                  >
-                    {showFilters ? strings.HILE_FILTERS : strings.SHOW_FILTERS}
-                  </Button>
-
-                  {
-                    showFilters && (
-                      <>
-                        {!env.HIDE_SUPPLIERS && <SupplierFilter className="filter" suppliers={suppliers} onChange={handleSupplierFilterChange} />}
-                        <CarRatingFilter className="filter" onChange={handleRatingFilterChange} />
-                        <CarRangeFilter className="filter" onChange={handleRangeFilterChange} />
-                        <CarMultimediaFilter className="filter" onChange={handleMultimediaFilterChange} />
-                        <CarSeatsFilter className="filter" onChange={handleSeatsFilterChange} />
-                        <CarSpecsFilter className="filter" onChange={handleCarSpecsFilterChange} />
-                        <CarType className="filter" onChange={handleCarTypeFilterChange} />
-                        <GearboxFilter className="filter" onChange={handleGearboxFilterChange} />
-                        <MileageFilter className="filter" onChange={handleMileageFilterChange} />
-                        <FuelPolicyFilter className="filter" onChange={handleFuelPolicyFilterChange} />
-                        <DepositFilter className="filter" onChange={handleDepositFilterChange} />
-                      </>
-                    )
-                  }
+                  <SearchFiltersSidebar
+                    facets={facets}
+                    suppliers={suppliers}
+                    gearbox={gearbox}
+                    carType={carType}
+                    mileage={mileage}
+                    ranges={ranges}
+                    fuelPolicy={fuelPolicy}
+                    multimedia={multimedia}
+                    rating={rating}
+                    seats={seats}
+                    deposit={deposit}
+                    carSpecs={carSpecs}
+                    requireAdditionalDriver={requireAdditionalDriver}
+                    priceBuckets={priceBuckets}
+                    deliveryTypes={deliveryTypes}
+                    supplierIds={supplierIds}
+                    onGearboxChange={setGearbox}
+                    onCarTypeChange={setCarType}
+                    onMileageChange={setMileage}
+                    onRangesChange={setRanges}
+                    onFuelPolicyChange={setFuelPolicy}
+                    onMultimediaChange={setMultimedia}
+                    onRatingChange={setRating}
+                    onSeatsChange={setSeats}
+                    onDepositChange={setDeposit}
+                    onCarSpecsChange={setCarSpecs}
+                    onRequireAdditionalDriverChange={setRequireAdditionalDriver}
+                    onPriceBucketsChange={setPriceBuckets}
+                    onDeliveryTypesChange={setDeliveryTypes}
+                    onSupplierIdsChange={setSupplierIds}
+                    onClearAll={handleClearAllFilters}
+                    onMapClick={() => setOpenMapDialog(true)}
+                    showMapButton
+                  />
                 </>
               )}
             </div>
@@ -321,7 +294,7 @@ const Search = () => {
                 deposit={deposit}
                 pickupLocation={pickupLocation._id}
                 dropOffLocation={dropOffLocation._id}
-                // pickupLocationName={pickupLocation.name}
+                pickupLocationName={pickupLocation.name}
                 loading={loading}
                 from={from}
                 to={to}
@@ -329,11 +302,15 @@ const Search = () => {
                 multimedia={multimedia}
                 rating={rating}
                 seats={seats}
-                // distance={distance}
-                // onLoad={() => setLoadingPage(false)}
-                hideSupplier={env.HIDE_SUPPLIERS}
-                // includeAlreadyBookedCars
                 includeComingSoonCars
+                searchLayout
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                priceBuckets={priceBuckets}
+                deliveryTypes={deliveryTypes}
+                requireAdditionalDriver={requireAdditionalDriver}
+                onBaselineCarsLoaded={setBaselineCars}
+                hideSupplier={env.HIDE_SUPPLIERS}
               />
             </div>
           </div>
@@ -342,13 +319,15 @@ const Search = () => {
         <MapDialog
           pickupLocation={pickupLocation}
           openMapDialog={openMapDialog}
+          carCount={facets.total}
+          baselineCars={baselineCars}
+          from={from}
+          to={to}
           onClose={() => setOpenMapDialog(false)}
         />
 
         {noMatch && <NoMatch hideHeader />}
       </Layout>
-
-      {/* {loadingPage && !noMatch && <Progress />} */}
     </>
   )
 }

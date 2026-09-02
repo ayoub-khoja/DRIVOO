@@ -25,6 +25,33 @@ export const info = (message: string) => {
 }
 
 /**
+ * Extract a user-facing message from an API/axios error.
+ */
+export const getErrorMessage = (err?: unknown): string | undefined => {
+  if (!err || typeof err !== 'object') {
+    return undefined
+  }
+
+  const data = (err as { response?: { data?: unknown } }).response?.data
+  if (typeof data === 'string' && data.trim()) {
+    return data.replace(/^Erreur interne\s*:\s*/i, '').trim()
+  }
+
+  if (data && typeof data === 'object' && 'message' in data) {
+    const message = (data as { message?: unknown }).message
+    if (typeof message === 'string' && message.trim()) {
+      return message.trim()
+    }
+  }
+
+  if (err instanceof Error && err.message.trim()) {
+    return err.message.trim()
+  }
+
+  return undefined
+}
+
+/**
  * Toast error message.
  *
  * @param {?unknown} [err]
@@ -34,8 +61,9 @@ export const error = (err?: unknown, message?: string) => {
   if (err && console?.log) {
     console.log(err)
   }
-  if (message) {
-    toast.error(message)
+  const resolvedMessage = message || getErrorMessage(err)
+  if (resolvedMessage) {
+    toast.error(resolvedMessage)
   } else {
     toast.error(commonStrings.GENERIC_ERROR)
   }

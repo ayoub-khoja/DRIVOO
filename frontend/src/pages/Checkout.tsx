@@ -56,7 +56,7 @@ import SocialLogin from '@/components/SocialLogin'
 import Map from '@/components/Map'
 import DriverLicense from '@/components/DriverLicense'
 import Progress from '@/components/Progress'
-import CheckoutStatus from '@/components/CheckoutStatus'
+import CheckoutStatus, { CheckoutSummary } from '@/components/CheckoutStatus'
 import NoMatch from './NoMatch'
 import CheckoutOptions from '@/components/CheckoutOptions'
 import Footer from '@/components/Footer'
@@ -94,6 +94,7 @@ const Checkout = () => {
   const [price, setPrice] = useState(0)
   const [depositPrice, setDepositPrice] = useState(0)
   const [success, setSuccess] = useState(false)
+  const [checkoutSummary, setCheckoutSummary] = useState<CheckoutSummary>()
   const [loadingPage, setLoadingPage] = useState(true)
   const [recaptchaError, setRecaptchaError] = useState(false)
   const adRequired = true
@@ -109,6 +110,7 @@ const Checkout = () => {
   const [payPalLoaded, setPayPalLoaded] = useState(false)
   const [payPalInit, setPayPalInit] = useState(false)
   const [payPalProcessing, setPayPalProcessing] = useState(false)
+  const [offerInitialOptions, setOfferInitialOptions] = useState<Partial<bookcarsTypes.CarOptions>>()
 
   const birthDateRef = useRef<HTMLInputElement | null>(null)
   const additionalDriverBirthDateRef = useRef<HTMLInputElement | null>(null)
@@ -221,7 +223,7 @@ const Checkout = () => {
         amount = price + depositPrice
       }
 
-      const basePrice = await bookcarsHelper.convertPrice(amount, PaymentService.getCurrency(), env.BASE_CURRENCY)
+      const basePrice = await PaymentService.toBaseCurrency(amount)
 
       const booking: bookcarsTypes.Booking = {
         supplier: car.supplier._id as string,
@@ -302,6 +304,14 @@ const Checkout = () => {
       const { status, bookingId: _bookingId } = await BookingService.checkout(payload)
 
       if (status === 200) {
+        setCheckoutSummary({
+          carName: car.name,
+          pickupLocationName: pickupLocation.name || '',
+          dropOffLocationName: dropOffLocation.name || '',
+          from,
+          to,
+          price,
+        })
         if (payLater) {
           setVisible(false)
           setSuccess(true)
@@ -350,6 +360,7 @@ const Checkout = () => {
     const { dropOffLocationId } = state
     const { from: _from } = state
     const { to: _to } = state
+    const { extras: offerExtras, offerOptions } = state
 
     if (!carId || !pickupLocationId || !dropOffLocationId || !_from || !_to) {
       setNoMatch(true)
@@ -411,7 +422,17 @@ const Checkout = () => {
       setValue('amendments', included(_car.amendments))
       setValue('theftProtection', included(_car.theftProtection))
       setValue('collisionDamageWaiver', included(_car.collisionDamageWaiver))
-      setValue('fullInsurance', included(_car.fullInsurance))
+      setValue('fullInsurance', offerOptions?.fullInsurance ?? included(_car.fullInsurance))
+      if (offerOptions?.additionalDriver || (offerExtras?.additionalDriver ?? 0) > 0) {
+        setValue('additionalDriver', true)
+        setAdManuallyChecked(true)
+      }
+      if (offerOptions) {
+        setOfferInitialOptions({
+          fullInsurance: offerOptions.fullInsurance ?? included(_car.fullInsurance),
+          additionalDriver: offerOptions.additionalDriver ?? (offerExtras?.additionalDriver ?? 0) > 0,
+        })
+      }
       setLicense(_user?.license || null)
       setVisible(true)
     } catch (err) {
@@ -461,6 +482,7 @@ const Checkout = () => {
                       language={language}
                       clientSecret={clientSecret}
                       payPalLoaded={payPalLoaded}
+                      initialOptions={offerInitialOptions}
                       onPriceChange={(value) => setPrice(value)}
                       onAdManuallyCheckedChange={(value) => setAdManuallyChecked(value)}
                       onCancellationChange={(value) => setValue('cancellation', value)}
@@ -1038,8 +1060,10 @@ const Checkout = () => {
             bookingId={bookingId}
             language={language}
             payLater={payLater}
+            guestCheckout={!authenticated}
             status="success"
             className="status"
+            summary={checkoutSummary}
           />
         )}
 

@@ -14,6 +14,8 @@ import {
   Clear as UncheckIcon,
   Info as InfoIcon,
   LocationOn as LocationIcon,
+  DirectionsCar as CarPlaceholderIcon,
+  AccountCircle as SupplierPlaceholderIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -46,6 +48,7 @@ interface CarProps {
   hideSupplier?: boolean
   sizeAuto?: boolean
   hidePrice?: boolean
+  recommended?: boolean
 }
 
 const Car = ({
@@ -60,6 +63,7 @@ const Car = ({
   hideSupplier,
   sizeAuto,
   hidePrice,
+  recommended,
 }: CarProps) => {
   const navigate = useNavigate()
 
@@ -167,9 +171,14 @@ const Car = ({
   // console.log('car')
 
   const fr = language === 'fr'
+  const carImageUrl = car.image ? bookcarsHelper.joinURL(env.CDN_CARS, car.image) : ''
+  const supplierAvatarUrl = car.supplier?.avatar ? bookcarsHelper.joinURL(env.CDN_USERS, car.supplier.avatar) : ''
 
   return (
     <div key={car._id} className="car-container">
+      {recommended && (
+        <div className="car-recommended-badge">{strings.RECOMMENDED_OFFER}</div>
+      )}
       {pickupLocationName && (
         <div className="car-header">
           <div className="location">
@@ -186,12 +195,22 @@ const Car = ({
       )}
       <article>
         <div className="car">
-          <img src={bookcarsHelper.joinURL(env.CDN_CARS, car.image)} alt={car.name} className="car-img" />
+          {carImageUrl ? (
+            <img src={carImageUrl} alt={car.name} className="car-img" />
+          ) : (
+            <div className="car-img car-img-placeholder" aria-label={car.name}>
+              <CarPlaceholderIcon />
+            </div>
+          )}
           <div className="car-row">
-            {!hideSupplier && (
+            {!hideSupplier && car.supplier && (
               <div className="car-supplier" style={sizeAuto ? { bottom: 10 } : {}} title={car.supplier.fullName}>
                 <span className="car-supplier-logo">
-                  <img src={bookcarsHelper.joinURL(env.CDN_USERS, car.supplier.avatar)} alt={car.supplier.fullName} />
+                  {supplierAvatarUrl ? (
+                    <img src={supplierAvatarUrl} alt={car.supplier.fullName} />
+                  ) : (
+                    <SupplierPlaceholderIcon className="supplier-avatar-placeholder" />
+                  )}
                 </span>
                 <span className="car-supplier-info">{car.supplier.fullName}</span>
               </div>
@@ -400,7 +419,7 @@ const Car = ({
                     variant="contained"
                     className="btn-primary btn-book btn-margin-bottom"
                     onClick={() => {
-                      navigate('/checkout', {
+                      navigate('/offer', {
                         state: {
                           carId: car._id,
                           pickupLocationId: pickupLocation,

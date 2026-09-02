@@ -23,6 +23,7 @@ import * as env from '../config/env.config'
 import * as logger from '../utils/logger'
 import stripeAPI from '../payment/stripe'
 import * as firebaseMessaging from '../services/firebase/messaging'
+import * as carRentalStatusHelper from '../utils/carRentalStatusHelper'
 
 /**
  * Create a Booking.
@@ -45,6 +46,7 @@ export const create = async (req: Request, res: Response) => {
     const booking = new Booking(body.booking)
 
     await booking.save()
+    await carRentalStatusHelper.syncCarFullyBooked(booking.car)
     res.json(booking)
   } catch (err) {
     logger.error(`[booking.create] ${i18n.t('ERROR')} ${JSON.stringify(req.body)}`, err)
@@ -220,6 +222,7 @@ export const confirm = async (user: env.User, supplier: env.User, booking: env.B
 export const checkout = async (req: Request, res: Response) => {
   try {
     let user: env.User | null
+    let activationMailOptions: nodemailer.SendMailOptions | null = null
     const { body }: { body: bookcarsTypes.CheckoutPayload } = req
     const { driver } = body
 
@@ -229,7 +232,8 @@ export const checkout = async (req: Request, res: Response) => {
 
     const supplier = await User.findById(body.booking.supplier)
     if (!supplier) {
-      throw new Error(`Supplier ${body.booking.supplier} not found`)
+      res.status(400).send('Cette voiture n\'est plus disponible : l\'agence associée est introuvable.')
+      return
     }
 
     if (driver) {
@@ -277,7 +281,7 @@ export const checkout = async (req: Request, res: Response) => {
 
       const activationLink = `${helper.joinURL(env.FRONTEND_HOST, 'activate')}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}`
 
-      const mailOptions: nodemailer.SendMailOptions = {
+      activationMailOptions = {
         from: env.SMTP_FROM,
         to: user.email,
         subject: i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
@@ -290,7 +294,6 @@ export const checkout = async (req: Request, res: Response) => {
           audience: 'client',
         }),
       }
-      await mailHelper.sendMail(emailTemplate.withBanner('client', mailOptions))
 
       body.booking.driver = user._id.toString()
     } else {
@@ -380,6 +383,8 @@ export const checkout = async (req: Request, res: Response) => {
 
     await booking.save()
 
+    await carRentalStatusHelper.syncCarFullyBooked(booking.car)
+
     if (booking.status === bookcarsTypes.BookingStatus.Paid && body.paymentIntentId && body.customerId) {
       const car = await Car.findById(booking.car)
       if (!car) {
@@ -390,29 +395,48 @@ export const checkout = async (req: Request, res: Response) => {
     }
 
     if (body.payLater || (booking.status === bookcarsTypes.BookingStatus.Paid && body.paymentIntentId && body.customerId)) {
-      // Mark car as fully booked
-      // if (env.MARK_CAR_AS_FULLY_BOOKED_ON_CHECKOUT) {
-      //   await Car.updateOne({ _id: booking.car }, { fullyBooked: false })
-      // }
+      const bookingId = booking._id.toString()
+      const payLater = !!body.payLater
+      const driverUser = user
+      const supplierUser = supplier
 
-      // Send confirmation email to customer
-      if (!(await confirm(user, supplier, booking, body.payLater))) {
-        res.sendStatus(400)
-        return
+      res.status(200).send({ bookingId })
+
+      if (activationMailOptions) {
+        void mailHelper.sendMail(emailTemplate.withBanner('client', activationMailOptions)).catch((err) => {
+          logger.error(`[booking.checkout] activation email failed for ${bookingId}`, err)
+        })
       }
 
-      // Notify supplier
-      i18n.locale = supplier.language
-      let message = body.payLater ? i18n.t('BOOKING_PAY_LATER_NOTIFICATION') : i18n.t('BOOKING_PAID_NOTIFICATION')
-      await notify(user, booking._id.toString(), supplier, message)
+      void (async () => {
+        try {
+          if (!(await confirm(driverUser, supplierUser, booking, payLater))) {
+            logger.error(`[booking.checkout] confirmation email failed for ${bookingId}`)
+            return
+          }
 
-      // Notify admin
-      const admin = !!env.ADMIN_EMAIL && (await User.findOne({ email: env.ADMIN_EMAIL, type: bookcarsTypes.UserType.Admin }))
-      if (admin) {
-        i18n.locale = admin.language
-        message = body.payLater ? i18n.t('BOOKING_PAY_LATER_NOTIFICATION') : i18n.t('BOOKING_PAID_NOTIFICATION')
-        await notify(user, booking._id.toString(), admin, message)
-      }
+          i18n.locale = supplierUser.language
+          let message = payLater ? i18n.t('BOOKING_PAY_LATER_NOTIFICATION') : i18n.t('BOOKING_PAID_NOTIFICATION')
+          await notify(driverUser, bookingId, supplierUser, message)
+
+          const admin = !!env.ADMIN_EMAIL && (await User.findOne({ email: env.ADMIN_EMAIL, type: bookcarsTypes.UserType.Admin }))
+          if (admin) {
+            i18n.locale = admin.language
+            message = payLater ? i18n.t('BOOKING_PAY_LATER_NOTIFICATION') : i18n.t('BOOKING_PAID_NOTIFICATION')
+            await notify(driverUser, bookingId, admin, message)
+          }
+        } catch (err) {
+          logger.error(`[booking.checkout] post-checkout notifications failed for ${bookingId}`, err)
+        }
+      })()
+
+      return
+    }
+
+    if (activationMailOptions) {
+      void mailHelper.sendMail(emailTemplate.withBanner('client', activationMailOptions)).catch((err) => {
+        logger.error(`[booking.checkout] activation email failed for ${booking._id.toString()}`, err)
+      })
     }
 
     res.status(200).send({ bookingId: booking._id.toString() })
@@ -619,6 +643,8 @@ export const update = async (req: Request, res: Response) => {
 
       const previousStatus = booking.status
 
+      const previousCarId = booking.car?.toString()
+
       booking.supplier = new mongoose.Types.ObjectId(supplier as string)
       booking.car = new mongoose.Types.ObjectId(car as string)
       booking.driver = new mongoose.Types.ObjectId(driver as string)
@@ -642,6 +668,8 @@ export const update = async (req: Request, res: Response) => {
       }
 
       await booking.save()
+
+      await carRentalStatusHelper.syncCarsFullyBooked([previousCarId, booking.car])
 
       if (previousStatus !== status) {
         // notify driver
@@ -686,6 +714,8 @@ export const updateStatus = async (req: Request, res: Response) => {
       }
     }
 
+    await carRentalStatusHelper.syncCarsFullyBooked(bookings.map((booking) => booking.car))
+
     res.sendStatus(200)
   } catch (err) {
     logger.error(`[booking.updateStatus] ${i18n.t('ERROR')} ${JSON.stringify(req.body)}`, err)
@@ -711,10 +741,12 @@ export const deleteBookings = async (req: Request, res: Response) => {
     const sessionUser = await User.findById(sessionUserId)
 
     let unauthorizedAttemptLogged = false
+    const carIds: string[] = []
     for (const id of ids) {
       const booking = await Booking.findById(id)
 
       if (booking) {
+        carIds.push(booking.car.toString())
         // begin of security check
         if (!sessionUser || sessionUser.type === bookcarsTypes.UserType.User || (sessionUser.type === bookcarsTypes.UserType.Supplier && sessionUserId !== booking.supplier?.toString())) {
           logger.error(`[booking.deleteBookings] Unauthorized attempt to delete booking ${booking._id.toString()} by user ${sessionUserId}`)
@@ -732,6 +764,8 @@ export const deleteBookings = async (req: Request, res: Response) => {
       res.status(403).send('Forbidden: You cannot delete some of the bookings')
       return
     }
+
+    await carRentalStatusHelper.syncCarsFullyBooked(carIds)
 
     res.sendStatus(200)
   } catch (err) {

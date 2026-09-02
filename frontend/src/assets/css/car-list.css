@@ -5,6 +5,37 @@ section.car-list {
   padding-bottom: 80px;
 }
 
+section.car-list.car-list-pro {
+  align-items: stretch;
+  max-width: 100%;
+  padding-bottom: 40px;
+  width: 100%;
+}
+
+section.car-list .car-list-toolbar {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 16px;
+  width: 100%;
+}
+
+section.car-list .car-list-count {
+  font-size: 22px;
+}
+
+section.car-list .car-list-count strong {
+  color: #333;
+}
+
+section.car-list .car-list-sort {
+  min-width: 220px;
+}
+
 section.car-list .empty-list {
   margin-top: 15px;
   text-align: center;

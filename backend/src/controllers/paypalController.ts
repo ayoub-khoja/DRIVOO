@@ -8,6 +8,7 @@ import User from '../models/User'
 import Car from '../models/Car'
 import * as bookingController from './bookingController'
 import * as ipinfoHelper from '../utils/ipinfoHelper'
+import * as carRentalStatusHelper from '../utils/carRentalStatusHelper'
 
 /**
  * Create PayPal order.
@@ -89,6 +90,7 @@ export const checkPayPalOrder = async (req: Request, res: Response) => {
       booking.status = status
 
       await booking.save()
+      await carRentalStatusHelper.syncCarFullyBooked(booking.car)
 
       const car = await Car.findById(booking.car)
       if (!car) {

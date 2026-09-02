@@ -25,6 +25,10 @@ const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'))
 const Home = lazy(() => import('@/pages/Home'))
 const Search = lazy(() => import('@/pages/Search'))
+const Offer = lazy(() => import('@/pages/Offer'))
+const OfferExtras = lazy(() => import('@/pages/OfferExtras'))
+const OfferProtection = lazy(() => import('@/pages/OfferProtection'))
+const OfferPayment = lazy(() => import('@/pages/OfferPayment'))
 const Checkout = lazy(() => import('@/pages/Checkout'))
 const CheckoutSession = lazy(() => import('@/pages/CheckoutSession'))
 const Bookings = lazy(() => import('@/pages/Bookings'))
@@ -61,7 +65,7 @@ const AgencyChoosePlan = lazy(() => import('@/agency/pages/AgencyChoosePlan'))
 const AgencyDashboard = lazy(() => import('@/agency/pages/AgencyDashboard'))
 const AgencyFleet = lazy(() => import('@/agency/pages/AgencyFleet'))
 const AgencyBranches = lazy(() => import('@/agency/pages/AgencyBranches'))
-const AgencyBookings = lazy(() => import('@/agency/pages/AgencyPlaceholders').then((m) => ({ default: m.AgencyBookings })))
+const AgencyBookings = lazy(() => import('@/agency/pages/AgencyBookings'))
 const AgencyAgenda = lazy(() => import('@/agency/pages/AgencyAgenda'))
 const AgencyInvoices = lazy(() => import('@/agency/pages/AgencyInvoices'))
 const AgencyContracts = lazy(() => import('@/agency/pages/AgencyContracts'))
@@ -175,6 +179,10 @@ const router = createBrowserRouter([
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'reset-password', element: <ResetPassword /> },
       { path: 'search', element: <Search /> },
+      { path: 'offer', element: <Offer /> },
+      { path: 'offer/extras', element: <OfferExtras /> },
+      { path: 'offer/protection', element: <OfferProtection /> },
+      { path: 'offer/payment', element: <OfferPayment /> },
       { path: 'checkout', element: <Checkout /> },
       { path: 'checkout-session/:sessionId', element: <CheckoutSession /> },
       { path: 'bookings', element: <Bookings /> },

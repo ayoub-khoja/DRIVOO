@@ -1,0 +1,10 @@
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
+await mongoose.connect(process.env.BC_DB_URI);
+const db = mongoose.connection.db;
+const users = await db.collection("User").find({}).limit(5).toArray();
+console.log(users.map(u => ({ id: u._id.toString(), type: u.type, name: u.fullName })));
+const sup = await db.collection("User").findOne({ _id: new mongoose.Types.ObjectId("6a7ce00980d260d2663df24e") });
+console.log("target supplier", sup);
+await mongoose.disconnect();

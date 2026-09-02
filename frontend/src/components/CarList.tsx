@@ -2,17 +2,29 @@ import React, { useState, useEffect } from 'react'
 import {
   Card,
   CardContent,
-  Typography
+  Typography,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import Const from '@/config/const'
 import env from '@/config/env.config'
 import * as helper from '@/utils/helper'
-import { strings } from '@/lang/cars'
+import { strings } from '@/lang/search-filters'
+import { strings as carStrings } from '@/lang/cars'
 import * as CarService from '@/services/CarService'
 import Pager from '@/components/Pager'
+import SearchCarCard from '@/components/SearchCarCard'
 import Car from '@/components/Car'
 import Progress from '@/components/Progress'
+import {
+  CarSortOption,
+  PriceBucket,
+  sortCars,
+  filterCarsByPriceBuckets,
+  filterCarsByDeliveryTypes,
+} from '@/utils/searchFacetsHelper'
 
 import '@/assets/css/car-list.css'
 
@@ -45,6 +57,13 @@ interface CarListProps {
   includeAlreadyBookedCars?: boolean
   includeComingSoonCars?: boolean
   onLoad?: bookcarsTypes.DataEvent<bookcarsTypes.Car>
+  onBaselineCarsLoaded?: (cars: bookcarsTypes.Car[]) => void
+  sortBy?: CarSortOption
+  onSortChange?: (sort: CarSortOption) => void
+  priceBuckets?: PriceBucket[]
+  deliveryTypes?: string[]
+  requireAdditionalDriver?: boolean
+  searchLayout?: boolean
 }
 
 const CarList = ({
@@ -67,19 +86,26 @@ const CarList = ({
   hidePrice,
   hideSupplier,
   loading: carListLoading,
-  sizeAuto,
   ranges,
   multimedia,
   rating,
   seats,
-  distance,
   includeAlreadyBookedCars,
   includeComingSoonCars,
   onLoad,
+  onBaselineCarsLoaded,
+  sortBy = 'recommended',
+  onSortChange,
+  priceBuckets = [],
+  deliveryTypes = [],
+  requireAdditionalDriver = false,
+  searchLayout = false,
 }: CarListProps) => {
   const [init, setInit] = useState(true)
   const [loading, setLoading] = useState(false)
   const [fetch, setFetch] = useState(false)
+  const [allRows, setAllRows] = useState<bookcarsTypes.Car[]>([])
+  const [rawRows, setRawRows] = useState<bookcarsTypes.Car[]>([])
   const [rows, setRows] = useState<bookcarsTypes.Car[]>([])
   const [rowCount, setRowCount] = useState(0)
   const [totalRecords, setTotalRecords] = useState(0)
@@ -102,6 +128,32 @@ const CarList = ({
       }
     }
   }, [fetch, loading, page])
+
+  const applyClientFilters = (data: bookcarsTypes.Car[]) => {
+    let filtered = [...data]
+
+    if (priceBuckets.length > 0) {
+      filtered = filterCarsByPriceBuckets(filtered, priceBuckets)
+    }
+
+    if (deliveryTypes.length > 0) {
+      filtered = filterCarsByDeliveryTypes(filtered, deliveryTypes)
+    }
+
+    if (requireAdditionalDriver) {
+      filtered = filtered.filter((car) => car.additionalDriver >= 0)
+    }
+
+    return sortCars(filtered, sortBy)
+  }
+
+  const paginateRows = (filtered: bookcarsTypes.Car[], _page: number) => {
+    if (searchLayout) {
+      const start = (_page - 1) * env.CARS_PAGE_SIZE
+      return filtered.slice(start, start + env.CARS_PAGE_SIZE)
+    }
+    return filtered
+  }
 
   const fetchData = async (
     _page: number,
@@ -140,33 +192,46 @@ const CarList = ({
         includeComingSoonCars,
       }
 
-      const data = await CarService.getCars(payload, _page, env.CARS_PAGE_SIZE)
+      const fetchSize = searchLayout ? 500 : env.CARS_PAGE_SIZE
+      const fetchPage = searchLayout ? 1 : _page
+      const data = await CarService.getCars(payload, fetchPage, fetchSize)
 
       const _data = data && data.length > 0 ? data[0] : { pageInfo: { totalRecord: 0 }, resultData: [] }
       if (!_data) {
         helper.error()
         return
       }
-      const _totalRecords = Array.isArray(_data.pageInfo) && _data.pageInfo.length > 0 ? _data.pageInfo[0].totalRecords : 0
 
-      let _rows = []
-      if (env.PAGINATION_MODE === Const.PAGINATION_MODE.INFINITE_SCROLL || env.isMobile) {
-        _rows = _page === 1 ? _data.resultData : [...rows, ..._data.resultData]
-      } else {
-        _rows = _data.resultData
+      setRawRows(_data.resultData)
+
+      const filtered = applyClientFilters(_data.resultData)
+      const _totalRecords = searchLayout ? filtered.length : (
+        Array.isArray(_data.pageInfo) && _data.pageInfo.length > 0 ? _data.pageInfo[0].totalRecords : 0
+      )
+
+      if (searchLayout && onBaselineCarsLoaded) {
+        onBaselineCarsLoaded(_data.resultData)
       }
 
-      setRows(_rows)
-      setRowCount((_page - 1) * env.CARS_PAGE_SIZE + _rows.length)
+      setAllRows(filtered)
+
+      let pageRows = paginateRows(filtered, _page)
+
+      if (!searchLayout && (env.PAGINATION_MODE === Const.PAGINATION_MODE.INFINITE_SCROLL || env.isMobile)) {
+        pageRows = _page === 1 ? filtered : [...rows, ...filtered]
+      }
+
+      setRows(pageRows)
+      setRowCount((_page - 1) * env.CARS_PAGE_SIZE + pageRows.length)
       setTotalRecords(_totalRecords)
-      setFetch(_data.resultData.length > 0)
+      setFetch(pageRows.length > 0)
 
       if (((env.PAGINATION_MODE === Const.PAGINATION_MODE.INFINITE_SCROLL || env.isMobile) && _page === 1) || (env.PAGINATION_MODE === Const.PAGINATION_MODE.CLASSIC && !env.isMobile)) {
         window.scrollTo(0, 0)
       }
 
       if (onLoad) {
-        onLoad({ rows: _data.resultData, rowCount: _totalRecords })
+        onLoad({ rows: pageRows, rowCount: _totalRecords })
       }
     } catch (err) {
       helper.error(err)
@@ -177,11 +242,24 @@ const CarList = ({
   }
 
   useEffect(() => {
+    if (rawRows.length > 0 && searchLayout) {
+      const filtered = applyClientFilters(rawRows)
+      const pageRows = paginateRows(filtered, page)
+      setAllRows(filtered)
+      setRows(pageRows)
+      setTotalRecords(filtered.length)
+      setRowCount((page - 1) * env.CARS_PAGE_SIZE + pageRows.length)
+    }
+  }, [sortBy, priceBuckets, deliveryTypes, requireAdditionalDriver, page, rawRows, searchLayout]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (suppliers) {
       if (suppliers.length > 0) {
         fetchData(page, suppliers, pickupLocation, carSpecs, _carType, gearbox, mileage, fuelPolicy, deposit, ranges, multimedia, rating, seats)
       } else {
         setRows([])
+        setRawRows([])
+        setAllRows([])
         setFetch(false)
         if (onLoad) {
           onLoad({ rows: [], rowCount: 0 })
@@ -204,7 +282,7 @@ const CarList = ({
 
   useEffect(() => {
     setPage(1)
-  }, [suppliers, pickupLocation, carSpecs, _carType, gearbox, mileage, fuelPolicy, deposit, ranges, multimedia, rating, seats, from, to])
+  }, [suppliers, pickupLocation, carSpecs, _carType, gearbox, mileage, fuelPolicy, deposit, ranges, multimedia, rating, seats, from, to, sortBy, priceBuckets, deliveryTypes, requireAdditionalDriver])
 
   useEffect(() => {
     if (reload) {
@@ -215,7 +293,7 @@ const CarList = ({
 
   return (
     <>
-      <section className={`${className ? `${className} ` : ''}car-list`}>
+      <section className={`${className ? `${className} ` : ''}car-list${searchLayout ? ' car-list-pro' : ''}`}>
         {rows.length === 0
           ? !init
           && !loading
@@ -223,41 +301,71 @@ const CarList = ({
           && (
             <Card variant="outlined" className="empty-list">
               <CardContent>
-                <Typography color="textSecondary">{strings.EMPTY_LIST}</Typography>
+                <Typography color="textSecondary">{carStrings.EMPTY_LIST}</Typography>
               </CardContent>
             </Card>
           )
-          : ((from && to && pickupLocation && dropOffLocation) || hidePrice) // || (hidePrice && booking))
+          : ((from && to && pickupLocation && dropOffLocation) || hidePrice)
           && (
             <>
-              {totalRecords > 0 && (
-                <div className="title">
-                  <div className="bookcars">
-                    <span>{strings.TITLE_1}</span>
-                    <span className="title-bookcars">{env.WEBSITE_NAME}</span>
-                    <span>{strings.TITLE_2}</span>
+              {searchLayout && totalRecords > 0 && (
+                <div className="car-list-toolbar">
+                  <div className="car-list-count">
+                    <strong>{totalRecords}</strong>
+                    {' '}
+                    {totalRecords === 1 ? strings.CAR_AVAILABLE : strings.CARS_AVAILABLE}
                   </div>
+                  {onSortChange && (
+                    <FormControl size="small" className="car-list-sort">
+                      <Select
+                        value={sortBy}
+                        onChange={(e) => onSortChange(e.target.value as CarSortOption)}
+                        displayEmpty
+                      >
+                        <MenuItem value="recommended">{strings.SORT_RECOMMENDED}</MenuItem>
+                        <MenuItem value="priceAsc">{strings.SORT_PRICE_ASC}</MenuItem>
+                        <MenuItem value="priceDesc">{strings.SORT_PRICE_DESC}</MenuItem>
+                        <MenuItem value="ratingDesc">{strings.SORT_RATING}</MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+                </div>
+              )}
+
+              {!searchLayout && totalRecords > 0 && (
+                <div className="title">
                   <div className="car-count">
-                    {`(${totalRecords} ${totalRecords === 1 ? strings.TITLE_CAR_AVAILABLE : strings.TITLE_CARS_AVAILABLE})`}
+                    {`(${totalRecords})`}
                   </div>
                 </div>
               )}
 
-              {rows.map((car) => (
-                <Car
-                  key={car._id}
-                  car={car}
-                  booking={booking}
-                  pickupLocation={pickupLocation}
-                  dropOffLocation={dropOffLocation}
-                  from={from as Date}
-                  to={to as Date}
-                  pickupLocationName={pickupLocationName}
-                  distance={distance}
-                  hideSupplier={hideSupplier}
-                  sizeAuto={sizeAuto}
-                  hidePrice={hidePrice}
-                />
+              {rows.map((car, index) => (
+                searchLayout ? (
+                  <SearchCarCard
+                    key={car._id}
+                    car={car}
+                    from={from as Date}
+                    to={to as Date}
+                    pickupLocation={pickupLocation}
+                    dropOffLocation={dropOffLocation}
+                    pickupLocationName={pickupLocationName}
+                    recommended={page === 1 && index === 0 && (car.searchScore ?? 0) >= 70}
+                  />
+                ) : (
+                  <Car
+                    key={car._id}
+                    car={car}
+                    booking={booking}
+                    pickupLocation={pickupLocation}
+                    dropOffLocation={dropOffLocation}
+                    from={from as Date}
+                    to={to as Date}
+                    pickupLocationName={pickupLocationName}
+                    hideSupplier={hideSupplier}
+                    hidePrice={hidePrice}
+                  />
+                )
               ))}
             </>
           )}

@@ -1,0 +1,207 @@
+.search-car-card {
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.search-car-card.recommended {
+  border-color: #006ce4;
+  box-shadow: 0 2px 8px rgb(0 108 228 / 12%);
+}
+
+.search-car-badge {
+  background: #006ce4;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+}
+
+.search-car-card-body {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 200px 1fr 180px;
+  padding: 16px;
+}
+
+.search-car-media {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.search-car-image {
+  height: 120px;
+  max-width: 200px;
+  object-fit: contain;
+  width: 100%;
+}
+
+.search-car-image-placeholder {
+  align-items: center;
+  background: #f5f5f5;
+  border-radius: 8px;
+  color: #bdbdbd;
+  display: flex;
+  height: 120px;
+  justify-content: center;
+  width: 100%;
+}
+
+.search-car-image-placeholder svg {
+  font-size: 48px;
+}
+
+.search-car-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.search-car-similar {
+  color: #6b6b6b;
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+.search-car-specs {
+  display: grid;
+  gap: 8px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.search-car-specs li {
+  align-items: center;
+  color: #333;
+  display: flex;
+  font-size: 14px;
+  gap: 6px;
+}
+
+.search-car-specs svg {
+  color: #6b6b6b;
+  font-size: 18px;
+}
+
+.search-car-location {
+  align-items: center;
+  color: #006ce4;
+  display: flex;
+  font-size: 14px;
+  gap: 4px;
+  margin: 12px 0 0;
+}
+
+.search-car-pricing {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.search-car-price-label {
+  color: #333;
+  font-size: 14px;
+}
+
+.search-car-price {
+  color: #333;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 4px 0 8px;
+}
+
+.search-car-free-cancel {
+  color: #008009;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.search-car-cta {
+  background: #006ce4 !important;
+  border-radius: 4px !important;
+  font-weight: 600 !important;
+  min-width: 140px !important;
+  text-transform: none !important;
+}
+
+.search-car-footer {
+  align-items: center;
+  border-top: 1px solid #e7e7e7;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.search-car-supplier {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.search-car-supplier-logo {
+  height: 28px;
+  object-fit: contain;
+  width: 28px;
+}
+
+.search-car-supplier-placeholder {
+  color: #bdbdbd;
+  font-size: 28px;
+}
+
+.search-car-rating {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.search-car-rating-score {
+  align-items: center;
+  background: #003580;
+  border-radius: 6px 6px 6px 0;
+  color: #fff;
+  display: flex;
+  font-size: 16px;
+  font-weight: 700;
+  height: 32px;
+  justify-content: center;
+  min-width: 32px;
+  padding: 0 6px;
+}
+
+.search-car-rating-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.search-car-rating-text strong {
+  color: #003580;
+}
+
+.search-car-rating-text span {
+  color: #6b6b6b;
+}
+
+@media only screen and (width <=960px) {
+  .search-car-card-body {
+    grid-template-columns: 1fr;
+  }
+
+  .search-car-pricing {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
