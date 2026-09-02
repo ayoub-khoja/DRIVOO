@@ -19,6 +19,9 @@ import NotificationCounter from '../models/NotificationCounter'
 import * as mailHelper from '../utils/mailHelper'
 import * as emailTemplate from '../utils/emailTemplate'
 import Location from '../models/Location'
+import AgencyReview from '../models/AgencyReview'
+import * as carSearchScoreHelper from '../utils/carSearchScoreHelper'
+import * as carRentalStatusHelper from '../utils/carRentalStatusHelper'
 
 /**
  * Create a Car.
@@ -715,6 +718,12 @@ export const getCar = async (req: Request, res: Response) => {
       .lean()
 
     if (car) {
+      if (!car.supplier?._id) {
+        logger.error('[car.getCar] Supplier not found for car:', id)
+        res.sendStatus(404)
+        return
+      }
+
       const {
         _id,
         fullName,
@@ -959,6 +968,17 @@ export const getCars = async (req: Request, res: Response) => {
       car.supplier = { _id, fullName, avatar }
     }
 
+    // Keep fleet rental flags aligned with active bookings.
+    const fullyBookedById = await carRentalStatusHelper.syncCarsFullyBooked(
+      data[0].resultData.map((car: { _id: mongoose.Types.ObjectId }) => car._id),
+    )
+    for (const car of data[0].resultData) {
+      const key = String(car._id)
+      if (Object.prototype.hasOwnProperty.call(fullyBookedById, key)) {
+        car.fullyBooked = fullyBookedById[key]
+      }
+    }
+
     res.json(data)
   } catch (err) {
     logger.error(`[car.getCars] ${i18n.t('ERROR')} ${req.query.s}`, err)
@@ -1162,7 +1182,7 @@ export const getFrontendCars = async (req: Request, res: Response) => {
       $supplierMatch = { $or: [{ 'supplier.minimumRentalDays': { $lte: days } }, { 'supplier.minimumRentalDays': null }] }
     }
 
-    const data = await Car.aggregate(
+    const cars = await Car.aggregate(
       [
         { $match },
         {
@@ -1182,6 +1202,7 @@ export const getFrontendCars = async (req: Request, res: Response) => {
                   fullName: 1,
                   avatar: 1,
                   priceChangeRate: 1,
+                  supplierCarLimit: 1,
                 },
               }
             ],
@@ -1276,92 +1297,58 @@ export const getFrontendCars = async (req: Request, res: Response) => {
           }
         },
         // end of booking overlap check -----------------------------------
-
-        // begining of supplierCarLimit -----------------------------------
         {
-          // Add the "supplierCarLimit" field from the supplier to limit the number of cars per supplier
-          $addFields: {
-            maxAllowedCars: { $ifNull: ['$supplier.supplierCarLimit', Number.MAX_SAFE_INTEGER] }, // Use a fallback if supplierCarLimit is undefined
-          },
-        },
-        {
-          // Add a custom stage to limit cars per supplier
           $group: {
-            _id: '$supplier._id', // Group by supplier
-            supplierData: { $first: '$supplier' },
-            cars: { $push: '$$ROOT' }, // Push all cars of the supplier into an array
-            maxAllowedCars: { $first: '$maxAllowedCars' }, // Retain maxAllowedCars for each supplier
+            _id: '$_id',
+            car: { $first: '$$ROOT' },
           },
         },
         {
-          // Limit cars based on maxAllowedCars for each supplier
-          $project: {
-            supplier: '$supplierData',
-            cars: {
-              $cond: {
-                if: { $eq: ['$maxAllowedCars', 0] }, // If maxAllowedCars is 0
-                then: [], // Return an empty array (no cars)
-                else: { $slice: ['$cars', 0, { $min: [{ $size: '$cars' }, '$maxAllowedCars'] }] }, // Otherwise, limit normally
-              },
-            },
-          },
+          $replaceRoot: { newRoot: '$car' },
         },
-        {
-          // Flatten the grouped result and apply sorting
-          $unwind: '$cars',
-        },
-        {
-          // Ensure unique cars by grouping by car ID
-          $group: {
-            _id: '$cars._id',
-            car: { $first: '$cars' },
-          },
-        },
-        {
-          $replaceRoot: { newRoot: '$car' }, // Replace the root document with the unique car object
-        },
-        {
-          // Sort the cars before pagination
-          $sort: { dailyPrice: 1, _id: 1 },
-        },
-        {
-          $facet: {
-            resultData: [
-              { $skip: (page - 1) * size }, // Skip results based on page
-              { $limit: size }, // Limit to the page size
-            ],
-            pageInfo: [
-              {
-                $count: 'totalRecords', // Count total number of cars (before pagination)
-              },
-            ],
-          },
-        },
-        // end of supplierCarLimit -----------------------------------
-
-        // old query without supplierCarLimit
-        // {
-        //   $facet: {
-        //     resultData: [
-        //       {
-        //         // $sort: { fullyBooked: 1, comingSoon: 1, dailyPrice: 1, _id: 1 },
-        //         $sort: { dailyPrice: 1, _id: 1 },
-        //       },
-        //       { $skip: (page - 1) * size },
-        //       { $limit: size },
-        //     ],
-        //     pageInfo: [
-        //       {
-        //         $count: 'totalRecords',
-        //       },
-        //     ],
-        //   },
-        // },
       ],
       { collation: { locale: env.DEFAULT_LANGUAGE, strength: 2 } },
     )
 
-    res.json(data)
+    const supplierIds = [...new Set(cars.map((car) => car.supplier._id))]
+    const reviewStats = await AgencyReview.aggregate([
+      {
+        $match: {
+          agency: { $in: supplierIds },
+          status: bookcarsTypes.AgencyReviewStatus.Approved,
+        },
+      },
+      {
+        $group: {
+          _id: '$agency',
+          avgRating: { $avg: '$rating' },
+          count: { $sum: 1 },
+        },
+      },
+    ])
+
+    const reviewMap = new Map<string, carSearchScoreHelper.AgencyReviewStats>(
+      reviewStats.map((review) => [
+        review._id.toString(),
+        { avgRating: review.avgRating, count: review.count },
+      ]),
+    )
+
+    const rankedCars = carSearchScoreHelper.rankCars(cars, {
+      from: new Date(from),
+      to: new Date(to),
+      reviewMap,
+    })
+
+    const totalRecords = rankedCars.length
+    const resultData = rankedCars
+      .slice((page - 1) * size, page * size)
+      .map(({ searchScore, effectiveDailyPrice, ...car }) => ({
+        ...car,
+        searchScore: Math.round(searchScore * 100) / 100,
+      }))
+
+    res.json([{ resultData, pageInfo: [{ totalRecords }] }])
   } catch (err) {
     logger.error(`[car.getFrontendCars] ${i18n.t('ERROR')} ${req.query.s}`, err)
     res.status(400).send(i18n.t('ERROR') + err)

@@ -1,14 +1,18 @@
 import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
 
+const isKnownCurrency = (code: string) =>
+  env.CURRENCIES.some((c) => c.code === code) || bookcarsHelper.checkCurrency(code)
+
 /**
 * Set currency.
 *
 * @param {string} currency
 */
 export const setCurrency = (currency: string) => {
-  if (currency && bookcarsHelper.checkCurrency(currency.toUpperCase())) {
-    localStorage.setItem('bc-fe-currency', currency.toUpperCase())
+  const code = currency?.toUpperCase()
+  if (code && isKnownCurrency(code)) {
+    localStorage.setItem('bc-fe-currency', code)
   }
 }
 
@@ -19,8 +23,11 @@ export const setCurrency = (currency: string) => {
  */
 export const getCurrency = () => {
   const currency = localStorage.getItem('bc-fe-currency')
-  if (currency && bookcarsHelper.checkCurrency(currency.toUpperCase())) {
-    return currency.toUpperCase()
+  if (currency) {
+    const code = currency.toUpperCase()
+    if (isKnownCurrency(code)) {
+      return code
+    }
   }
   return env.BASE_CURRENCY
 }
@@ -38,7 +45,6 @@ export const getCurrencySymbol = () => env.CURRENCIES.find((c) => c.code === get
  *
  * @async
  * @param {number} amount
- * @param {string} to
  * @returns {Promise<number>}
  */
 export const convertPrice = async (amount: number) => {
@@ -50,6 +56,18 @@ export const convertPrice = async (amount: number) => {
   }
 
   return amount
+}
+
+/**
+ * Convert a displayed price back to the base currency (for checkout payloads).
+ * Skips FX conversion when the UI currency is already the base currency (e.g. TND).
+ */
+export const toBaseCurrency = async (amount: number) => {
+  const from = getCurrency()
+  if (from === env.BASE_CURRENCY) {
+    return amount
+  }
+  return bookcarsHelper.convertPrice(amount, from, env.BASE_CURRENCY)
 }
 
 /**

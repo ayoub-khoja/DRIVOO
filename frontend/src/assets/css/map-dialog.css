@@ -4,6 +4,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+.map-dialog-popup {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 20%);
+  left: 50%;
+  max-width: 360px;
+  padding: 20px;
+  position: absolute;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 40px);
+  z-index: 1000;
+}
+
+.map-dialog-popup h3 {
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+
+.map-dialog-popup p {
+  color: #333;
+  font-size: 15px;
+  margin: 0 0 16px;
+}
+
+.map-dialog-show-cars {
+  background: #006ce4 !important;
+  text-transform: none !important;
+  width: 100%;
 }
 
 .close-icon {

@@ -1156,7 +1156,7 @@
 
 .agency-fleet-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin: 0 0 18px;
 }
@@ -1183,6 +1183,7 @@
 }
 
 .agency-fleet-stats .is-live strong { color: #157347; }
+.agency-fleet-stats .is-rented strong { color: #0b5fff; }
 .agency-fleet-stats .is-off strong { color: #b36b00; }
 
 .agency-fleet-grid {
@@ -1210,6 +1211,10 @@
 
 .agency-fleet-card.is-offline {
   opacity: 0.92;
+}
+
+.agency-fleet-card.is-rented {
+  border-color: #c9dbff;
 }
 
 .agency-fleet-card.is-busy {
@@ -1256,6 +1261,11 @@
 .agency-fleet-badge.is-live {
   color: #0f5c38;
   background: rgb(232 250 240 / 92%);
+}
+
+.agency-fleet-badge.is-rented {
+  color: #0b4fd6;
+  background: rgb(232 241 255 / 94%);
 }
 
 .agency-fleet-badge.is-off {
@@ -1647,6 +1657,10 @@
 @media (max-width: 700px) {
   .agency-fleet-head {
     flex-direction: column;
+  }
+
+  .agency-fleet-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .agency-car-grid {

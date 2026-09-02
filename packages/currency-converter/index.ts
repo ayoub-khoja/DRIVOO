@@ -116,6 +116,7 @@ export type CurrencyCode =
   | 'SZL'
   | 'THB'
   | 'TJS'
+  | 'TND'
   | 'TOP'
   | 'TRY'
   | 'TTD'
@@ -254,6 +255,7 @@ export const currencies: CurrencyCode[] = [
   'SZL',
   'THB',
   'TJS',
+  'TND',
   'TOP',
   'TRY',
   'TTD',
@@ -398,6 +400,7 @@ class CurrencyConverter {
     'SEK': 'Swedish Krona',
     'CHF': 'Swiss Franc',
     'TJS': 'Tajikistani Somoni',
+    'TND': 'Tunisian Dinar',
     'TZS': 'Tanzanian Shilling',
     'THB': 'Thai Baht',
     'TOP': 'Tongan Pa\'anga',

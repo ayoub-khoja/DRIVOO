@@ -39,6 +39,8 @@ import { strings as masterStrings } from '@/lang/master'
 import { strings as noMatchStrings } from '@/lang/no-match'
 import { strings as notificationsStrings } from '@/lang/notifications'
 import { strings as resetPasswordStrings } from '@/lang/reset-password'
+import { strings as offerStrings } from '@/lang/offer'
+import { strings as searchFiltersStrings } from '@/lang/search-filters'
 import { strings as searchSrings } from '@/lang/search'
 import { strings as searchFormStrings } from '@/lang/search-form'
 import { strings as settingsStrings } from '@/lang/settings'
@@ -141,6 +143,8 @@ if (lang) {
     noMatchStrings.setLanguage(_lang)
     notificationsStrings.setLanguage(_lang)
     resetPasswordStrings.setLanguage(_lang)
+    offerStrings.setLanguage(_lang)
+    searchFiltersStrings.setLanguage(_lang)
     searchSrings.setLanguage(_lang)
     searchFormStrings.setLanguage(_lang)
     settingsStrings.setLanguage(_lang)

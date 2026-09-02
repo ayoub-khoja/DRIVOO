@@ -11,18 +11,21 @@ form.home-search-form .btn-cancel {
 form.home-search-form .btn-search {
   color: #ffffff;
   border: 0;
-  border-radius: 999px;
+  border-radius: 14px;
   margin: 0;
   white-space: nowrap;
-  background: var(--drivoo-yellow, #ff6b1a);
+  background: linear-gradient(135deg, var(--drivoo-yellow, #ff6b1a) 0%, var(--drivoo-yellow-hot, #ff8534) 100%);
   text-transform: none;
-  box-shadow: none;
+  box-shadow: 0 8px 24px rgb(255 107 26 / 32%);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 form.home-search-form .btn-search:hover,
 form.home-search-form .btn-cancel:hover {
-  opacity: 0.92;
-  background: var(--drivoo-yellow, #ff6b1a);
+  opacity: 1;
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, var(--drivoo-yellow, #ff6b1a) 0%, var(--drivoo-yellow-hot, #ff8534) 100%);
+  box-shadow: 0 12px 28px rgb(255 107 26 / 42%);
 }
 
 form.home-search-form .chk-same-location {

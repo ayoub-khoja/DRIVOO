@@ -9,7 +9,6 @@ import {
 } from '@mui/material'
 import {
   CheckBox,
-  Search,
   LockOutlined,
   LocalOfferOutlined,
   AccessTimeOutlined,
@@ -40,7 +39,6 @@ import HomeSections from '@/components/HomeSections'
 import Mini from '@/assets/img/mini.png'
 import Midi from '@/assets/img/midi.png'
 import Maxi from '@/assets/img/maxi.png'
-import Logo from '@/assets/img/logoWhite.png'
 
 import '@/assets/css/home.css'
 
@@ -178,67 +176,53 @@ const Home = () => {
             )}
           </div>
 
-          <div className="home-hero-copy">
-            <div className="home-brand">
-              <img src={Logo} alt={env.WEBSITE_NAME} className="home-brand-logo" />
-            </div>
-            <div className="home-title">{strings.TITLE}</div>
-            <div className="home-cover">{strings.COVER}</div>
-            <div className="home-subtitle">{strings.SUBTITLE}</div>
-            <div className="home-hero-actions">
-              <Button
-                variant="contained"
-                className="btn-primary home-hero-cta"
-                startIcon={<Search />}
-                onClick={scrollToSearch}
-              >
-                {strings.HERO_CTA}
-              </Button>
-              <Button
-                variant="outlined"
-                className="home-hero-cta-ghost"
-                onClick={() => navigate('/contact')}
-              >
-                {strings.CONTACT_US}
-              </Button>
+          <div className="home-hero-stack">
+            <div className="search drivoo-book-banner drivoo-book-banner--hero" id="drivoo-search">
+              <div className="drivoo-book-banner-content">
+                <div className="drivoo-book-banner-intro">
+                  <span className="drivoo-hero-eyebrow">{strings.BOOK_FORM_HEAD}</span>
+                  <h2>{strings.BOOK_HERO_TITLE}</h2>
+                  <p>{strings.BOOK_HERO_TEXT}</p>
+                </div>
+
+                <div className="drivoo-hero-panel">
+                  <div className="drivoo-hero-panel-glow" aria-hidden />
+                  <div className="home-search">
+                    <SearchForm />
+                  </div>
+
+                  <div className="drivoo-trust-bar">
+                    <div className="drivoo-trust-item">
+                      <span className="drivoo-trust-icon-wrap">
+                        <LockOutlined className="drivoo-trust-icon" />
+                      </span>
+                      <span>{strings.TRUST_SECURE}</span>
+                    </div>
+                    <div className="drivoo-trust-item">
+                      <span className="drivoo-trust-icon-wrap">
+                        <LocalOfferOutlined className="drivoo-trust-icon" />
+                      </span>
+                      <span>{strings.TRUST_PRICE}</span>
+                    </div>
+                    <div className="drivoo-trust-item">
+                      <span className="drivoo-trust-icon-wrap">
+                        <AccessTimeOutlined className="drivoo-trust-icon" />
+                      </span>
+                      <span>{strings.TRUST_SUPPORT}</span>
+                    </div>
+                    <div className="drivoo-trust-item">
+                      <span className="drivoo-trust-icon-wrap">
+                        <DirectionsCarOutlined className="drivoo-trust-icon" />
+                      </span>
+                      <span>{strings.TRUST_FLEET}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div className="home-scroll-hint" aria-hidden />
 
-        </div>
-
-        <div className="search drivoo-book-banner" id="drivoo-search">
-          <div className="drivoo-book-banner-bg" aria-hidden />
-          <div className="drivoo-book-banner-content">
-            <div className="drivoo-book-banner-intro">
-              <span className="section-eyebrow">{strings.BOOK_FORM_HEAD}</span>
-              <h2>{strings.BOOK_HERO_TITLE}</h2>
-              <p>{strings.BOOK_HERO_TEXT}</p>
-            </div>
-
-            <div className="home-search">
-              <SearchForm />
-            </div>
-
-            <div className="drivoo-trust-bar">
-              <div className="drivoo-trust-item">
-                <LockOutlined className="drivoo-trust-icon" />
-                <span>{strings.TRUST_SECURE}</span>
-              </div>
-              <div className="drivoo-trust-item">
-                <LocalOfferOutlined className="drivoo-trust-icon" />
-                <span>{strings.TRUST_PRICE}</span>
-              </div>
-              <div className="drivoo-trust-item">
-                <AccessTimeOutlined className="drivoo-trust-icon" />
-                <span>{strings.TRUST_SUPPORT}</span>
-              </div>
-              <div className="drivoo-trust-item">
-                <DirectionsCarOutlined className="drivoo-trust-icon" />
-                <span>{strings.TRUST_FLEET}</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <HomeSections onBook={scrollToSearch} />

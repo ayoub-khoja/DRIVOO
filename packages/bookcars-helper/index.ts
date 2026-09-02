@@ -384,14 +384,16 @@ export const calculateTotalPrice = (car: bookcarsTypes.Car, from: Date, to: Date
  * @returns {Promise<number>}
  */
 export const convertPrice = async (amount: number, from: string, to: string): Promise<number> => {
+  // Same currency: no conversion needed (also allows app base currencies
+  // that may not be listed in the external FX table).
+  if (from === to) {
+    return amount
+  }
   if (!checkCurrency(from)) {
     throw new Error(`Currency ${from} not supported`)
   }
   if (!checkCurrency(to)) {
     throw new Error(`Currency ${to} not supported`)
-  }
-  if (from === to) {
-    return amount
   }
   const cc = new CurrencyConverter({ from, to, amount })
   const res = await cc.convert()

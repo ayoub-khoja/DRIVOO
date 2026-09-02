@@ -9,6 +9,7 @@ import Booking from '../models/Booking'
 import User from '../models/User'
 import Car from '../models/Car'
 import * as bookingController from './bookingController'
+import * as carRentalStatusHelper from '../utils/carRentalStatusHelper'
 
 /**
  * Create Checkout Session.
@@ -141,6 +142,8 @@ export const checkCheckoutSession = async (req: Request, res: Response) => {
       booking.status = status
 
       await booking.save()
+
+      await carRentalStatusHelper.syncCarFullyBooked(booking.car)
 
       const car = await Car.findById(booking.car)
       if (!car) {

@@ -79,8 +79,8 @@ const strings = new LocalizedStrings({
     TRUST_SUPPORT: 'Service 24/7',
     TRUST_FLEET: 'Flotte récente & variée',
     CALL_US: 'Nous appeler',
-    CONTACT_PHONE: '(+216) 22 60 17 20',
-    CONTACT_PHONE_TEL: '+21622601720',
+    CONTACT_PHONE: '20 326 562',
+    CONTACT_PHONE_TEL: '+21620326562',
 
     ABOUT_EYEBROW: 'À propos de DRIVOO',
     ABOUT_TITLE: 'Bienvenue chez ',
@@ -186,8 +186,8 @@ const strings = new LocalizedStrings({
     TRUST_SUPPORT: '24/7 service',
     TRUST_FLEET: 'Recent & varied fleet',
     CALL_US: 'Call us',
-    CONTACT_PHONE: '(+216) 22 60 17 20',
-    CONTACT_PHONE_TEL: '+21622601720',
+    CONTACT_PHONE: '20 326 562',
+    CONTACT_PHONE_TEL: '+21620326562',
 
     ABOUT_EYEBROW: 'About DRIVOO',
     ABOUT_TITLE: 'Welcome to ',
@@ -293,8 +293,8 @@ const strings = new LocalizedStrings({
     TRUST_SUPPORT: 'خدمة على مدار الساعة',
     TRUST_FLEET: 'أسطول حديث ومتنوع',
     CALL_US: 'اتصل بنا',
-    CONTACT_PHONE: '(+216) 22 60 17 20',
-    CONTACT_PHONE_TEL: '+21622601720',
+    CONTACT_PHONE: '20 326 562',
+    CONTACT_PHONE_TEL: '+21620326562',
 
     ABOUT_EYEBROW: 'حول DRIVOO',
     ABOUT_TITLE: 'مرحبًا بكم في ',

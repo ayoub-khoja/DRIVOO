@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { AccountCircle as SupplierPlaceholderIcon } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
@@ -134,11 +135,15 @@ const SupplierFilter = ({
                   onClick={handleSupplierClick}
                   className="supplier"
                 >
-                  <img
-                    src={bookcarsHelper.joinURL(env.CDN_USERS, supplier.avatar)}
-                    alt={supplier.fullName}
-                    title={supplier.fullName}
-                  />
+                  {supplier.avatar ? (
+                    <img
+                      src={bookcarsHelper.joinURL(env.CDN_USERS, supplier.avatar)}
+                      alt={supplier.fullName}
+                      title={supplier.fullName}
+                    />
+                  ) : (
+                    <SupplierPlaceholderIcon className="supplier-avatar-placeholder" titleAccess={supplier.fullName} />
+                  )}
                 </span>
                 {!!supplier.carCount && <span className="car-count">{`(${supplier.carCount})`}</span>}
               </li>
