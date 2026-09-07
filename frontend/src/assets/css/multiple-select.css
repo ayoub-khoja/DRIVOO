@@ -34,6 +34,41 @@ li.ms-option:hover {
   margin-bottom: 5px;
 }
 
+.option-name-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1.2em;
+  white-space: normal;
+  min-width: 0;
+}
+
+.option-primary {
+  display: block;
+}
+
+.option-secondary {
+  display: block;
+  color: #6b7a8d;
+  font-size: 0.78em;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.option-powered {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #f1f4f8;
+  color: #5b6b80;
+  font-size: 0.68em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
 .car-option-name {
   color: #333;
   display: inline-block;

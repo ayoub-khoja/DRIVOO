@@ -103,6 +103,33 @@ const PRINT_STYLES = `
     line-height: 1.3;
   }
   .agency-receipt-hero-doc { text-align: right; min-width: 140px; }
+  .agency-receipt-hero-aside {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .agency-receipt-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .agency-receipt-qr-pad {
+    display: grid;
+    place-items: center;
+    padding: 4px;
+    border-radius: 8px;
+    background: #fff;
+  }
+  .agency-receipt-qr > span {
+    color: rgb(255 255 255 / 72%);
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
   .agency-receipt-badge {
     display: inline-flex;
     margin-bottom: 4px;

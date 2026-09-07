@@ -208,6 +208,30 @@
   justify-content: center;
 }
 
+.agency-lang-menu-paper {
+  min-width: 0 !important;
+  width: max-content !important;
+  max-width: max-content !important;
+}
+
+.agency-lang-menu .MuiMenuItem-root {
+  min-height: 36px;
+  padding: 6px 12px !important;
+}
+
+.agency-lang-menu div.language {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.agency-lang-menu .flag {
+  width: 20px;
+  margin-right: 0;
+  flex-shrink: 0;
+}
+
 .agency-notif-btn {
   width: 44px;
   height: 44px;
@@ -2551,6 +2575,38 @@
   min-width: 180px;
 }
 
+.agency-receipt-hero-aside {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.agency-receipt-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.agency-receipt-qr-pad {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 22%);
+}
+
+.agency-receipt-qr > span {
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .agency-receipt-badge {
   display: inline-flex;
   margin-bottom: 6px;
@@ -2823,6 +2879,11 @@
     min-width: 0;
   }
 
+  .agency-receipt-hero-aside {
+    justify-content: space-between;
+    width: 100%;
+  }
+
   .agency-receipt-total-bar {
     flex-direction: column;
     align-items: flex-start;
@@ -2907,6 +2968,16 @@
 
   .agency-receipt-doc-number {
     font-size: 1rem !important;
+  }
+
+  .agency-receipt-qr-pad {
+    padding: 4px !important;
+    border-radius: 8px !important;
+  }
+
+  .agency-receipt-qr svg {
+    width: 64px !important;
+    height: 64px !important;
   }
 
   .agency-receipt-parties {
@@ -3640,6 +3711,39 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #5b6b80;
+}
+
+.agency-booking-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
+.agency-booking-options .MuiFormControlLabel-root {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.agency-booking-options .MuiFormControlLabel-label {
+  font-size: 0.9rem;
+  color: #12233a;
+}
+
+.agency-booking-totals {
+  margin-top: 18px;
+}
+
+.agency-booking-price-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: #5b6b80;
+}
+
+@media (max-width: 640px) {
+  .agency-booking-options {
+    grid-template-columns: 1fr;
+  }
 }
 
 .agency-invoice-lines-head {

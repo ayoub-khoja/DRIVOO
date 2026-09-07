@@ -20,6 +20,7 @@ import {
   readLogo,
   type PdfAgencyInfo,
 } from './pdfShared'
+import { DOCUMENT_QR_SIZE, drawDocumentQr, renderDocumentQrPng } from './documentQr'
 import {
   CONTRACT_CHECKLIST,
   CONTRACT_TERMS_AR,
@@ -53,6 +54,7 @@ export interface ContractPartyInfo {
 }
 
 export interface ContractInfo {
+  id: string
   number: string
   issueCity: string
   issueDate: Date | string
@@ -108,7 +110,10 @@ export const buildContractPdf = async (
   contract: ContractInfo,
   agency: ContractAgencyInfo,
 ): Promise<Buffer> => {
-  const logo = await readLogo(agency.avatar)
+  const [logo, qrPng] = await Promise.all([
+    readLogo(agency.avatar),
+    renderDocumentQrPng('contract', contract.id, contract.number),
+  ])
 
   const doc = new PDFDocument({
     size: 'A4',
@@ -178,8 +183,13 @@ export const buildContractPdf = async (
   }
 
   //
-  // Header — agency identity on the left, document title on the right
+  // Header — agency identity on the left, title + unique QR on the right
   //
+  const qrX = right - DOCUMENT_QR_SIZE
+  const titleW = 210
+  const titleX = qrX - 12 - titleW
+  const qrBottom = drawDocumentQr(doc, qrPng, qrX, y)
+
   if (logo) {
     try {
       doc.image(logo, left, y, { fit: [130, 48] })
@@ -203,16 +213,16 @@ export const buildContractPdf = async (
   }
 
   doc.font('Helvetica-Bold').fontSize(18).fillColor(NAVY)
-  doc.text('CONTRAT DE LOCATION', right - 240, y, { width: 240, align: 'right' })
+  doc.text('CONTRAT DE LOCATION', titleX, y, { width: titleW, align: 'right' })
   doc.font('Helvetica-Bold').fontSize(12).fillColor(ORANGE)
-  doc.text(`N° ${contract.number}`, right - 240, doc.y + 2, { width: 240, align: 'right' })
+  doc.text(`N° ${contract.number}`, titleX, doc.y + 2, { width: titleW, align: 'right' })
   doc.font('Helvetica').fontSize(8.5).fillColor(MUTED)
   const issueLine = contract.issueCity
     ? `${contract.issueCity.toUpperCase()} le ${formatDateTime(contract.issueDate)}`
     : `Le ${formatDateTime(contract.issueDate)}`
-  doc.text(issueLine, right - 240, doc.y + 3, { width: 240, align: 'right' })
+  doc.text(issueLine, titleX, doc.y + 3, { width: titleW, align: 'right' })
 
-  y = Math.max(identityY, doc.y) + 10
+  y = Math.max(identityY, doc.y, qrBottom) + 10
   doc.moveTo(left, y).lineTo(right, y).lineWidth(1.5).strokeColor(ORANGE).stroke()
   y += 10
 

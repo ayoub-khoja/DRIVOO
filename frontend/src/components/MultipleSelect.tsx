@@ -36,6 +36,8 @@ interface MultipleSelectProps {
   hidePopupIcon?: boolean
   customOpen?: boolean
   freeSolo?: boolean
+  /** When set, disables MUI client-side filtering (e.g. Google Places already filtered). */
+  disableClientFilter?: boolean
   callbackFromMultipleSelect?: (newValue: any, _key: string, _reference: any) => void
   onFocus?: React.FocusEventHandler<HTMLDivElement>
   onInputChange?: (event: React.SyntheticEvent<Element, Event>, value?: string, reason?: AutocompleteInputChangeReason) => void
@@ -73,6 +75,7 @@ const MultipleSelect = ({
   hidePopupIcon,
   customOpen,
   freeSolo,
+  disableClientFilter,
   callbackFromMultipleSelect,
   onFocus,
   onInputChange,
@@ -89,13 +92,18 @@ const MultipleSelect = ({
   }
 
   useEffect(() => {
-    if (selectedOptions) {
+    if (!selectedOptions) {
+      return
+    }
+    if (Array.isArray(selectedOptions)) {
       setValues(selectedOptions)
+      // Only clear the visible text when a previous selection was removed,
+      // never while the user is typing with an empty selection.
+      if (selectedOptions.length === 0 && values.length > 0) {
+        setInputValue('')
+      }
     }
-    if (selectedOptions && selectedOptions.length === 0) {
-      setInputValue('')
-    }
-  }, [selectedOptions, type])
+  }, [selectedOptions, type]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="multiple-select">
@@ -105,21 +113,32 @@ const MultipleSelect = ({
         options={options}
         value={(multiple && values) || (values.length > 0 && values[0]) || null}
         getOptionLabel={(option) => (option && option.name) || ''}
-        isOptionEqualToValue={(option, value) => option._id === value._id}
+        isOptionEqualToValue={(option, value) => option?._id === value?._id}
+        filterOptions={disableClientFilter ? (opts) => opts : undefined}
         inputValue={inputValue}
-        onInputChange={(event, value) => {
-          if (init) {
-            if (!event) {
-              setInputValue(value)
-              if (onInputChange) {
-                onInputChange(event, value)
-              }
+        onInputChange={(event, value, reason) => {
+          // MUI fires "reset" when options/value sync — ignore or it wipes typed text
+          // and cancels in-flight Google Places searches.
+          if (reason === 'reset') {
+            return
+          }
 
-              setOpen(false)
-              return
+          const nextInput = value ?? ''
+
+          if (reason === 'clear') {
+            setInputValue('')
+            setValues([])
+            if (onClear) {
+              onClear()
             }
+            if (onInputChange) {
+              onInputChange(event, '')
+            }
+            return
+          }
 
-            if (value.length === 0) {
+          if (init) {
+            if (nextInput.length === 0) {
               if (open) {
                 setOpen(false)
               }
@@ -130,9 +149,9 @@ const MultipleSelect = ({
             setInit(true)
           }
 
-          setInputValue(value)
+          setInputValue(nextInput)
           if (onInputChange) {
-            onInputChange(event)
+            onInputChange(event, nextInput, reason)
           }
         }}
         onChange={(event: React.SyntheticEvent<Element, Event>, newValue: any) => {
@@ -141,11 +160,12 @@ const MultipleSelect = ({
           }
           key = key || ''
           if (multiple) {
-            setValues(newValue)
+            const nextValues = Array.isArray(newValue) ? newValue : []
+            setValues(nextValues)
             if (callbackFromMultipleSelect) {
-              callbackFromMultipleSelect(newValue, key, reference)
+              callbackFromMultipleSelect(nextValues, key, reference)
             }
-            if (newValue.length === 0 && onClear) {
+            if (nextValues.length === 0 && onClear) {
               onClear()
             }
           } else {
@@ -351,7 +371,15 @@ const MultipleSelect = ({
                 <span className="option-image">
                   <LocationIcon />
                 </span>
-                <span className="option-name">{option.name}</span>
+                <span className={`option-name${option.secondaryText || option.isGooglePlace ? ' option-name-stack' : ''}`}>
+                  <span className="option-primary">{option.name}</span>
+                  {option.secondaryText ? (
+                    <span className="option-secondary">{option.secondaryText}</span>
+                  ) : null}
+                  {option.isGooglePlace ? (
+                    <span className="option-powered">Google</span>
+                  ) : null}
+                </span>
               </li>
             )
           } if (type === bookcarsTypes.RecordType.Car) {

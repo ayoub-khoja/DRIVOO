@@ -1,6 +1,6 @@
 import React from 'react'
 import { format } from 'date-fns'
-import { fr, enUS, arTN } from 'date-fns/locale'
+import { getDateFnsLocale } from '@/utils/locale'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import { strings as commonStrings } from '@/lang/common'
@@ -25,7 +25,7 @@ const OfferPriceSidebar = ({
   extrasPickupTotal = 0,
 }: OfferPriceSidebarProps) => {
   const language = UserService.getLanguage()
-  const locale = language === 'fr' ? fr : language === 'ar' ? arTN : enUS
+  const locale = getDateFnsLocale(language)
   const dateFmt = language === 'fr' ? 'eee d MMM - HH:mm' : 'eee, d MMM - HH:mm'
 
   return (

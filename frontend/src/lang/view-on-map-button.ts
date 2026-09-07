@@ -11,6 +11,15 @@ const strings = new LocalizedStrings({
   ar: {
     VIEW_ON_MAP: 'عرض على الخريطة',
   },
+  es: {
+    VIEW_ON_MAP: 'Ver en el mapa',
+  },
+  it: {
+    VIEW_ON_MAP: 'Vedi sulla mappa',
+  },
+  de: {
+    VIEW_ON_MAP: 'Auf der Karte anzeigen',
+  },
 })
 
 langHelper.setLanguage(strings)

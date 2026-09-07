@@ -23,6 +23,27 @@ const strings = new LocalizedStrings({
     FIVE: '5 مقاعد',
     FIVE_PLUS: 'أكثر من 5 مقاعد',
   },
+  es: {
+    SEATS: 'Asientos',
+    TWO: '2 asientos',
+    FOUR: '4 asientos',
+    FIVE: '5 asientos',
+    FIVE_PLUS: '5+ asientos',
+  },
+  it: {
+    SEATS: 'Posti',
+    TWO: '2 posti',
+    FOUR: '4 posti',
+    FIVE: '5 posti',
+    FIVE_PLUS: '5+ posti',
+  },
+  de: {
+    SEATS: 'Sitze',
+    TWO: '2 Sitze',
+    FOUR: '4 Sitze',
+    FIVE: '5 Sitze',
+    FIVE_PLUS: '5+ Sitze',
+  },
 })
 
 langHelper.setLanguage(strings)

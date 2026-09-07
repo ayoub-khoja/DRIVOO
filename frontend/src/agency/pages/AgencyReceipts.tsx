@@ -12,6 +12,7 @@ import {
 import {
   AddRounded,
   DeleteOutlineRounded,
+  DownloadRounded,
   PrintOutlined,
   RequestQuoteOutlined,
   Search as SearchIcon,
@@ -27,7 +28,6 @@ import type { AgencyReceipt, AgencyReceiptStats } from '@/agency/types/receipt'
 import { formatReceiptDate, paymentLabel } from '@/agency/utils/receiptFormat'
 import env from '@/config/env.config'
 import * as helper from '@/utils/helper'
-import { printReceiptElement } from '@/agency/utils/printReceipt'
 
 const PAGE_SIZE = 8
 
@@ -45,7 +45,7 @@ const AgencyReceipts = () => {
   const [loading, setLoading] = useState(true)
   const [openForm, setOpenForm] = useState(false)
   const [preview, setPreview] = useState<AgencyReceipt | null>(null)
-  const [printReceipt, setPrintReceipt] = useState<AgencyReceipt | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [stats, setStats] = useState<AgencyReceiptStats>(EMPTY_STATS)
 
   const load = useCallback(async (search = '', nextPage = 1) => {
@@ -78,24 +78,30 @@ const AgencyReceipts = () => {
     [stats.monthTotal, language],
   )
 
-  const handlePrint = () => {
-    if (!preview) {
-      return
+  const handleDownload = async (receipt: AgencyReceipt) => {
+    try {
+      await AgencyReceiptService.downloadReceiptPdf(receipt._id, receipt.number)
+    } catch {
+      helper.error(undefined, strings.RECEIPT_PDF_ERROR)
     }
-    printReceiptElement('agency-receipt-print', preview.number)
   }
 
-  // Print from table icon: render off-screen, then print (no modal)
-  useEffect(() => {
-    if (!printReceipt) {
-      return undefined
+  /** Print the embedded PDF; falls back to a tab when the browser blocks iframe printing. */
+  const handlePrint = () => {
+    const frame = document.getElementById('agency-receipt-pdf-frame') as HTMLIFrameElement | null
+    try {
+      if (frame?.contentWindow) {
+        frame.contentWindow.focus()
+        frame.contentWindow.print()
+        return
+      }
+    } catch {
+      // ignored — handled by the fallback below
     }
-    const timer = window.setTimeout(() => {
-      printReceiptElement('agency-receipt-print-silent', printReceipt.number)
-      setPrintReceipt(null)
-    }, 200)
-    return () => window.clearTimeout(timer)
-  }, [printReceipt])
+    if (previewUrl) {
+      window.open(previewUrl, '_blank', 'noopener')
+    }
+  }
 
   const handleDelete = async (receipt: AgencyReceipt) => {
     if (!window.confirm(strings.RECEIPT_DELETE_CONFIRM)) {
@@ -237,12 +243,9 @@ const AgencyReceipts = () => {
                             <VisibilityOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title={strings.RECEIPT_PRINT}>
-                          <IconButton
-                            size="small"
-                            onClick={() => setPrintReceipt(row)}
-                          >
-                            <PrintOutlined fontSize="small" />
+                        <Tooltip title={strings.RECEIPT_PDF}>
+                          <IconButton size="small" onClick={() => void handleDownload(row)}>
+                            <DownloadRounded fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title={strings.RECEIPT_DELETE}>
@@ -289,7 +292,10 @@ const AgencyReceipts = () => {
 
       <Dialog
         open={!!preview}
-        onClose={() => setPreview(null)}
+        onClose={() => {
+          setPreview(null)
+          setPreviewUrl(null)
+        }}
         fullWidth
         maxWidth="md"
         className="agency-receipt-preview-dialog"
@@ -304,26 +310,27 @@ const AgencyReceipts = () => {
               <Button startIcon={<PrintOutlined />} onClick={handlePrint} variant="contained" className="btn-primary">
                 {strings.RECEIPT_PRINT}
               </Button>
-              <Button onClick={() => setPreview(null)}>{strings.CANCEL}</Button>
+              <Button
+                startIcon={<DownloadRounded />}
+                onClick={() => preview && void handleDownload(preview)}
+              >
+                {strings.RECEIPT_PDF}
+              </Button>
+              <Button
+                onClick={() => {
+                  setPreview(null)
+                  setPreviewUrl(null)
+                }}
+              >
+                {strings.CANCEL}
+              </Button>
             </div>
           </div>
           {preview && (
-            <AgencyReceiptPreview receipt={preview} agency={agency} language={language} />
+            <AgencyReceiptPreview receiptId={preview._id} onReady={setPreviewUrl} />
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Off-screen receipt used only for direct print from the table */}
-      {printReceipt && (
-        <div className="agency-receipt-print-host" aria-hidden>
-          <AgencyReceiptPreview
-            receipt={printReceipt}
-            agency={agency}
-            language={language}
-            elementId="agency-receipt-print-silent"
-          />
-        </div>
-      )}
     </div>
   )
 }

@@ -29,7 +29,7 @@ import { PayPalButtons } from '@paypal/react-paypal-js'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
-import { fr, enUS, arTN } from 'date-fns/locale'
+import { getDateFnsLocale } from '@/utils/locale'
 import validator from 'validator'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -155,7 +155,7 @@ const OfferPayment = () => {
   const additionalDriver = useWatch({ control, name: 'additionalDriver' })
 
   const days = from && to ? bookcarsHelper.days(from, to) : 0
-  const locale = language === 'fr' ? fr : language === 'ar' ? arTN : enUS
+  const locale = getDateFnsLocale(language)
   const dateFmt = language === 'fr' ? 'eee d LLL yyyy kk:mm' : 'eee, d LLL yyyy, p'
   const daysLabel = from && to
     ? `${helper.getDaysShort(days)} (${bookcarsHelper.capitalize(format(from, dateFmt, { locale }))} - ${bookcarsHelper.capitalize(format(to, dateFmt, { locale }))})`

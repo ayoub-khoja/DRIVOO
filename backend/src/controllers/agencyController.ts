@@ -20,9 +20,11 @@ import AgencyReview from '../models/AgencyReview'
 import AgencyInvoice from '../models/AgencyInvoice'
 import { computeInvoiceTotals, round3 } from '../utils/invoiceHelper'
 import { buildInvoicePdf } from '../utils/invoicePdf'
+import { buildInvoiceXml } from '../utils/invoiceXml'
 import AgencyContract from '../models/AgencyContract'
 import { computeContractTotals } from '../utils/contractHelper'
 import { buildContractPdf } from '../utils/contractPdf'
+import { buildReceiptPdf } from '../utils/receiptPdf'
 import AgencyReceipt from '../models/AgencyReceipt'
 import AgencyReminder from '../models/AgencyReminder'
 import AgencyReminderDismiss from '../models/AgencyReminderDismiss'
@@ -1242,6 +1244,7 @@ export const getInvoicePdf = async (req: Request, res: Response) => {
 
     const pdf = await buildInvoicePdf(
       {
+        id: String(invoice._id),
         number: invoice.number,
         issueCity: invoice.issueCity || '',
         issueDate: invoice.issueDate,
@@ -1290,6 +1293,85 @@ export const getInvoicePdf = async (req: Request, res: Response) => {
     res.status(200).end(pdf)
   } catch (err) {
     logger.error(`[agency.getInvoicePdf] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Stream the invoice as structured UTF-8 XML for accounting / archive export.
+ */
+export const getInvoiceXml = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid invoice id')
+      return
+    }
+
+    const invoice = await AgencyInvoice.findOne({ _id: id, agency: sessionUser._id })
+    if (!invoice) {
+      res.status(404).send('Invoice not found')
+      return
+    }
+
+    const xml = buildInvoiceXml(
+      {
+        id: String(invoice._id),
+        number: invoice.number,
+        issueCity: invoice.issueCity || '',
+        issueDate: invoice.issueDate,
+        clientCode: invoice.clientCode,
+        clientName: invoice.clientName,
+        clientIdNumber: invoice.clientIdNumber,
+        clientPhone: invoice.clientPhone,
+        clientAddress: invoice.clientAddress,
+        object: invoice.object || '',
+        lines: invoice.lines,
+        discount: invoice.discount,
+        vatRate: invoice.vatRate,
+        stampDuty: invoice.stampDuty,
+        payments: invoice.payments,
+        currency: invoice.currency,
+        notes: invoice.notes,
+        totalGross: invoice.totalGross,
+        totalHT: invoice.totalHT,
+        totalVAT: invoice.totalVAT,
+        totalTTC: invoice.totalTTC,
+        totalPaid: invoice.totalPaid,
+        balanceDue: invoice.balanceDue,
+      },
+      {
+        fullName: sessionUser.fullName,
+        email: sessionUser.email,
+        avatar: sessionUser.avatar,
+        address: sessionUser.address,
+        city: sessionUser.city,
+        governorate: sessionUser.governorate,
+        postalCode: sessionUser.postalCode,
+        phone: sessionUser.phone,
+        phone2: sessionUser.phone2,
+        phone3: sessionUser.phone3,
+        website: sessionUser.website,
+        taxId: sessionUser.taxId,
+        rneNumber: sessionUser.rneNumber,
+        iban: sessionUser.iban,
+      },
+    )
+
+    const buffer = Buffer.from(xml, 'utf8')
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8')
+    res.setHeader('Content-Length', buffer.length)
+    res.setHeader('Content-Disposition', `attachment; filename="Facture-${invoice.number}.xml"`)
+    res.status(200).end(buffer)
+  } catch (err) {
+    logger.error(`[agency.getInvoiceXml] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }
@@ -1694,6 +1776,7 @@ export const getContractPdf = async (req: Request, res: Response) => {
 
     const pdf = await buildContractPdf(
       {
+        id: String(contract._id),
         number: contract.number,
         issueCity: contract.issueCity || '',
         issueDate: contract.issueDate,
@@ -2020,6 +2103,75 @@ export const deleteReceipt = async (req: Request, res: Response) => {
     res.sendStatus(200)
   } catch (err) {
     logger.error(`[agency.deleteReceipt] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Stream the payment receipt as a PDF, rendered server side with the agency
+ * letterhead and a unique document QR (same pipeline as invoices / contracts).
+ */
+export const getReceiptPdf = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).send('Invalid receipt id')
+      return
+    }
+
+    const receipt = await AgencyReceipt.findOne({ _id: id, agency: sessionUser._id })
+    if (!receipt) {
+      res.status(404).send('Receipt not found')
+      return
+    }
+
+    const pdf = await buildReceiptPdf(
+      {
+        id: String(receipt._id),
+        number: receipt.number,
+        paidAt: receipt.paidAt,
+        clientName: receipt.clientName,
+        clientEmail: receipt.clientEmail,
+        clientPhone: receipt.clientPhone,
+        vehicleLabel: receipt.vehicleLabel,
+        description: receipt.description,
+        amount: receipt.amount,
+        currency: receipt.currency,
+        paymentMethod: receipt.paymentMethod,
+        notes: receipt.notes,
+      },
+      {
+        fullName: sessionUser.fullName,
+        email: sessionUser.email,
+        avatar: sessionUser.avatar,
+        address: sessionUser.address,
+        city: sessionUser.city,
+        governorate: sessionUser.governorate,
+        postalCode: sessionUser.postalCode,
+        phone: sessionUser.phone,
+        phone2: sessionUser.phone2,
+        phone3: sessionUser.phone3,
+        website: sessionUser.website,
+        taxId: sessionUser.taxId,
+        rneNumber: sessionUser.rneNumber,
+        iban: sessionUser.iban,
+      },
+    )
+
+    const disposition = req.query.download ? 'attachment' : 'inline'
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Length', pdf.length)
+    res.setHeader('Content-Disposition', `${disposition}; filename="Recu-${receipt.number}.pdf"`)
+    res.status(200).end(pdf)
+  } catch (err) {
+    logger.error(`[agency.getReceiptPdf] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }

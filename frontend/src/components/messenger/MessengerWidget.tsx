@@ -9,7 +9,7 @@ import {
 } from '@mui/icons-material'
 import { IconButton, InputAdornment, TextField } from '@mui/material'
 import { format } from 'date-fns'
-import { fr, enUS, arTN } from 'date-fns/locale'
+import { getDateFnsLocale } from '@/utils/locale'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
@@ -80,7 +80,7 @@ const MessengerWidget = ({ axiosInstance, currentUser, mode, theme = 'dark' }: M
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const activeIdRef = useRef<string | null>(null)
   const language = langHelper.getLanguage()
-  const locale = language === 'fr' ? fr : language === 'ar' ? arTN : enUS
+  const locale = getDateFnsLocale(language)
 
   const loadUnread = useCallback(async () => {
     try {

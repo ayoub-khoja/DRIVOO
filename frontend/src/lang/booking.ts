@@ -11,6 +11,15 @@ const strings = new LocalizedStrings({
   ar: {
     TOTAL: 'المجموع:',
   },
+  es: {
+    TOTAL: 'Total:',
+  },
+  it: {
+    TOTAL: 'Totale:',
+  },
+  de: {
+    TOTAL: 'Gesamt:',
+  },
 })
 
 langHelper.setLanguage(strings)

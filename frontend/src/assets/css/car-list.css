@@ -40,6 +40,76 @@ section.car-list .empty-list {
   margin-top: 15px;
   text-align: center;
   width: 250px;
+  padding: 24px 16px;
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+  color: #717171;
+}
+
+section.car-list .car-list-empty {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 40px 24px 36px;
+  text-align: center;
+  width: 100%;
+}
+
+section.car-list .car-list-empty-img {
+  display: block;
+  height: auto;
+  max-height: 280px;
+  max-width: min(420px, 100%);
+  object-fit: contain;
+  width: 100%;
+}
+
+section.car-list .car-list-empty-title {
+  color: #1f2937;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 8px 0 0;
+}
+
+section.car-list .car-list-empty-message {
+  color: #5b6b80;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 420px;
+}
+
+section.car-list .car-list-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+section.car-list .car-list-empty-primary {
+  background: #f97316 !important;
+  box-shadow: none !important;
+  font-weight: 600;
+  text-transform: none;
+}
+
+section.car-list .car-list-empty-primary:hover {
+  background: #ea580c !important;
+}
+
+section.car-list .car-list-empty-secondary {
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+  font-weight: 600;
+  text-transform: none;
 }
 
 section.car-list div.title {
@@ -66,6 +136,14 @@ section.car-list div.title div.car-count {
 @media only screen and (width <=960px) {
   section.car-list .empty-list {
     width: calc(100% - 20px);
+  }
+
+  section.car-list .car-list-empty {
+    padding: 28px 16px;
+  }
+
+  section.car-list .car-list-empty-img {
+    max-height: 220px;
   }
 
   section.car-list div.title {

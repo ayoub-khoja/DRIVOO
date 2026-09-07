@@ -33,6 +33,36 @@ const strings = new LocalizedStrings({
     STATUS_MESSAGE: 'تحقق من بريدك الإلكتروني واتبع الخطوات الموضحة في رسالة تأكيد الحجز.',
     STATUS_MESSAGE_GUEST: 'تحقق من بريدك الإلكتروني: ستجد تأكيد الحجز ورابط تفعيل الحساب.',
   },
+  es: {
+    CONGRATULATIONS: '¡Felicidades!',
+    SUCCESS: 'Tu pago se ha completado con éxito. Te hemos enviado un correo de confirmación.',
+    SUCCESS_PAY_LATER: 'Tu reserva ha sido confirmada. Te hemos enviado un correo de confirmación.',
+    SUCCESS_GUEST_ACTIVATION: 'También recibirás un correo para activar tu cuenta y hacer seguimiento de tu reserva.',
+    ERROR: 'Algo salió mal. Por favor, inténtalo de nuevo más tarde.',
+    STATUS_TITLE: `${env.WEBSITE_NAME} — Confirmación de reserva`,
+    STATUS_MESSAGE: 'Revisa tu bandeja de entrada y sigue los pasos indicados en el correo de confirmación de reserva.',
+    STATUS_MESSAGE_GUEST: 'Revisa tu bandeja de entrada: encontrarás la confirmación de reserva y el enlace para activar tu cuenta.',
+  },
+  it: {
+    CONGRATULATIONS: 'Congratulazioni!',
+    SUCCESS: 'Il pagamento è stato completato con successo. Ti abbiamo inviato un\'email di conferma.',
+    SUCCESS_PAY_LATER: 'La tua prenotazione è stata confermata. Ti abbiamo inviato un\'email di conferma.',
+    SUCCESS_GUEST_ACTIVATION: 'Riceverai anche un\'email per attivare il tuo account e seguire la tua prenotazione.',
+    ERROR: 'Qualcosa è andato storto. Riprova più tardi.',
+    STATUS_TITLE: `${env.WEBSITE_NAME} — Conferma prenotazione`,
+    STATUS_MESSAGE: 'Controlla la tua casella di posta e segui i passaggi indicati nell\'email di conferma della prenotazione.',
+    STATUS_MESSAGE_GUEST: 'Controlla la tua casella di posta: troverai la conferma della prenotazione e il link per attivare il tuo account.',
+  },
+  de: {
+    CONGRATULATIONS: 'Herzlichen Glückwunsch!',
+    SUCCESS: 'Ihre Zahlung wurde erfolgreich abgeschlossen. Wir haben Ihnen eine Bestätigungs-E-Mail gesendet.',
+    SUCCESS_PAY_LATER: 'Ihre Buchung wurde bestätigt. Wir haben Ihnen eine Bestätigungs-E-Mail gesendet.',
+    SUCCESS_GUEST_ACTIVATION: 'Sie erhalten außerdem eine E-Mail zur Aktivierung Ihres Kontos und zur Nachverfolgung Ihrer Buchung.',
+    ERROR: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut.',
+    STATUS_TITLE: `${env.WEBSITE_NAME} — Buchungsbestätigung`,
+    STATUS_MESSAGE: 'Überprüfen Sie Ihren Posteingang und folgen Sie den Schritten in der Buchungsbestätigungs-E-Mail.',
+    STATUS_MESSAGE_GUEST: 'Überprüfen Sie Ihren Posteingang: Sie finden dort die Buchungsbestätigung und den Link zur Kontoaktivierung.',
+  },
 })
 
 langHelper.setLanguage(strings)

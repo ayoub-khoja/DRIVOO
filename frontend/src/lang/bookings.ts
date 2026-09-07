@@ -11,6 +11,15 @@ const strings = new LocalizedStrings({
   ar: {
     NEW_BOOKING: 'حجز جديد',
   },
+  es: {
+    NEW_BOOKING: 'Nueva reserva',
+  },
+  it: {
+    NEW_BOOKING: 'Nuova prenotazione',
+  },
+  de: {
+    NEW_BOOKING: 'Neue Buchung',
+  },
 })
 
 langHelper.setLanguage(strings)

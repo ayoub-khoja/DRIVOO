@@ -60,3 +60,26 @@ export const downloadInvoicePdf = async (id: string, number: string): Promise<vo
   // Revoke on the next tick so Safari has time to start the download
   window.setTimeout(() => URL.revokeObjectURL(url), 4000)
 }
+
+/**
+ * Fetch the structured XML export rendered by the backend.
+ */
+export const getInvoiceXml = (id: string): Promise<Blob> =>
+  agencyAxiosInstance
+    .get(`/api/agency/invoice/${encodeURIComponent(id)}/xml`, { responseType: 'blob' })
+    .then((res) => new Blob([res.data], { type: 'application/xml;charset=utf-8' }))
+
+/**
+ * Save the invoice XML to the visitor's disk.
+ */
+export const downloadInvoiceXml = async (id: string, number: string): Promise<void> => {
+  const blob = await getInvoiceXml(id)
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `Facture-${number}.xml`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
+}

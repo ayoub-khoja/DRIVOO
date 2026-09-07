@@ -29,6 +29,33 @@ const strings = new LocalizedStrings({
     INVALID_PICK_UP_TIME: 'وقت الاستلام غير صالح',
     INVALID_DROP_OFF_TIME: 'وقت التسليم غير صالح',
   },
+  es: {
+    PICK_UP_DATE: 'Fecha de recogida',
+    DROP_OFF_DATE: 'Fecha de devolución',
+    DROP_OFF: 'Devolver el coche en otro lugar',
+    MIN_PICK_UP_HOURS_ERROR: 'La hora de recogida debe ser con al menos unas horas de antelación',
+    MIN_RENTAL_HOURS_ERROR: 'La duración del alquiler es demasiado corta',
+    INVALID_PICK_UP_TIME: 'Hora de recogida no válida',
+    INVALID_DROP_OFF_TIME: 'Hora de devolución no válida',
+  },
+  it: {
+    PICK_UP_DATE: 'Data di ritiro',
+    DROP_OFF_DATE: 'Data di riconsegna',
+    DROP_OFF: "Riconsegnare l'auto in un altro luogo",
+    MIN_PICK_UP_HOURS_ERROR: "L'orario di ritiro deve essere almeno qualche ora nel futuro",
+    MIN_RENTAL_HOURS_ERROR: 'La durata del noleggio è troppo breve',
+    INVALID_PICK_UP_TIME: 'Orario di ritiro non valido',
+    INVALID_DROP_OFF_TIME: 'Orario di riconsegna non valido',
+  },
+  de: {
+    PICK_UP_DATE: 'Abholdatum',
+    DROP_OFF_DATE: 'Rückgabedatum',
+    DROP_OFF: 'Das Auto an einem anderen Ort zurückgeben',
+    MIN_PICK_UP_HOURS_ERROR: 'Die Abholzeit muss mindestens einige Stunden in der Zukunft liegen',
+    MIN_RENTAL_HOURS_ERROR: 'Die Mietdauer ist zu kurz',
+    INVALID_PICK_UP_TIME: 'Ungültige Abholzeit',
+    INVALID_DROP_OFF_TIME: 'Ungültige Rückgabezeit',
+  },
 })
 
 langHelper.setLanguage(strings)

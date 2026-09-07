@@ -8,7 +8,7 @@ const mapConfig = {
   longitude: env.MAP_LONGITUDE,
   zoom: env.MAP_ZOOM,
   googleMapsApiKey: env.GOOGLE_MAPS_API_KEY,
-  /** true when Google Maps tiles should be used instead of OpenStreetMap */
+  /** true when Google Maps tiles / Places autocomplete should be used */
   useGoogleMaps: Boolean(env.GOOGLE_MAPS_API_KEY),
   googleMapType: 'roadmap' as GoogleMapType,
   osmTileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',

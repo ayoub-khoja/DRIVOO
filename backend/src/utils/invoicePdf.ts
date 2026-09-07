@@ -22,6 +22,7 @@ import {
   ribFromIban,
   type PdfAgencyInfo,
 } from './pdfShared'
+import { DOCUMENT_QR_SIZE, drawDocumentQr, renderDocumentQrPng } from './documentQr'
 
 /**
  * Server side rendering of an agency invoice, laid out after the Tunisian "FACTURE"
@@ -49,6 +50,7 @@ export interface InvoiceLineInfo {
 }
 
 export interface InvoiceInfo {
+  id: string
   number: string
   issueCity: string
   issueDate: Date | string
@@ -84,7 +86,10 @@ export const buildInvoicePdf = async (
   invoice: InvoiceInfo,
   agency: InvoiceAgencyInfo,
 ): Promise<Buffer> => {
-  const logo = await readLogo(agency.avatar)
+  const [logo, qrPng] = await Promise.all([
+    readLogo(agency.avatar),
+    renderDocumentQrPng('invoice', invoice.id, invoice.number),
+  ])
 
   const doc = new PDFDocument({
     size: 'A4',
@@ -110,9 +115,13 @@ export const buildInvoicePdf = async (
   const currency = invoice.currency || 'TND'
 
   //
-  // Header — agency identity on the left, document title on the right
+  // Header — agency identity on the left, title + unique QR on the right
   //
   let y = PAGE_MARGIN
+  const qrX = right - DOCUMENT_QR_SIZE
+  const titleW = 200
+  const titleX = qrX - 12 - titleW
+  const qrBottom = drawDocumentQr(doc, qrPng, qrX, y)
 
   if (logo) {
     try {
@@ -140,11 +149,11 @@ export const buildInvoicePdf = async (
   }
 
   doc.font('Helvetica-Bold').fontSize(22).fillColor(NAVY)
-  doc.text('FACTURE', right - 220, y, { width: 220, align: 'right' })
+  doc.text('FACTURE', titleX, y, { width: titleW, align: 'right' })
   doc.font('Helvetica-Bold').fontSize(12).fillColor(ORANGE)
-  doc.text(`N° ${invoice.number}`, right - 220, doc.y + 2, { width: 220, align: 'right' })
+  doc.text(`N° ${invoice.number}`, titleX, doc.y + 2, { width: titleW, align: 'right' })
 
-  y = Math.max(identityY, doc.y) + 16
+  y = Math.max(identityY, doc.y, qrBottom) + 16
 
   doc.moveTo(left, y).lineTo(right, y).lineWidth(1.5).strokeColor(ORANGE).stroke()
   y += 14

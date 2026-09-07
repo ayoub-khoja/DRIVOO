@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import {
   AddRounded,
+  CodeRounded,
   DeleteOutlineRounded,
   DownloadRounded,
   PrintOutlined,
@@ -84,6 +85,14 @@ const AgencyInvoices = () => {
       await AgencyInvoiceService.downloadInvoicePdf(invoice._id, invoice.number)
     } catch {
       helper.error(undefined, strings.INVOICE_PDF_ERROR)
+    }
+  }
+
+  const handleDownloadXml = async (invoice: AgencyInvoice) => {
+    try {
+      await AgencyInvoiceService.downloadInvoiceXml(invoice._id, invoice.number)
+    } catch {
+      helper.error(undefined, strings.INVOICE_XML_ERROR)
     }
   }
 
@@ -249,6 +258,11 @@ const AgencyInvoices = () => {
                             <DownloadRounded fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title={strings.INVOICE_XML}>
+                          <IconButton size="small" onClick={() => void handleDownloadXml(row)}>
+                            <CodeRounded fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title={strings.INVOICE_DELETE}>
                           <IconButton size="small" onClick={() => void handleDelete(row)}>
                             <DeleteOutlineRounded fontSize="small" />
@@ -318,6 +332,12 @@ const AgencyInvoices = () => {
                 onClick={() => preview && void handleDownload(preview)}
               >
                 {strings.INVOICE_PDF}
+              </Button>
+              <Button
+                startIcon={<CodeRounded />}
+                onClick={() => preview && void handleDownloadXml(preview)}
+              >
+                {strings.INVOICE_XML}
               </Button>
               <Button
                 onClick={() => {

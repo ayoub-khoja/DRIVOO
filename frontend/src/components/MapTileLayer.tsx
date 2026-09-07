@@ -90,7 +90,7 @@ const MapTileLayer = () => {
     return (
       <TileLayer
         url={source.url}
-        subdomains={source.subdomains}
+        {...(source.subdomains ? { subdomains: source.subdomains } : {})}
         maxZoom={source.maxZoom ?? 22}
         attribution="&copy; Google"
       />

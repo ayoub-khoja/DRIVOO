@@ -23,6 +23,27 @@ const strings = new LocalizedStrings({
     RATING_3: '(3 فأكثر)',
     RATING_4: '(4 فأكثر)',
   },
+  es: {
+    RATING: 'Valoración',
+    RATING_1: '(1 y más)',
+    RATING_2: '(2 y más)',
+    RATING_3: '(3 y más)',
+    RATING_4: '(4 y más)',
+  },
+  it: {
+    RATING: 'Valutazione',
+    RATING_1: '(1 e oltre)',
+    RATING_2: '(2 e oltre)',
+    RATING_3: '(3 e oltre)',
+    RATING_4: '(4 e oltre)',
+  },
+  de: {
+    RATING: 'Bewertung',
+    RATING_1: '(1 und mehr)',
+    RATING_2: '(2 und mehr)',
+    RATING_3: '(3 und mehr)',
+    RATING_4: '(4 und mehr)',
+  },
 })
 
 langHelper.setLanguage(strings)

@@ -12,6 +12,11 @@ div.search.search-pro div.col-1 {
   flex-shrink: 0;
 }
 
+div.search.search-pro .search-car-filter-anchor {
+  width: 100%;
+  max-width: 480px;
+}
+
 div.search.search-pro div.col-2 {
   flex: 1;
   max-width: 960px;

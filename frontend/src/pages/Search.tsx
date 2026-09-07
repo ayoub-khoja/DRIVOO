@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -6,6 +6,7 @@ import * as helper from '@/utils/helper'
 import env from '@/config/env.config'
 import * as LocationService from '@/services/LocationService'
 import * as SupplierService from '@/services/SupplierService'
+import * as CarService from '@/services/CarService'
 import Layout from '@/components/Layout'
 import NoMatch from './NoMatch'
 import CarFilter from '@/components/CarFilter'
@@ -53,11 +54,48 @@ const Search = () => {
   const [priceBuckets, setPriceBuckets] = useState<PriceBucket[]>([])
   const [deliveryTypes, setDeliveryTypes] = useState<string[]>([])
   const [requireAdditionalDriver, setRequireAdditionalDriver] = useState(false)
+  const carFilterRef = useRef<HTMLDivElement | null>(null)
 
   const facets: SearchFacets = useMemo(
     () => computeSearchFacets(baselineCars),
     [baselineCars],
   )
+
+  // Baseline inventory for dynamic left filters (counts stay useful even when the list is empty)
+  useEffect(() => {
+    const loadBaseline = async () => {
+      if (!pickupLocation?._id || !from || !to || allSuppliersIds.length === 0) {
+        return
+      }
+
+      try {
+        const payload: bookcarsTypes.GetCarsPayload = {
+          suppliers: allSuppliersIds,
+          pickupLocation: pickupLocation._id,
+          carType: bookcarsHelper.getAllCarTypes(),
+          gearbox: [bookcarsTypes.GearboxType.Automatic, bookcarsTypes.GearboxType.Manual],
+          mileage: [bookcarsTypes.Mileage.Limited, bookcarsTypes.Mileage.Unlimited],
+          fuelPolicy: bookcarsHelper.getAllFuelPolicies(),
+          deposit: -1,
+          ranges: bookcarsHelper.getAllRanges(),
+          multimedia: [],
+          rating: -1,
+          seats: -1,
+          from,
+          to,
+          includeComingSoonCars: true,
+        }
+        const data = await CarService.getCars(payload, 1, 500)
+        const rows = Array.isArray(data) && data.length > 0 ? (data[0]?.resultData || []) : []
+        setBaselineCars(rows)
+      } catch (err) {
+        helper.error(err)
+        setBaselineCars([])
+      }
+    }
+
+    void loadBaseline()
+  }, [pickupLocation?._id, from, to, allSuppliersIds])
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -235,15 +273,17 @@ const Search = () => {
                       </Map>
                     )}
 
-                  <CarFilter
-                    className="filter"
-                    pickupLocation={pickupLocation}
-                    dropOffLocation={dropOffLocation}
-                    from={from}
-                    to={to}
-                    collapse
-                    onSubmit={handleCarFilterSubmit}
-                  />
+                  <div ref={carFilterRef} className="search-car-filter-anchor">
+                    <CarFilter
+                      className="filter"
+                      pickupLocation={pickupLocation}
+                      dropOffLocation={dropOffLocation}
+                      from={from}
+                      to={to}
+                      collapse
+                      onSubmit={handleCarFilterSubmit}
+                    />
+                  </div>
 
                   <SearchFiltersSidebar
                     facets={facets}
@@ -309,7 +349,14 @@ const Search = () => {
                 priceBuckets={priceBuckets}
                 deliveryTypes={deliveryTypes}
                 requireAdditionalDriver={requireAdditionalDriver}
-                onBaselineCarsLoaded={setBaselineCars}
+                onClearFilters={handleClearAllFilters}
+                onModifySearch={() => {
+                  carFilterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  const input = carFilterRef.current?.querySelector('input')
+                  if (input instanceof HTMLElement) {
+                    window.setTimeout(() => input.focus(), 350)
+                  }
+                }}
                 hideSupplier={env.HIDE_SUPPLIERS}
               />
             </div>

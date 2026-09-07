@@ -153,6 +153,156 @@ If you have any questions about this Cookie Policy, please contact us at: ${env.
 إذا كانت لديك أي أسئلة حول سياسة ملفات تعريف الارتباط هذه، يرجى التواصل معنا على: ${env.CONTACT_EMAIL}
     `,
   },
+  es: {
+    TITLE: 'Política de cookies',
+    POLICY: `
+Esta Política de cookies explica cómo ${env.WEBSITE_NAME} («nosotros» o «nuestro») utiliza cookies y tecnologías similares en nuestro sitio web. Al utilizar nuestro sitio web, usted consiente el uso de cookies según lo descrito en esta política.
+
+1. ¿Qué son las cookies?
+
+Las cookies son pequeños archivos de texto que se almacenan en su dispositivo (ordenador, tableta, smartphone) cuando visita un sitio web. Ayudan a mejorar su experiencia de navegación al recordar sus preferencias y proporcionar información o servicios relevantes.
+
+2. Tipos de cookies que utilizamos
+
+Utilizamos los siguientes tipos de cookies:
+
+- Cookies estrictamente necesarias: Estas cookies son esenciales para el funcionamiento del sitio web y no se pueden desactivar en nuestros sistemas.
+- Cookies de rendimiento: Estas cookies nos ayudan a comprender cómo los visitantes interactúan con nuestro sitio web al recopilar y reportar información de forma anónima.
+- Cookies funcionales: Estas cookies permiten que el sitio web ofrezca funcionalidades mejoradas y personalización.
+- Cookies de publicidad/segmentación: Estas cookies se utilizan para ofrecer anuncios relevantes y rastrear el rendimiento de la publicidad.
+
+3. Cómo utilizamos las cookies
+
+Utilizamos cookies para:
+
+- Mejorar la funcionalidad y el rendimiento del sitio web.
+- Analizar el uso del sitio para mejorar nuestros servicios.
+- Personalizar su experiencia y recordar sus preferencias.
+- Mostrar anuncios dirigidos según sus intereses.
+
+4. Gestión de sus preferencias de cookies
+
+Puede gestionar sus preferencias de cookies en cualquier momento ajustando la configuración de su navegador. La mayoría de los navegadores le permiten:
+
+- Bloquear todas las cookies.
+- Eliminar las cookies existentes.
+- Recibir notificaciones cuando se establece una cookie.
+
+Tenga en cuenta que desactivar las cookies puede afectar a su experiencia en nuestro sitio web.
+
+5. Cookies de terceros
+
+Podemos permitir que proveedores de servicios de terceros coloquen cookies en nuestro sitio web para analizar el tráfico, proporcionar servicios publicitarios o habilitar funcionalidades adicionales. Estas cookies se rigen por las políticas de privacidad de dichos terceros.
+
+6. Cambios en esta Política de cookies
+
+Podemos actualizar esta Política de cookies de vez en cuando para reflejar cambios en la tecnología, la legislación o nuestras prácticas. La política actualizada se publicará en esta página con una nueva fecha de «Última actualización».
+
+7. Contáctenos
+
+Si tiene alguna pregunta sobre esta Política de cookies, póngase en contacto con nosotros en: ${env.CONTACT_EMAIL}
+    `,
+  },
+  it: {
+    TITLE: 'Politica dei cookie',
+    POLICY: `
+Questa Politica dei cookie spiega come ${env.WEBSITE_NAME} («noi» o «nostro») utilizza i cookie e tecnologie simili sul nostro sito web. Utilizzando il nostro sito web, acconsenti all'uso dei cookie come descritto in questa politica.
+
+1. Cosa sono i cookie?
+
+I cookie sono piccoli file di testo che vengono memorizzati sul tuo dispositivo (computer, tablet, smartphone) quando visiti un sito web. Aiutano a migliorare la tua esperienza di navigazione ricordando le tue preferenze e fornendo informazioni o servizi pertinenti.
+
+2. Tipi di cookie che utilizziamo
+
+Utilizziamo i seguenti tipi di cookie:
+
+- Cookie strettamente necessari: Questi cookie sono essenziali per il funzionamento del sito web e non possono essere disattivati nei nostri sistemi.
+- Cookie di prestazione: Questi cookie ci aiutano a capire come i visitatori interagiscono con il nostro sito web raccogliendo e segnalando informazioni in modo anonimo.
+- Cookie funzionali: Questi cookie consentono al sito web di offrire funzionalità avanzate e personalizzazione.
+- Cookie di targeting/pubblicità: Questi cookie vengono utilizzati per fornire pubblicità pertinenti e monitorare le prestazioni degli annunci.
+
+3. Come utilizziamo i cookie
+
+Utilizziamo i cookie per:
+
+- Migliorare la funzionalità e le prestazioni del sito web.
+- Analizzare l'utilizzo del sito per migliorare i nostri servizi.
+- Personalizzare la tua esperienza e ricordare le tue preferenze.
+- Fornire pubblicità mirate in base ai tuoi interessi.
+
+4. Gestione delle preferenze sui cookie
+
+Puoi gestire le tue preferenze sui cookie in qualsiasi momento modificando le impostazioni del tuo browser. La maggior parte dei browser ti consente di:
+
+- Bloccare tutti i cookie.
+- Eliminare i cookie esistenti.
+- Ricevere notifiche quando viene impostato un cookie.
+
+Tieni presente che la disattivazione dei cookie potrebbe influire sulla tua esperienza sul nostro sito web.
+
+5. Cookie di terze parti
+
+Possiamo consentire a fornitori di servizi terzi di inserire cookie sul nostro sito web per analizzare il traffico, fornire servizi pubblicitari o abilitare funzionalità aggiuntive. Questi cookie sono regolati dalle politiche sulla privacy delle terze parti.
+
+6. Modifiche a questa Politica dei cookie
+
+Possiamo aggiornare questa Politica dei cookie di tanto in tanto per riflettere i cambiamenti nella tecnologia, nella legislazione o nelle nostre pratiche. La politica aggiornata sarà pubblicata su questa pagina con una nuova data di «Ultimo aggiornamento».
+
+7. Contattaci
+
+Per qualsiasi domanda su questa Politica dei cookie, ti preghiamo di contattarci all'indirizzo: ${env.CONTACT_EMAIL}
+    `,
+  },
+  de: {
+    TITLE: 'Cookie-Richtlinie',
+    POLICY: `
+Diese Cookie-Richtlinie erklärt, wie ${env.WEBSITE_NAME} („wir", „uns" oder „unser") Cookies und ähnliche Technologien auf unserer Website verwendet. Durch die Nutzung unserer Website stimmen Sie der Verwendung von Cookies gemäß dieser Richtlinie zu.
+
+1. Was sind Cookies?
+
+Cookies sind kleine Textdateien, die auf Ihrem Gerät (Computer, Tablet, Smartphone) gespeichert werden, wenn Sie eine Website besuchen. Sie helfen, Ihr Surferlebnis zu verbessern, indem sie Ihre Präferenzen speichern und relevante Informationen oder Dienste bereitstellen.
+
+2. Arten von Cookies, die wir verwenden
+
+Wir verwenden folgende Arten von Cookies:
+
+- Unbedingt erforderliche Cookies: Diese Cookies sind für die Funktion der Website unerlässlich und können in unseren Systemen nicht deaktiviert werden.
+- Leistungs-Cookies: Diese Cookies helfen uns zu verstehen, wie Besucher mit unserer Website interagieren, indem sie Informationen anonym sammeln und melden.
+- Funktionale Cookies: Diese Cookies ermöglichen es der Website, erweiterte Funktionalität und Personalisierung bereitzustellen.
+- Targeting-/Werbe-Cookies: Diese Cookies werden verwendet, um relevante Werbung zu liefern und die Werbeleistung zu verfolgen.
+
+3. Wie wir Cookies verwenden
+
+Wir verwenden Cookies, um:
+
+- Die Funktionalität und Leistung der Website zu verbessern.
+- Die Nutzung der Website zu analysieren, um unsere Dienste zu verbessern.
+- Ihr Erlebnis zu personalisieren und Ihre Präferenzen zu speichern.
+- Gezielte Werbung basierend auf Ihren Interessen bereitzustellen.
+
+4. Verwaltung Ihrer Cookie-Einstellungen
+
+Sie können Ihre Cookie-Einstellungen jederzeit verwalten, indem Sie die Einstellungen in Ihrem Browser anpassen. Die meisten Browser ermöglichen Ihnen:
+
+- Alle Cookies zu blockieren.
+- Vorhandene Cookies zu löschen.
+- Benachrichtigungen zu erhalten, wenn ein Cookie gesetzt wird.
+
+Bitte beachten Sie, dass das Deaktivieren von Cookies Ihr Erlebnis auf unserer Website beeinträchtigen kann.
+
+5. Cookies von Drittanbietern
+
+Wir können Drittanbietern gestatten, Cookies auf unserer Website zu platzieren, um den Website-Verkehr zu analysieren, Werbedienste bereitzustellen oder zusätzliche Funktionen zu ermöglichen. Diese Cookies unterliegen den Datenschutzrichtlinien der jeweiligen Drittanbieter.
+
+6. Änderungen dieser Cookie-Richtlinie
+
+Wir können diese Cookie-Richtlinie von Zeit zu Zeit aktualisieren, um Änderungen in der Technologie, Gesetzgebung oder unseren Praktiken widerzuspiegeln. Die aktualisierte Richtlinie wird auf dieser Seite mit einem überarbeiteten Datum „Zuletzt aktualisiert" veröffentlicht.
+
+7. Kontaktieren Sie uns
+
+Wenn Sie Fragen zu dieser Cookie-Richtlinie haben, kontaktieren Sie uns bitte unter: ${env.CONTACT_EMAIL}
+    `,
+  },
 })
 
 langHelper.setLanguage(strings)
