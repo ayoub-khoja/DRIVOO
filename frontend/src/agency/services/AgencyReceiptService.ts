@@ -31,3 +31,28 @@ export const deleteReceipt = (id: string): Promise<number> =>
   agencyAxiosInstance
     .delete(`/api/agency/receipt/${encodeURIComponent(id)}`)
     .then((res) => res.status)
+
+/**
+ * Fetch the PDF rendered by the backend. The document is authenticated through the
+ * agency cookie, so it cannot be linked to directly — it is downloaded as a blob and
+ * turned into an object URL by the caller.
+ */
+export const getReceiptPdf = (id: string): Promise<Blob> =>
+  agencyAxiosInstance
+    .get(`/api/agency/receipt/${encodeURIComponent(id)}/pdf`, { responseType: 'blob' })
+    .then((res) => new Blob([res.data], { type: 'application/pdf' }))
+
+/**
+ * Save the receipt PDF to the visitor's disk.
+ */
+export const downloadReceiptPdf = async (id: string, number: string): Promise<void> => {
+  const blob = await getReceiptPdf(id)
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `Recu-${number}.pdf`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
+}

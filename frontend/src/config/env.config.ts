@@ -21,8 +21,23 @@ const LANGUAGES: Language[] = [
     label: 'Français',
   },
   {
+    code: 'es',
+    countryCode: 'es',
+    label: 'Español',
+  },
+  {
+    code: 'it',
+    countryCode: 'it',
+    label: 'Italiano',
+  },
+  {
+    code: 'de',
+    countryCode: 'de',
+    label: 'Deutsch',
+  },
+  {
     code: 'ar',
-    countryCode: 'tn',
+    countryCode: 'sa',
     label: 'العربية',
   },
 ]

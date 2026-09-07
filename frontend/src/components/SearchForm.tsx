@@ -20,6 +20,7 @@ import LocationSelectList from '@/components/LocationSelectList'
 import DateTimePicker from '@/components/DateTimePicker'
 import { schema, FormFields, LocationField } from '@/models/SearchForm'
 import { useSetting } from '@/context/SettingContext'
+import * as GooglePlacesService from '@/services/GooglePlacesService'
 
 import '@/assets/css/search-form.css'
 
@@ -53,6 +54,10 @@ const SearchForm = ({
   const minRentalHours = settings?.minRentalHours ?? 1
   const minPickupDropoffHour = settings?.minPickupDropoffHour ?? 0
   const maxPickupDropoffHour = settings?.maxPickupDropoffHour ?? 23
+
+  useEffect(() => {
+    GooglePlacesService.prefetchGooglePlaces()
+  }, [])
 
   useEffect(() => {
     const _minTime = new Date()
@@ -313,6 +318,7 @@ const SearchForm = ({
           // customOpen={env.isMobile}
           // init={!env.isMobile}
           init
+          googlePlaces
           required
           variant="outlined"
           value={pickupLocation as bookcarsTypes.Location}
@@ -387,6 +393,7 @@ const SearchForm = ({
             // customOpen={env.isMobile}
             // init={!env.isMobile}
             init
+            googlePlaces
             value={dropOffLocation as bookcarsTypes.Location}
             required
             variant="outlined"

@@ -146,9 +146,12 @@ const AgencyTopbar = () => {
         anchorEl={langAnchorEl}
         open={Boolean(langAnchorEl)}
         onClose={() => setLangAnchorEl(null)}
-        className="menu"
+        className="menu agency-lang-menu"
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: { className: 'agency-lang-menu-paper' },
+        }}
       >
         {env._LANGUAGES.map((language) => (
           <MenuItem onClick={onLanguageSelect} data-code={language.code} key={language.code}>

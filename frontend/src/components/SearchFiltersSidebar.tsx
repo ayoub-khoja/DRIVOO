@@ -17,18 +17,24 @@ interface FilterOptionProps {
   onChange: (checked: boolean) => void
 }
 
-const FilterOption = ({ id, label, count, checked, onChange }: FilterOptionProps) => (
-  <label className="search-filter-option" htmlFor={id}>
-    <input
-      id={id}
-      type="checkbox"
-      checked={checked}
-      onChange={(e) => onChange(e.target.checked)}
-    />
-    <span className="search-filter-option-label">{label}</span>
-    {count !== undefined && <span className="search-filter-count">{count}</span>}
-  </label>
-)
+const FilterOption = ({ id, label, count, checked, onChange }: FilterOptionProps) => {
+  const n = count ?? 0
+  const disabled = n === 0 && !checked
+
+  return (
+    <label className={`search-filter-option${disabled ? ' is-disabled' : ''}`} htmlFor={id}>
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span className="search-filter-option-label">{label}</span>
+      <span className="search-filter-count">{n}</span>
+    </label>
+  )
+}
 
 export interface SearchFiltersSidebarProps {
   facets: SearchFacets

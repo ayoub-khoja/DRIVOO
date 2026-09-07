@@ -2,7 +2,7 @@ import React from 'react'
 import { Button } from '@mui/material'
 import { InfoOutlined as InfoIcon } from '@mui/icons-material'
 import { format } from 'date-fns'
-import { fr, enUS, arTN } from 'date-fns/locale'
+import { getDateFnsLocale } from '@/utils/locale'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/lang/offer'
 import * as UserService from '@/services/UserService'
@@ -23,7 +23,7 @@ const OfferSearchBar = ({
   onModify,
 }: OfferSearchBarProps) => {
   const language = UserService.getLanguage()
-  const locale = language === 'fr' ? fr : language === 'ar' ? arTN : enUS
+  const locale = getDateFnsLocale(language)
   const dateFmt = language === 'fr' ? 'eee d MMM yyyy, HH:mm' : 'eee, d MMM yyyy, HH:mm'
   const pickupTime = format(from, 'HH:mm', { locale })
   const fromLabel = format(from, dateFmt, { locale })

@@ -23,6 +23,27 @@ const strings = new LocalizedStrings({
     SEND: 'إرسال',
     MESSAGE_SENT: 'تم إرسال الرسالة',
   },
+  es: {
+    CONTACT_HEADING: 'Contacto',
+    SUBJECT: 'Asunto',
+    MESSAGE: 'Mensaje',
+    SEND: 'Enviar',
+    MESSAGE_SENT: 'Mensaje enviado'
+  },
+  it: {
+    CONTACT_HEADING: 'Contatto',
+    SUBJECT: 'Oggetto',
+    MESSAGE: 'Messaggio',
+    SEND: 'Invia',
+    MESSAGE_SENT: 'Messaggio inviato'
+  },
+  de: {
+    CONTACT_HEADING: 'Kontakt',
+    SUBJECT: 'Betreff',
+    MESSAGE: 'Nachricht',
+    SEND: 'Senden',
+    MESSAGE_SENT: 'Nachricht gesendet'
+  },
 })
 
 langHelper.setLanguage(strings)

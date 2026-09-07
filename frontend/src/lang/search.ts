@@ -14,6 +14,18 @@ const strings = new LocalizedStrings({
     SHOW_FILTERS: 'إظهار عوامل التصفية',
     HILE_FILTERS: 'إخفاء عوامل التصفية',
   },
+  es: {
+    SHOW_FILTERS: 'Mostrar filtros',
+    HILE_FILTERS: 'Ocultar filtros',
+  },
+  it: {
+    SHOW_FILTERS: 'Mostra filtri',
+    HILE_FILTERS: 'Nascondi filtri',
+  },
+  de: {
+    SHOW_FILTERS: 'Filter anzeigen',
+    HILE_FILTERS: 'Filter ausblenden',
+  },
 })
 
 langHelper.setLanguage(strings)

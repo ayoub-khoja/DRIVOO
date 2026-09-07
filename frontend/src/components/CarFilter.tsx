@@ -265,6 +265,7 @@ const CarFilter = ({
             hidePopupIcon
             customOpen={env.isMobile}
             init={!env.isMobile}
+            googlePlaces
             required
             variant="standard"
             value={pickupLocation as bookcarsTypes.Location}
@@ -280,6 +281,7 @@ const CarFilter = ({
               hidePopupIcon
               customOpen={env.isMobile}
               init={!env.isMobile}
+              googlePlaces
               required
               variant="standard"
               onChange={handleDropOffLocationChange}

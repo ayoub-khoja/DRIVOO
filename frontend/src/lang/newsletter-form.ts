@@ -20,6 +20,24 @@ const strings = new LocalizedStrings({
     SUBSCRIBE: 'اشتراك',
     SUCCESS: 'تم الاشتراك بنجاح!',
   },
+  es: {
+    TITLE: 'Suscríbete',
+    SUB_TITLE: '¡Suscríbete a nuestra lista de correo para recibir las últimas novedades!',
+    SUBSCRIBE: 'Suscribirse',
+    SUCCESS: '¡Suscripción exitosa!',
+  },
+  it: {
+    TITLE: 'Iscriviti',
+    SUB_TITLE: 'Iscriviti alla nostra mailing list per ricevere gli ultimi aggiornamenti!',
+    SUBSCRIBE: 'Iscriviti',
+    SUCCESS: 'Iscrizione avvenuta con successo!',
+  },
+  de: {
+    TITLE: 'Abonnieren',
+    SUB_TITLE: 'Abonnieren Sie unseren Newsletter für die neuesten Updates!',
+    SUBSCRIBE: 'Abonnieren',
+    SUCCESS: 'Abonnement erfolgreich!',
+  },
 })
 
 langHelper.setLanguage(strings)

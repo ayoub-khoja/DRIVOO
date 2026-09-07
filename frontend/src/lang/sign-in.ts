@@ -29,6 +29,33 @@ const strings = new LocalizedStrings({
     RESET_PASSWORD: 'نسيت كلمة المرور؟',
     STAY_CONNECTED: 'البقاء متصلاً',
   },
+  es: {
+    SIGN_IN_HEADING: 'Iniciar sesión',
+    SIGN_IN_SUBTITLE: 'Accede a tu cuenta DRIVOO.',
+    SIGN_IN: 'Iniciar sesión',
+    ERROR_IN_SIGN_IN: 'Correo electrónico o contraseña incorrectos.',
+    IS_BLACKLISTED: 'Tu cuenta está suspendida.',
+    RESET_PASSWORD: '¿Olvidaste tu contraseña?',
+    STAY_CONNECTED: 'Mantener la sesión iniciada',
+  },
+  it: {
+    SIGN_IN_HEADING: 'Accedi',
+    SIGN_IN_SUBTITLE: 'Accedi al tuo account DRIVOO.',
+    SIGN_IN: 'Accedi',
+    ERROR_IN_SIGN_IN: 'Email o password non corretti.',
+    IS_BLACKLISTED: 'Il tuo account è sospeso.',
+    RESET_PASSWORD: 'Password dimenticata?',
+    STAY_CONNECTED: 'Resta connesso',
+  },
+  de: {
+    SIGN_IN_HEADING: 'Anmelden',
+    SIGN_IN_SUBTITLE: 'Zugang zu Ihrem DRIVOO-Konto.',
+    SIGN_IN: 'Anmelden',
+    ERROR_IN_SIGN_IN: 'Falsche E-Mail-Adresse oder falsches Passwort.',
+    IS_BLACKLISTED: 'Ihr Konto ist gesperrt.',
+    RESET_PASSWORD: 'Passwort vergessen?',
+    STAY_CONNECTED: 'Angemeldet bleiben',
+  },
 })
 
 langHelper.setLanguage(strings)

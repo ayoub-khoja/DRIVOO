@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Card,
-  CardContent,
-  Typography,
   FormControl,
   Select,
   MenuItem,
+  Button,
 } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import Const from '@/config/const'
@@ -18,6 +16,7 @@ import Pager from '@/components/Pager'
 import SearchCarCard from '@/components/SearchCarCard'
 import Car from '@/components/Car'
 import Progress from '@/components/Progress'
+import notFoundCarImg from '@/assets/img/not-found-car.png'
 import {
   CarSortOption,
   PriceBucket,
@@ -64,6 +63,8 @@ interface CarListProps {
   deliveryTypes?: string[]
   requireAdditionalDriver?: boolean
   searchLayout?: boolean
+  onClearFilters?: () => void
+  onModifySearch?: () => void
 }
 
 const CarList = ({
@@ -100,6 +101,8 @@ const CarList = ({
   deliveryTypes = [],
   requireAdditionalDriver = false,
   searchLayout = false,
+  onClearFilters,
+  onModifySearch,
 }: CarListProps) => {
   const [init, setInit] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -299,11 +302,41 @@ const CarList = ({
           && !loading
           && !carListLoading
           && (
-            <Card variant="outlined" className="empty-list">
-              <CardContent>
-                <Typography color="textSecondary">{carStrings.EMPTY_LIST}</Typography>
-              </CardContent>
-            </Card>
+            searchLayout ? (
+              <div className="car-list-empty">
+                <img
+                  src={notFoundCarImg}
+                  alt=""
+                  className="car-list-empty-img"
+                />
+                <h3 className="car-list-empty-title">{carStrings.EMPTY_LIST}</h3>
+                <p className="car-list-empty-message">{carStrings.EMPTY_LIST_MESSAGE}</p>
+                <div className="car-list-empty-actions">
+                  {onModifySearch && (
+                    <Button
+                      variant="contained"
+                      className="car-list-empty-primary"
+                      onClick={onModifySearch}
+                    >
+                      {carStrings.EMPTY_LIST_ACTION}
+                    </Button>
+                  )}
+                  {onClearFilters && (
+                    <Button
+                      variant="outlined"
+                      className="car-list-empty-secondary"
+                      onClick={onClearFilters}
+                    >
+                      {strings.CLEAR_ALL}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="empty-list">
+                <p>{carStrings.EMPTY_LIST}</p>
+              </div>
+            )
           )
           : ((from && to && pickupLocation && dropOffLocation) || hidePrice)
           && (

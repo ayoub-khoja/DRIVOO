@@ -6,25 +6,24 @@ import {
   InputAdornment,
   OutlinedInput,
 } from '@mui/material'
-import { EventNoteOutlined, Search as SearchIcon } from '@mui/icons-material'
+import { AddRounded, EventNoteOutlined, Search as SearchIcon } from '@mui/icons-material'
 import { format } from 'date-fns'
-import { fr, enUS, arTN } from 'date-fns/locale'
+import { getDateFnsLocale } from '@/utils/locale'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
-import env from '@/config/env.config'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
 import * as AgencyBookingService from '@/agency/services/AgencyBookingService'
+import AgencyAddBookingDialog from '@/agency/pages/AgencyAddBookingDialog'
 import BookingStatus from '@/components/BookingStatus'
 import * as PaymentService from '@/services/PaymentService'
-import * as helper from '@/utils/helper'
 
 const PAGE_SIZE = 10
 
 const AgencyBookings = () => {
   const { agency, agencyLoaded } = useAgencyContext()
   const language = agency?.language || 'fr'
-  const locale = language === 'fr' ? fr : language === 'ar' ? arTN : enUS
+  const locale = getDateFnsLocale(language)
 
   const [keyword, setKeyword] = useState('')
   const [query, setQuery] = useState('')
@@ -33,6 +32,7 @@ const AgencyBookings = () => {
   const [totalRecords, setTotalRecords] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [openForm, setOpenForm] = useState(false)
 
   const load = useCallback(async (search = '', nextPage = 1) => {
     if (!agency?._id) {
@@ -116,6 +116,14 @@ const AgencyBookings = () => {
           <h2>{strings.BOOKINGS}</h2>
           <p>{strings.BOOKINGS_SUBTITLE}</p>
         </div>
+        <Button
+          variant="contained"
+          className="btn-primary"
+          startIcon={<AddRounded />}
+          onClick={() => setOpenForm(true)}
+        >
+          {strings.BOOKING_ADD}
+        </Button>
       </div>
 
       <div className="agency-receipt-stats">
@@ -164,6 +172,16 @@ const AgencyBookings = () => {
           <div className="agency-empty-ring" aria-hidden />
           <EventNoteOutlined className="agency-empty-icon" />
           <p>{query ? strings.BOOKING_EMPTY_SEARCH : strings.BOOKING_EMPTY}</p>
+          {!query && (
+            <Button
+              variant="contained"
+              className="btn-primary"
+              startIcon={<AddRounded />}
+              onClick={() => setOpenForm(true)}
+            >
+              {strings.BOOKING_ADD}
+            </Button>
+          )}
         </div>
       ) : (
         <>
@@ -236,6 +254,16 @@ const AgencyBookings = () => {
           )}
         </>
       )}
+
+      <AgencyAddBookingDialog
+        open={openForm}
+        agency={agency}
+        onClose={() => setOpenForm(false)}
+        onCreated={() => {
+          setOpenForm(false)
+          void load(query, 1)
+        }}
+      />
     </div>
   )
 }

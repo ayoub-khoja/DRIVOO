@@ -4,9 +4,9 @@ import { ToastContainer } from 'react-toastify'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 
-import { frFR as corefrFR, enUS as coreenUS, arSA as corearSA } from '@mui/material/locale'
-import { frFR, enUS } from '@mui/x-date-pickers/locales'
-import { frFR as dataGridfrFR, enUS as dataGridenUS, arSD as dataGridarSD } from '@mui/x-data-grid/locales'
+import { frFR as corefrFR, enUS as coreenUS, arSA as corearSA, esES as coreesES, itIT as coreitIT, deDE as coredeDE } from '@mui/material/locale'
+import { frFR, enUS, esES, itIT, deDE } from '@mui/x-date-pickers/locales'
+import { frFR as dataGridfrFR, enUS as dataGridenUS, arSD as dataGridarSD, esES as dataGridesES, itIT as dataGriditIT, deDE as dataGriddeDE } from '@mui/x-data-grid/locales'
 import { disableDevTools } from ':disable-react-devtools'
 import * as helper from '@/utils/helper'
 import * as UserService from '@/services/UserService'
@@ -162,10 +162,18 @@ if (lang) {
   if (env.SET_LANGUAGE_FROM_IP && !storedLang) {
     const country = await IpInfoService.getCountryCode()
 
-    if (['FR', 'MA'].includes(country)) {
+    if (['FR', 'MA', 'BE', 'CH', 'LU'].includes(country)) {
       updateLang('fr')
     } else if (['US', 'GB', 'AU'].includes(country)) {
       updateLang('en')
+    } else if (['ES', 'MX', 'AR', 'CO', 'CL', 'PE'].includes(country)) {
+      updateLang('es')
+    } else if (country === 'IT') {
+      updateLang('it')
+    } else if (['DE', 'AT'].includes(country)) {
+      updateLang('de')
+    } else if (['SA', 'AE', 'EG', 'QA', 'KW', 'BH', 'OM', 'JO', 'TN', 'DZ'].includes(country)) {
+      updateLang('ar')
     } else {
       updateLang(env.DEFAULT_LANGUAGE)
     }
@@ -175,10 +183,17 @@ if (lang) {
 language = UserService.getLanguage()
 const isFr = language === 'fr'
 const isAr = language === 'ar'
+const isEs = language === 'es'
+const isIt = language === 'it'
+const isDe = language === 'de'
 
 // RTL for Arabic
 document.documentElement.setAttribute('lang', language)
 document.documentElement.setAttribute('dir', isAr ? 'rtl' : 'ltr')
+
+const pickerLocale = isFr ? frFR : isEs ? esES : isIt ? itIT : isDe ? deDE : enUS
+const dataGridLocale = isFr ? dataGridfrFR : isAr ? dataGridarSD : isEs ? dataGridesES : isIt ? dataGriditIT : isDe ? dataGriddeDE : dataGridenUS
+const coreLocale = isFr ? corefrFR : isAr ? corearSA : isEs ? coreesES : isIt ? coreitIT : isDe ? coredeDE : coreenUS
 
 const theme = createTheme(
   {
@@ -283,19 +298,6 @@ const theme = createTheme(
           },
         },
       },
-      // MuiSwitch: {
-      //   styleOverrides: {
-      //     root: {
-      //       '& .Mui-checked': {
-      //         color: '#1976D2 !important',
-      //       },
-      //       '& .Mui-checked+.MuiSwitch-track': {
-      //         opacity: 0.7,
-      //         backgroundColor: '#1976D2 !important',
-      //       },
-      //     },
-      //   },
-      // },
       MuiAutocomplete: {
         styleOverrides: {
           root: {
@@ -309,14 +311,7 @@ const theme = createTheme(
             },
           },
           option: {
-            // Hover
-            // '&[data-focus="true"]': {
-            //     backgroundColor: '#eee !important',
-            //     borderColor: 'transparent',
-            // },
-            // Selected
             '&[aria-selected="true"]': {
-              // backgroundColor: '#faad43 !important',
               backgroundColor: '#F7B644 !important',
             },
           },
@@ -324,9 +319,9 @@ const theme = createTheme(
       },
     },
   },
-  isFr ? frFR : enUS,
-  isFr ? dataGridfrFR : isAr ? dataGridarSD : dataGridenUS,
-  isFr ? corefrFR : isAr ? corearSA : coreenUS,
+  pickerLocale,
+  dataGridLocale,
+  coreLocale,
 )
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
