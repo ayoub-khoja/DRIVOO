@@ -20,7 +20,7 @@ import {
 } from '@/agency/models/AgencyInvoiceForm'
 import * as AgencyInvoiceService from '@/agency/services/AgencyInvoiceService'
 import type { AgencyInvoice } from '@/agency/types/invoice'
-import { computeInvoiceTotals, formatMoney } from '@/agency/utils/invoiceMath'
+import { computeInvoiceTotals, computeDailyLevyTotal, rentalDays, formatMoney, DAILY_LEVY_RATE } from '@/agency/utils/invoiceMath'
 import env from '@/config/env.config'
 
 interface AgencyAddInvoiceDialogProps {
@@ -38,6 +38,7 @@ const emptyLine: AgencyInvoiceLineFields = {
   vehicleLabel: '',
   periodFrom: '',
   periodTo: '',
+  dailyLevyRate: DAILY_LEVY_RATE,
   quantity: 1,
   unitPrice: 0,
 }
@@ -92,10 +93,22 @@ const AgencyAddInvoiceDialog = ({
 
   // Live totals, mirroring what the server will recompute on save
   const watched = useWatch({ control })
+
+  const lineLevyTotals = React.useMemo(
+    () => (watched.lines || []).map((line) => computeDailyLevyTotal(
+      line?.periodFrom,
+      line?.periodTo,
+      Number(line?.quantity) || 0,
+      Number(line?.dailyLevyRate) || 0,
+    )),
+    [watched.lines],
+  )
+
   const totals = React.useMemo(() => computeInvoiceTotals({
-    lines: (watched.lines || []).map((line) => ({
+    lines: (watched.lines || []).map((line, index) => ({
       quantity: Number(line?.quantity) || 0,
       unitPrice: Number(line?.unitPrice) || 0,
+      dailyLevy: lineLevyTotals[index] || 0,
     })),
     discount: Number(watched.discount) || 0,
     vatRate: Number(watched.vatRate) || 0,
@@ -107,7 +120,7 @@ const AgencyAddInvoiceDialog = ({
       card: Number(watched.payments?.card) || 0,
       transfer: Number(watched.payments?.transfer) || 0,
     },
-  }), [watched])
+  }), [watched, lineLevyTotals])
 
   const currency = env.BASE_CURRENCY || 'TND'
 
@@ -116,7 +129,16 @@ const AgencyAddInvoiceDialog = ({
     setSubmitError('')
     try {
       const lineTotals = computeInvoiceTotals({
-        lines: values.lines.map((line) => ({ quantity: line.quantity, unitPrice: line.unitPrice })),
+        lines: values.lines.map((line) => ({
+          quantity: line.quantity,
+          unitPrice: line.unitPrice,
+          dailyLevy: computeDailyLevyTotal(
+            line.periodFrom,
+            line.periodTo,
+            line.quantity,
+            line.dailyLevyRate,
+          ),
+        })),
       }).lineTotals
 
       const created = await AgencyInvoiceService.createInvoice({
@@ -134,6 +156,12 @@ const AgencyAddInvoiceDialog = ({
           vehicleLabel: line.vehicleLabel?.trim() || undefined,
           periodFrom: line.periodFrom || undefined,
           periodTo: line.periodTo || undefined,
+          dailyLevy: computeDailyLevyTotal(
+            line.periodFrom,
+            line.periodTo,
+            line.quantity,
+            line.dailyLevyRate,
+          ),
           quantity: line.quantity,
           unitPrice: line.unitPrice,
           total: lineTotals[index],
@@ -254,6 +282,26 @@ const AgencyAddInvoiceDialog = ({
                   {...register(`lines.${index}.periodTo` as const)}
                 />
                 <TextField
+                  label={strings.INVOICE_DAILY_LEVY}
+                  type="number"
+                  inputProps={{ min: 0, step: '0.001' }}
+                  {...register(`lines.${index}.dailyLevyRate` as const)}
+                  error={!!errors.lines?.[index]?.dailyLevyRate}
+                  helperText={
+                    errors.lines?.[index]?.dailyLevyRate?.message
+                    || (() => {
+                      const line = watched.lines?.[index]
+                      const days = rentalDays(line?.periodFrom, line?.periodTo, Number(line?.quantity) || 0)
+                      const rate = Number(line?.dailyLevyRate) || 0
+                      const total = lineLevyTotals[index] || 0
+                      return strings.INVOICE_DAILY_LEVY_TOTAL
+                        .replace('{0}', String(days))
+                        .replace('{1}', formatMoney(rate))
+                        .replace('{2}', formatMoney(total))
+                    })()
+                  }
+                />
+                <TextField
                   label={strings.INVOICE_QUANTITY}
                   type="number"
                   inputProps={{ min: 0, step: '1' }}
@@ -272,6 +320,12 @@ const AgencyAddInvoiceDialog = ({
               </div>
               <p className="agency-invoice-line-total">
                 {strings.INVOICE_LINE_TOTAL} : <strong>{formatMoney(totals.lineTotals[index] || 0)}</strong>
+                {lineLevyTotals[index] > 0 ? (
+                  <>
+                    {' · '}
+                    {strings.INVOICE_DAILY_LEVY} : <strong>{formatMoney(lineLevyTotals[index])}</strong>
+                  </>
+                ) : null}
               </p>
             </div>
           ))}
@@ -343,10 +397,6 @@ const AgencyAddInvoiceDialog = ({
             {/* Live totals */}
             <aside className="agency-invoice-totals-card">
               <div className="agency-invoice-total-row">
-                <span>{strings.INVOICE_TOTAL_GROSS}</span>
-                <strong>{formatMoney(totals.totalGross)}</strong>
-              </div>
-              <div className="agency-invoice-total-row">
                 <span>{strings.INVOICE_TOTAL_HT}</span>
                 <strong>{formatMoney(totals.totalHT)}</strong>
               </div>
@@ -358,6 +408,12 @@ const AgencyAddInvoiceDialog = ({
                 <span>{strings.INVOICE_STAMP_DUTY}</span>
                 <strong>{formatMoney(Number(watched.stampDuty) || 0)}</strong>
               </div>
+              {totals.dailyLevyTotal > 0 ? (
+                <div className="agency-invoice-total-row">
+                  <span>{strings.INVOICE_DAILY_LEVY}</span>
+                  <strong>{formatMoney(totals.dailyLevyTotal)}</strong>
+                </div>
+              ) : null}
               <div className="agency-invoice-total-row is-strong">
                 <span>{strings.INVOICE_TOTAL_TTC}</span>
                 <strong>{`${formatMoney(totals.totalTTC)} ${currency}`}</strong>

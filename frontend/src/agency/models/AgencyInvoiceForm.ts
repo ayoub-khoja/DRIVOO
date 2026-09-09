@@ -12,6 +12,8 @@ export const agencyInvoiceLineSchema = z.object({
   vehicleLabel: z.string().trim().max(160).optional(),
   periodFrom: z.string().trim().optional(),
   periodTo: z.string().trim().optional(),
+  /** Editable daily rate (Dt/j), default 2 — total = days × rate */
+  dailyLevyRate: z.coerce.number().min(0, 'Valeur invalide'),
   quantity: z.coerce.number().min(0, 'Valeur invalide'),
   unitPrice: z.coerce.number().min(0, 'Valeur invalide'),
 })

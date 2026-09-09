@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
+  Autocomplete,
   Button,
   Checkbox,
   CircularProgress,
@@ -8,10 +9,23 @@ import {
   FormControlLabel,
   MenuItem,
   TextField,
+  createFilterOptions,
 } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/agency/lang/agency'
 import * as AgencyCarService from '@/agency/services/AgencyCarService'
+import {
+  CAR_MAKES,
+  getModelsForMake,
+  resolveMakeKey,
+} from '@/agency/data/carMakesModels'
+
+const filterCarOption = createFilterOptions<string>({
+  stringify: (option) => option,
+  ignoreCase: true,
+  ignoreAccents: true,
+  matchFrom: 'any',
+})
 
 interface AgencyEditCarDialogProps {
   open: boolean
@@ -47,6 +61,8 @@ const AgencyEditCarDialog = ({
     gearbox: bookcarsTypes.GearboxType.Automatic as string,
     range: bookcarsTypes.CarRange.Midi as string,
   })
+
+  const modelOptions = useMemo(() => getModelsForMake(form.brand), [form.brand])
 
   useEffect(() => {
     if (!open || !car) {
@@ -126,17 +142,56 @@ const AgencyEditCarDialog = ({
 
         <form className="agency-branch-form" onSubmit={(e) => void onSubmit(e)}>
           <div className="agency-car-grid">
-            <TextField
-              label={strings.CAR_BRAND}
+            <Autocomplete
+              freeSolo
+              options={CAR_MAKES}
+              filterOptions={filterCarOption}
               value={form.brand}
-              onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))}
-              required
+              onChange={(_event, next) => {
+                const nextBrand = typeof next === 'string' ? next : next || ''
+                const catalogMake = resolveMakeKey(nextBrand)
+                setForm((f) => ({
+                  ...f,
+                  brand: catalogMake || nextBrand,
+                  model: '',
+                }))
+              }}
+              onInputChange={(_event, next, reason) => {
+                if (reason === 'input' || reason === 'clear') {
+                  setForm((f) => {
+                    const previousMake = resolveMakeKey(f.brand)
+                    const nextMake = resolveMakeKey(next)
+                    return {
+                      ...f,
+                      brand: next,
+                      model: reason === 'clear' || previousMake !== nextMake ? '' : f.model,
+                    }
+                  })
+                }
+              }}
+              renderInput={(params) => (
+                <TextField {...params} label={strings.CAR_BRAND} required />
+              )}
             />
-            <TextField
-              label={strings.CAR_MODEL}
+            <Autocomplete
+              freeSolo
+              options={modelOptions}
+              filterOptions={filterCarOption}
               value={form.model}
-              onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
-              required
+              onChange={(_event, next) => {
+                setForm((f) => ({
+                  ...f,
+                  model: typeof next === 'string' ? next : next || '',
+                }))
+              }}
+              onInputChange={(_event, next, reason) => {
+                if (reason === 'input' || reason === 'clear') {
+                  setForm((f) => ({ ...f, model: next }))
+                }
+              }}
+              renderInput={(params) => (
+                <TextField {...params} label={strings.CAR_MODEL} required />
+              )}
             />
             <TextField
               label={strings.CAR_YEAR}

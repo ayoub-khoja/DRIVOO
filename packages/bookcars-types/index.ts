@@ -252,6 +252,8 @@ export interface AgencyInvoiceLine {
   periodFrom?: string
   /** Rental period end, ISO datetime */
   periodTo?: string
+  /** Daily levy amount (printed as "Prélèvement journalier (2 Dt/j)") */
+  dailyLevy?: number
   /** UNITE column */
   quantity: number
   /** PRIX UNIT. column (excluding tax) */
@@ -792,6 +794,7 @@ export interface CreateUserPayload {
   type?: string
   avatar?: string
   birthDate?: number | Date
+  cin?: string
   language?: string
   password?: string
   verified?: boolean
@@ -888,6 +891,7 @@ export interface User {
   phone?: string
   password?: string
   birthDate?: Date
+  cin?: string
   verified?: boolean
   verifiedAt?: Date
   active?: boolean
