@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
+  Autocomplete,
   Button,
   Checkbox,
   CircularProgress,
@@ -15,6 +16,7 @@ import {
   StepLabel,
   Stepper,
   TextField,
+  createFilterOptions,
 } from '@mui/material'
 import { CloudUploadOutlined, CloseRounded } from '@mui/icons-material'
 import { Controller, useForm } from 'react-hook-form'
@@ -25,11 +27,23 @@ import { strings } from '@/agency/lang/agency'
 import * as AgencyCarService from '@/agency/services/AgencyCarService'
 import * as AgencyLocationService from '@/agency/services/AgencyLocationService'
 import {
+  CAR_MAKES,
+  getModelsForMake,
+  resolveMakeKey,
+} from '@/agency/data/carMakesModels'
+import {
   AgencyCarFormFields,
   agencyCarSchema,
   STEPS,
   stepFields,
 } from '@/agency/models/AgencyCarForm'
+
+const filterCarOption = createFilterOptions<string>({
+  stringify: (option) => option,
+  ignoreCase: true,
+  ignoreAccents: true,
+  matchFrom: 'any',
+})
 
 const MAX_CAR_IMAGES = 8
 
@@ -93,6 +107,8 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
   const images = watch('images')
   const registrationDoc = watch('registrationDoc')
   const deliveryType = watch('deliveryType')
+  const brand = watch('brand')
+  const modelOptions = useMemo(() => getModelsForMake(brand || ''), [brand])
   const imagePreviewsRef = React.useRef(imagePreviews)
   imagePreviewsRef.current = imagePreviews
 
@@ -332,8 +348,74 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
         <form className="agency-car-form" onSubmit={onSubmit} noValidate>
           {activeStep === 0 && (
             <div className="agency-car-grid">
-              <TextField label={strings.CAR_BRAND} {...register('brand')} error={!!errors.brand} helperText={errors.brand?.message} fullWidth />
-              <TextField label={strings.CAR_MODEL} {...register('model')} error={!!errors.model} helperText={errors.model?.message} fullWidth />
+              <Controller
+                name="brand"
+                control={control}
+                render={({ field }) => (
+                  <Autocomplete
+                    freeSolo
+                    options={CAR_MAKES}
+                    filterOptions={filterCarOption}
+                    value={field.value || ''}
+                    onChange={(_event, next) => {
+                      const nextBrand = typeof next === 'string' ? next : next || ''
+                      const catalogMake = resolveMakeKey(nextBrand)
+                      field.onChange(catalogMake || nextBrand)
+                      setValue('model', '', { shouldValidate: true, shouldDirty: true })
+                    }}
+                    onInputChange={(_event, next, reason) => {
+                      if (reason === 'input' || reason === 'clear') {
+                        const previousMake = resolveMakeKey(field.value || '')
+                        const nextMake = resolveMakeKey(next)
+                        field.onChange(next)
+                        if (reason === 'clear' || previousMake !== nextMake) {
+                          setValue('model', '', { shouldValidate: true, shouldDirty: true })
+                        }
+                      }
+                    }}
+                    onBlur={field.onBlur}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={strings.CAR_BRAND}
+                        error={!!errors.brand}
+                        helperText={errors.brand?.message}
+                        fullWidth
+                      />
+                    )}
+                  />
+                )}
+              />
+              <Controller
+                name="model"
+                control={control}
+                render={({ field }) => (
+                  <Autocomplete
+                    freeSolo
+                    options={modelOptions}
+                    filterOptions={filterCarOption}
+                    value={field.value || ''}
+                    onChange={(_event, next) => {
+                      field.onChange(typeof next === 'string' ? next : next || '')
+                    }}
+                    onInputChange={(_event, next, reason) => {
+                      if (reason === 'input' || reason === 'clear') {
+                        field.onChange(next)
+                      }
+                    }}
+                    onBlur={field.onBlur}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={strings.CAR_MODEL}
+                        error={!!errors.model}
+                        helperText={errors.model?.message}
+                        fullWidth
+                      />
+                    )}
+                  />
+                )}
+              />
               <TextField label={strings.CAR_YEAR} {...register('year')} error={!!errors.year} helperText={errors.year?.message} fullWidth />
               <FormControl fullWidth error={!!errors.range}>
                 <InputLabel>{strings.CAR_CATEGORY}</InputLabel>

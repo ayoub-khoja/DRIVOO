@@ -1,6 +1,7 @@
 import PDFDocument from 'pdfkit'
 import * as logger from './logger'
 import { spellAmount } from './numberToWords'
+import { round3 } from './invoiceHelper'
 import {
   A4_HEIGHT,
   BAND,
@@ -44,6 +45,7 @@ export interface InvoiceLineInfo {
   vehicleLabel?: string
   periodFrom?: string
   periodTo?: string
+  dailyLevy?: number
   quantity: number
   unitPrice: number
   total: number
@@ -218,6 +220,7 @@ export const buildInvoicePdf = async (
     left + COL_DESIGNATION + COL_UNIT + COL_PRICE,
   ]
   const colW = [COL_DESIGNATION, COL_UNIT, COL_PRICE, COL_TOTAL]
+  const DAILY_LEVY_RATE = 2
 
   const designationTitle = (line: InvoiceLineInfo): string => (
     line.contractNumber
@@ -234,6 +237,25 @@ export const buildInvoicePdf = async (
     return from || to || ''
   }
 
+  /** Days covered by the daily levy (from period, else derived from amount). */
+  const levyDays = (line: InvoiceLineInfo): number => {
+    const amount = Number(line.dailyLevy) || 0
+    if (amount <= 0) {
+      return 0
+    }
+    if (line.periodFrom && line.periodTo) {
+      const from = new Date(line.periodFrom)
+      const to = new Date(line.periodTo)
+      if (!Number.isNaN(from.getTime()) && !Number.isNaN(to.getTime()) && to > from) {
+        const days = Math.ceil((to.getTime() - from.getTime()) / (1000 * 3600 * 24))
+        if (days > 0) {
+          return days
+        }
+      }
+    }
+    return Math.max(1, Math.round(amount / DAILY_LEVY_RATE))
+  }
+
   const drawTableHeader = (top: number): number => {
     const h = 22
     doc.rect(left, top, CONTENT_WIDTH, h).fill(NAVY)
@@ -245,7 +267,7 @@ export const buildInvoicePdf = async (
     return top + h
   }
 
-  /** Height needed by one row, so we know whether it still fits on the page. */
+  /** Height needed by one rental row, so we know whether it still fits on the page. */
   const measureRow = (line: InvoiceLineInfo): number => {
     const width = colW[0] - 16
     let h = 8
@@ -262,9 +284,41 @@ export const buildInvoicePdf = async (
     return Math.max(h + 8, 30)
   }
 
+  const LEVY_ROW_H = 28
+
+  const drawLevyRow = (line: InvoiceLineInfo, band: boolean): void => {
+    const amount = Number(line.dailyLevy) || 0
+    if (amount <= 0) {
+      return
+    }
+    const days = levyDays(line)
+    const unitPrice = days > 0 ? round3(amount / days) : DAILY_LEVY_RATE
+
+    if (y + LEVY_ROW_H > maxY) {
+      doc.addPage()
+      y = drawTableHeader(PAGE_MARGIN)
+    }
+
+    if (band) {
+      doc.rect(left, y, CONTENT_WIDTH, LEVY_ROW_H).fill(BAND)
+    }
+
+    doc.font('Helvetica').fontSize(9).fillColor(NAVY_DARK)
+    doc.text('Prélèvement journalier (2 Dt/j)', colX[0] + 8, y + 9, { width: colW[0] - 16 })
+    doc.font('Helvetica').fontSize(9.5).fillColor(NAVY_DARK)
+    doc.text(String(days), colX[1], y + 9, { width: colW[1], align: 'center' })
+    doc.text(money(unitPrice), colX[2], y + 9, { width: colW[2] - 8, align: 'right' })
+    doc.font('Helvetica-Bold')
+    doc.text(money(amount), colX[3], y + 9, { width: colW[3] - 8, align: 'right' })
+
+    doc.rect(left, y, CONTENT_WIDTH, LEVY_ROW_H).lineWidth(0.5).strokeColor(BORDER).stroke()
+    y += LEVY_ROW_H
+  }
+
   y = drawTableHeader(y)
 
-  invoice.lines.forEach((line, index) => {
+  let tableRowIndex = 0
+  invoice.lines.forEach((line) => {
     const rowH = measureRow(line)
 
     if (y + rowH > maxY) {
@@ -272,7 +326,7 @@ export const buildInvoicePdf = async (
       y = drawTableHeader(PAGE_MARGIN)
     }
 
-    if (index % 2 === 1) {
+    if (tableRowIndex % 2 === 1) {
       doc.rect(left, y, CONTENT_WIDTH, rowH).fill(BAND)
     }
 
@@ -299,9 +353,19 @@ export const buildInvoicePdf = async (
 
     doc.rect(left, y, CONTENT_WIDTH, rowH).lineWidth(0.5).strokeColor(BORDER).stroke()
     y += rowH
+    tableRowIndex += 1
+
+    if ((Number(line.dailyLevy) || 0) > 0) {
+      drawLevyRow(line, tableRowIndex % 2 === 1)
+      tableRowIndex += 1
+    }
   })
 
-  // TOTAUX row
+  // TOTAUX row — rental lines + daily levies
+  const dailyLevyTotal = round3(
+    invoice.lines.reduce((sum, line) => sum + (Number(line.dailyLevy) || 0), 0),
+  )
+  const tableGrandTotal = round3(invoice.totalGross + dailyLevyTotal)
   const totauxH = 24
   if (y + totauxH > maxY) {
     doc.addPage()
@@ -311,7 +375,7 @@ export const buildInvoicePdf = async (
   doc.rect(left, y, CONTENT_WIDTH, totauxH).lineWidth(0.5).strokeColor(BORDER).stroke()
   doc.font('Helvetica-Bold').fontSize(9.5).fillColor(NAVY_DARK)
   doc.text('TOTAUX', colX[0] + 8, y + 8, { width: colW[0] })
-  doc.text(money(invoice.totalGross), colX[3], y + 8, { width: colW[3] - 8, align: 'right' })
+  doc.text(money(tableGrandTotal), colX[3], y + 8, { width: colW[3] - 8, align: 'right' })
   y += totauxH + 16
 
   //
@@ -325,13 +389,16 @@ export const buildInvoicePdf = async (
     ['Virement', money(invoice.payments.transfer)],
   ]
 
-  const totalRows: [string, string, boolean][] = [['TOTAL BRUT', money(invoice.totalGross), false]]
+  const totalRows: [string, string, boolean][] = []
   if (invoice.discount > 0) {
     totalRows.push(['REMISE', `- ${money(invoice.discount)}`, false])
   }
   totalRows.push(['TOTAL HT', money(invoice.totalHT), false])
   totalRows.push([`TOTAL TVA ${invoice.vatRate}%`, money(invoice.totalVAT), false])
   totalRows.push(['TIMBRE FISCALE', money(invoice.stampDuty), false])
+  if (dailyLevyTotal > 0) {
+    totalRows.push(['PRÉLÈVEMENT (2 Dt/j)', money(dailyLevyTotal), false])
+  }
   totalRows.push(['TOTAL TTC', `${money(invoice.totalTTC)} ${currency}`, true])
 
   const boxGap = 20
@@ -380,16 +447,20 @@ export const buildInvoicePdf = async (
   const rbTop = y
   doc.rect(rbLeft, rbTop, boxW, rightBoxH).lineWidth(0.8).strokeColor(BORDER).stroke()
 
+  const labelW = boxW * 0.58
+  const valueX = rbLeft + labelW
+  const valueW = boxW - labelW - 10
+
   let ty = rbTop + 8
   for (const [label, value, strong] of totalRows) {
     if (strong) {
       doc.rect(rbLeft + 1, ty - 3, boxW - 2, rowH + 2).fill(NAVY)
     }
-    doc.font(strong ? 'Helvetica-Bold' : 'Helvetica').fontSize(strong ? 10 : 9)
+    doc.font(strong ? 'Helvetica-Bold' : 'Helvetica').fontSize(strong ? 10 : 8.5)
     doc.fillColor(strong ? WHITE : MUTED)
-    doc.text(label, rbLeft + 10, ty, { width: boxW / 2 })
+    doc.text(label, rbLeft + 10, ty, { width: labelW - 12, lineBreak: false })
     doc.font('Helvetica-Bold').fillColor(strong ? WHITE : NAVY_DARK)
-    doc.text(value, rbLeft + boxW / 2 - 10, ty, { width: boxW / 2, align: 'right' })
+    doc.text(value, valueX, ty, { width: valueW, align: 'right', lineBreak: false })
     ty += rowH
   }
 

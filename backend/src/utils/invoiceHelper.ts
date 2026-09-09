@@ -14,7 +14,7 @@ export const round3 = (value: number): number => {
 }
 
 export interface InvoiceTotalsInput {
-  lines: { quantity: number, unitPrice: number }[]
+  lines: { quantity: number, unitPrice: number, dailyLevy?: number }[]
   discount?: number
   vatRate?: number
   stampDuty?: number
@@ -23,6 +23,8 @@ export interface InvoiceTotalsInput {
 
 export interface InvoiceTotals {
   lineTotals: number[]
+  /** Sum of per-line daily levies (2 Dt/j) */
+  dailyLevyTotal: number
   /** TOTAL BRUT */
   totalGross: number
   /** TOTAL HT */
@@ -46,10 +48,13 @@ export interface InvoiceTotals {
  */
 export const computeInvoiceTotals = (input: InvoiceTotalsInput): InvoiceTotals => {
   const lineTotals = input.lines.map((line) => round3(Number(line.quantity) * Number(line.unitPrice)))
+  const dailyLevyTotal = round3(
+    input.lines.reduce((sum, line) => sum + (Number(line.dailyLevy) || 0), 0),
+  )
   const totalGross = round3(lineTotals.reduce((sum, total) => sum + total, 0))
   const totalHT = round3(Math.max(0, totalGross - (Number(input.discount) || 0)))
   const totalVAT = round3(totalHT * ((Number(input.vatRate) || 0) / 100))
-  const totalTTC = round3(totalHT + totalVAT + (Number(input.stampDuty) || 0))
+  const totalTTC = round3(totalHT + totalVAT + (Number(input.stampDuty) || 0) + dailyLevyTotal)
 
   const payments = input.payments || {}
   const totalPaid = round3(
@@ -62,6 +67,7 @@ export const computeInvoiceTotals = (input: InvoiceTotalsInput): InvoiceTotals =
 
   return {
     lineTotals,
+    dailyLevyTotal,
     totalGross,
     totalHT,
     totalVAT,

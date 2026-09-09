@@ -9,6 +9,7 @@ import {
   PersonOutline,
   ApartmentOutlined,
   StarOutline,
+  PeopleOutline,
   ReceiptLongOutlined,
   DescriptionOutlined,
   RequestQuoteOutlined,
@@ -102,6 +103,10 @@ const AgencyShell = () => {
           <NavLink to="/agency/reviews" className={({ isActive }) => (isActive ? 'active' : '')}>
             <StarOutline />
             <span>{strings.REVIEWS}</span>
+          </NavLink>
+          <NavLink to="/agency/clients" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <PeopleOutline />
+            <span>{strings.CLIENTS}</span>
           </NavLink>
           {isMainAgency && (
             <NavLink to="/agency/agencies" className={({ isActive }) => (isActive ? 'active' : '')}>

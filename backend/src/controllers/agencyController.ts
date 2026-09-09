@@ -1102,6 +1102,7 @@ export const createInvoice = async (req: Request, res: Response) => {
         vehicleLabel: clip(line.vehicleLabel, 160) || undefined,
         periodFrom: clip(line.periodFrom, 32) || undefined,
         periodTo: clip(line.periodTo, 32) || undefined,
+        dailyLevy: Math.max(0, Number(line.dailyLevy) || 0),
         quantity: Math.max(0, Number(line.quantity) || 0),
         unitPrice: Math.max(0, Number(line.unitPrice) || 0),
         total: 0,

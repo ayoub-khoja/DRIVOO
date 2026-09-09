@@ -4404,3 +4404,171 @@
     break-inside: avoid;
   }
 }
+
+/* --- Agency clients --- */
+.agency-clients-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+  max-width: 560px;
+}
+
+.agency-clients-stats article {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+  border: 1px solid #e6ebf2;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgb(11 22 38 / 4%);
+}
+
+.agency-clients-stats article.is-accent {
+  background: linear-gradient(135deg, rgb(255 122 24 / 8%), #fff 60%);
+  border-color: rgb(255 122 24 / 22%);
+}
+
+.agency-clients-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #eef3f9;
+  color: #243853;
+  flex-shrink: 0;
+}
+
+.agency-clients-stats article.is-accent .agency-clients-stat-icon {
+  background: rgb(255 122 24 / 14%);
+  color: #ff7a18;
+}
+
+.agency-clients-stats span {
+  display: block;
+  color: #5b6b80;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.agency-clients-stats strong {
+  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #12233a;
+  letter-spacing: -0.02em;
+}
+
+.agency-clients-search {
+  margin-bottom: 20px !important;
+}
+
+.agency-clients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.agency-client-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgb(11 22 38 / 5%);
+  transition: transform 0.25s var(--drivoo-ease, ease), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.agency-client-card:hover {
+  transform: translateY(-2px);
+  border-color: rgb(255 122 24 / 28%);
+  box-shadow: 0 14px 34px rgb(11 22 38 / 9%);
+}
+
+.agency-client-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agency-client-avatar {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #243853, #3d5c80);
+  color: #fff;
+  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.agency-client-identity {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agency-client-identity h3 {
+  margin: 0;
+  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #12233a;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agency-client-bookings-chip {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgb(255 122 24 / 12%);
+  color: #c45a00;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.agency-client-meta {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agency-client-meta li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #5b6b80;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.agency-client-meta .MuiSvgIcon-root {
+  margin-top: 1px;
+  color: #8a9bb0;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .agency-clients-stats {
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
+}

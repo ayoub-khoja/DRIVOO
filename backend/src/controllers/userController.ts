@@ -24,6 +24,7 @@ import NotificationCounter from '../models/NotificationCounter'
 import Car from '../models/Car'
 import AdditionalDriver from '../models/AdditionalDriver'
 import * as logger from '../utils/logger'
+import validator from 'validator'
 
 /**
  * Get status message as HTML.
@@ -389,6 +390,16 @@ export const create = async (req: Request, res: Response) => {
       res.status(403).send('Forbidden: You cannot create user')
       return
     }
+
+    // Suppliers can only create clients (User) attached to themselves
+    if (sessionUser.type === bookcarsTypes.UserType.Supplier) {
+      if (body.type && body.type !== bookcarsTypes.UserType.User) {
+        res.status(403).send('Forbidden: You can only create clients')
+        return
+      }
+      body.type = bookcarsTypes.UserType.User
+      body.supplier = sessionUserId
+    }
     // end of security check
 
     body.verified = false
@@ -661,7 +672,9 @@ export const checkToken = async (req: Request, res: Response) => {
       if (
         !allowedAppTypes.includes(type)
         || (type === bookcarsTypes.AppType.Admin && user.type === bookcarsTypes.UserType.User)
-        || (type === bookcarsTypes.AppType.Frontend && user.type !== bookcarsTypes.UserType.User)
+        || (type === bookcarsTypes.AppType.Frontend
+          && user.type !== bookcarsTypes.UserType.User
+          && user.type !== bookcarsTypes.UserType.Supplier)
         || (type === bookcarsTypes.AppType.Agency && user.type !== bookcarsTypes.UserType.Supplier)
         || user.active
       ) {
@@ -740,11 +753,14 @@ export const resend = async (req: Request, res: Response) => {
     if (user) {
       const type = req.params.type.toLowerCase() as bookcarsTypes.AppType
 
-      if (
-        ![bookcarsTypes.AppType.Frontend, bookcarsTypes.AppType.Admin].includes(type)
-        || (type === bookcarsTypes.AppType.Admin && user.type === bookcarsTypes.UserType.User)
-        || (type === bookcarsTypes.AppType.Frontend && user.type !== bookcarsTypes.UserType.User)
-      ) {
+      // Frontend: clients + agencies (unified auth). Admin panel: admins + agencies.
+      const allowed =
+        (type === bookcarsTypes.AppType.Frontend
+          && (user.type === bookcarsTypes.UserType.User || user.type === bookcarsTypes.UserType.Supplier))
+        || (type === bookcarsTypes.AppType.Admin
+          && (user.type === bookcarsTypes.UserType.Admin || user.type === bookcarsTypes.UserType.Supplier))
+
+      if (!allowed) {
         res.sendStatus(403)
         return
       }
@@ -759,9 +775,10 @@ export const resend = async (req: Request, res: Response) => {
       i18n.locale = user.language
 
       const reset = req.params.reset === 'true'
+      const host = type === bookcarsTypes.AppType.Frontend ? env.FRONTEND_HOST : env.ADMIN_HOST
 
       const activationOrResetLink = `${helper.joinURL(
-        user.type === bookcarsTypes.UserType.User ? env.FRONTEND_HOST : env.ADMIN_HOST,
+        host,
         reset ? 'reset-password' : 'activate',
       )}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}`
 
@@ -1959,7 +1976,12 @@ export const getUsers = async (req: Request, res: Response) => {
     const page = Number.parseInt(req.params.page, 10)
     const size = Number.parseInt(req.params.size, 10)
     const { body }: { body: bookcarsTypes.GetUsersBody } = req
-    const { types, user: userId } = body
+    let { types, user: userId } = body
+
+    // Suppliers only see their own clients
+    if (sessionUser.type === bookcarsTypes.UserType.Supplier) {
+      types = [bookcarsTypes.UserType.User]
+    }
 
     const $match: mongoose.QueryFilter<env.User> = {
       $and: [
@@ -1976,6 +1998,21 @@ export const getUsers = async (req: Request, res: Response) => {
           expireAt: null,
         },
       ],
+    }
+
+    if (sessionUser.type === bookcarsTypes.UserType.Supplier) {
+      const rawKeyword = String(req.query.s || '').trim()
+      if (validator.isEmail(rawKeyword)) {
+        // Exact email lookup allowed (e.g. booking flow linking an existing driver)
+        $match.$and!.push({
+          $or: [
+            { supplier: new mongoose.Types.ObjectId(sessionUserId) },
+            { email: rawKeyword.toLowerCase() },
+          ],
+        })
+      } else {
+        $match.$and!.push({ supplier: new mongoose.Types.ObjectId(sessionUserId) })
+      }
     }
 
     if (typeof body.active === 'boolean') {
@@ -2025,6 +2062,7 @@ export const getUsers = async (req: Request, res: Response) => {
             type: 1,
             blacklisted: 1,
             birthDate: 1,
+            cin: 1,
             customerId: 1,
             createdAt: 1,
             taxId: 1,

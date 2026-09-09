@@ -50,6 +50,10 @@ const userSchema = new Schema<env.User>(
     birthDate: {
       type: Date,
     },
+    cin: {
+      type: String,
+      trim: true,
+    },
     verified: {
       type: Boolean,
       default: false,

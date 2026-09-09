@@ -8,30 +8,72 @@ import {
 } from '@mui/icons-material'
 import { Button } from '@mui/material'
 import { Link } from 'react-router-dom'
+import * as bookcarsHelper from ':bookcars-helper'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
+import * as AgencyBookingService from '@/agency/services/AgencyBookingService'
+import * as AgencyCarService from '@/agency/services/AgencyCarService'
+import * as AgencyInvoiceService from '@/agency/services/AgencyInvoiceService'
 import * as AgencyReviewService from '@/agency/services/AgencyReviewService'
+import env from '@/config/env.config'
+
+const readTotalRecords = (result: unknown): number => {
+  const chunk = Array.isArray(result) ? result[0] : undefined
+  const pageInfo = chunk?.pageInfo as { totalRecords?: number }[] | { totalRecords?: number } | undefined
+  return (Array.isArray(pageInfo) ? pageInfo[0]?.totalRecords : pageInfo?.totalRecords) || 0
+}
 
 const AgencyDashboard = () => {
-  const { agency } = useAgencyContext()
+  const { agency, agencyLoaded } = useAgencyContext()
   const approved = agency?.agencyApproved !== false
+  const language = agency?.language || 'fr'
+  const currency = env.BASE_CURRENCY || 'TND'
+
+  const [carsCount, setCarsCount] = useState(0)
+  const [bookingsCount, setBookingsCount] = useState(0)
+  const [monthRevenue, setMonthRevenue] = useState(0)
   const [rating, setRating] = useState<string>('—')
   const [pendingCount, setPendingCount] = useState(0)
 
-  const loadRating = useCallback(async () => {
+  const loadStats = useCallback(async () => {
+    if (!agency?._id) {
+      setCarsCount(0)
+      setBookingsCount(0)
+      setMonthRevenue(0)
+      setRating('—')
+      setPendingCount(0)
+      return
+    }
+
     try {
-      const data = await AgencyReviewService.getReviews()
-      setRating(data.count ? data.average.toFixed(1) : '—')
-      setPendingCount(data.pendingCount || 0)
+      const [carsResult, bookingsTotal, invoicesResult, reviews] = await Promise.all([
+        AgencyCarService.getCars('', { suppliers: [agency._id] }, 1, 1),
+        AgencyBookingService.getBookingsCount(agency._id, language),
+        AgencyInvoiceService.listInvoices('', 1, 1),
+        AgencyReviewService.getReviews(),
+      ])
+
+      setCarsCount(readTotalRecords(carsResult))
+      setBookingsCount(bookingsTotal)
+      setMonthRevenue(invoicesResult.stats?.monthTotal || 0)
+      setRating(reviews.count ? reviews.average.toFixed(1) : '—')
+      setPendingCount(reviews.pendingCount || 0)
     } catch {
+      setCarsCount(0)
+      setBookingsCount(0)
+      setMonthRevenue(0)
       setRating('—')
       setPendingCount(0)
     }
-  }, [])
+  }, [agency?._id, language])
 
   useEffect(() => {
-    void loadRating()
-  }, [loadRating])
+    if (agencyLoaded) {
+      void loadStats()
+    }
+  }, [agencyLoaded, loadStats])
+
+  const revenueLabel = bookcarsHelper.formatPrice(monthRevenue, currency, language)
 
   return (
     <div className="agency-page">
@@ -70,27 +112,27 @@ const AgencyDashboard = () => {
       )}
 
       <div className="agency-stats">
-        <article className="agency-stat" style={{ animationDelay: '0.05s' }}>
+        <Link to="/agency/fleet" className="agency-stat agency-stat-link" style={{ animationDelay: '0.05s' }}>
           <DirectionsCarOutlined />
           <div>
             <span>{strings.STAT_CARS}</span>
-            <strong>0</strong>
+            <strong>{carsCount}</strong>
           </div>
-        </article>
-        <article className="agency-stat" style={{ animationDelay: '0.12s' }}>
+        </Link>
+        <Link to="/agency/bookings" className="agency-stat agency-stat-link" style={{ animationDelay: '0.12s' }}>
           <EventNoteOutlined />
           <div>
             <span>{strings.STAT_BOOKINGS}</span>
-            <strong>0</strong>
+            <strong>{bookingsCount}</strong>
           </div>
-        </article>
-        <article className="agency-stat" style={{ animationDelay: '0.19s' }}>
+        </Link>
+        <Link to="/agency/invoices" className="agency-stat agency-stat-link" style={{ animationDelay: '0.19s' }}>
           <InsightsOutlined />
           <div>
             <span>{strings.STAT_REVENUE}</span>
-            <strong>0 TND</strong>
+            <strong>{revenueLabel}</strong>
           </div>
-        </article>
+        </Link>
         <Link to="/agency/reviews" className="agency-stat agency-stat-link" style={{ animationDelay: '0.26s' }}>
           <StarOutline />
           <div>

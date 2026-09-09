@@ -74,6 +74,7 @@ const AgencySubscription = lazy(() => import('@/agency/pages/AgencySubscription'
 const AgencyMaintenance = lazy(() => import('@/agency/pages/AgencyMaintenance'))
 const AgencyProfile = lazy(() => import('@/agency/pages/AgencyProfile'))
 const AgencyReviews = lazy(() => import('@/agency/pages/AgencyReviews'))
+const AgencyClients = lazy(() => import('@/agency/pages/AgencyClients'))
 const AgencyNotifications = lazy(() => import('@/agency/pages/AgencyNotifications'))
 
 const AppMessaging = () => {
@@ -83,7 +84,7 @@ const AppMessaging = () => {
 
 const AppLayout = () => {
   const location = useLocation()
-  const [refreshKey, setRefreshKey] = useState(0) // refreshKey to check user and notifications when navigating between routes
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     setRefreshKey((prev) => prev + 1)
@@ -158,6 +159,7 @@ const router = createBrowserRouter([
       { path: 'bookings', element: <AgencyBookings /> },
       { path: 'agenda', element: <AgencyAgenda /> },
       { path: 'reviews', element: <AgencyReviews /> },
+      { path: 'clients', element: <AgencyClients /> },
       { path: 'invoices', element: <AgencyInvoices /> },
       { path: 'contracts', element: <AgencyContracts /> },
       { path: 'receipts', element: <AgencyReceipts /> },
@@ -200,9 +202,9 @@ const router = createBrowserRouter([
       { path: 'espace-agence', element: <AgencyShowcase /> },
       { path: 'agence/:slug', element: <AgencyPublicProfile /> },
       ...(env.HIDE_SUPPLIERS ? [] : [{ path: 'suppliers', element: <Suppliers /> }]),
-      { path: '*', element: <NoMatch /> }
-    ]
-  }
+      { path: '*', element: <NoMatch /> },
+    ],
+  },
 ])
 
 const App = () => <RouterProvider router={router} />

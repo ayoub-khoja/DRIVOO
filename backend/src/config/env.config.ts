@@ -643,6 +643,7 @@ export interface User extends Document {
   phone?: string
   password?: string
   birthDate?: Date
+  cin?: string
   verified?: boolean
   verifiedAt?: Date
   active?: boolean

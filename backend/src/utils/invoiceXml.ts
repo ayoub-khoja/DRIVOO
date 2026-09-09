@@ -12,6 +12,7 @@ export interface InvoiceXmlLine {
   vehicleLabel?: string
   periodFrom?: string
   periodTo?: string
+  dailyLevy?: number
   quantity: number
   unitPrice: number
   total: number
@@ -91,6 +92,7 @@ export const buildInvoiceXml = (
     tag('VehicleLabel', line.vehicleLabel, 6),
     tag('PeriodFrom', line.periodFrom, 6),
     tag('PeriodTo', line.periodTo, 6),
+    tag('DailyLevy', money(line.dailyLevy || 0), 6),
     tag('Quantity', line.quantity, 6),
     tag('UnitPrice', money(line.unitPrice), 6),
     tag('Total', money(line.total), 6),
@@ -143,6 +145,10 @@ export const buildInvoiceXml = (
     tag('Discount', money(invoice.discount)),
     tag('VatRate', invoice.vatRate),
     tag('StampDuty', money(invoice.stampDuty)),
+    tag(
+      'DailyLevy',
+      money(invoice.lines.reduce((sum, line) => sum + (Number(line.dailyLevy) || 0), 0)),
+    ),
     '  </Fiscal>',
     '  <Totals>',
     tag('Gross', money(invoice.totalGross)),
