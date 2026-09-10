@@ -1218,6 +1218,10 @@ export interface AgencyContract extends Document {
   deposit: number
   depositReason?: string
   vatRate: number
+  /** Daily levy rate in Dt/j (default 2) */
+  dailyLevyRate?: number
+  /** Computed prélèvement = rental days × dailyLevyRate */
+  dailyLevyTotal?: number
   supplements: bookcarsTypes.AgencyContractSupplement[]
   payments: bookcarsTypes.AgencyContractPayment[]
   checklist: bookcarsTypes.AgencyContractCheck[]

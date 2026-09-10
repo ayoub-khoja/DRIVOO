@@ -63,6 +63,7 @@ export const agencyContractSchema = z.object({
   // Money
   rentalHT: z.coerce.number().min(0, invalid),
   vatRate: z.coerce.number().min(0, invalid).max(100, invalid),
+  dailyLevyRate: z.coerce.number().min(0, invalid).default(2),
   deposit: z.coerce.number().min(0, invalid),
   depositReason: z.string().trim().max(240).optional(),
 

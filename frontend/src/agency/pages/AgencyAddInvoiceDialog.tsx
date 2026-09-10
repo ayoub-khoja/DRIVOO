@@ -408,12 +408,6 @@ const AgencyAddInvoiceDialog = ({
                 <span>{strings.INVOICE_STAMP_DUTY}</span>
                 <strong>{formatMoney(Number(watched.stampDuty) || 0)}</strong>
               </div>
-              {totals.dailyLevyTotal > 0 ? (
-                <div className="agency-invoice-total-row">
-                  <span>{strings.INVOICE_DAILY_LEVY}</span>
-                  <strong>{formatMoney(totals.dailyLevyTotal)}</strong>
-                </div>
-              ) : null}
               <div className="agency-invoice-total-row is-strong">
                 <span>{strings.INVOICE_TOTAL_TTC}</span>
                 <strong>{`${formatMoney(totals.totalTTC)} ${currency}`}</strong>

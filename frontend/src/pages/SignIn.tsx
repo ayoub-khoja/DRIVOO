@@ -49,8 +49,18 @@ const SignIn = () => {
     setError('root', { message: message || strings.ERROR_IN_SIGN_IN })
   }
 
-  const completeClientLogin = async (userId: string) => {
-    const user = await UserService.getUser(userId)
+  const completeClientLogin = async (loggedUser: bookcarsTypes.User) => {
+    let user: bookcarsTypes.User | null = null
+    try {
+      user = await UserService.getUser(loggedUser._id as string)
+    } catch {
+      // Cookie may not be readable yet; still proceed with the sign-in payload
+      user = loggedUser
+    }
+    if (!user) {
+      user = loggedUser
+    }
+
     setUser(user)
     setUserLoaded(true)
 
@@ -97,8 +107,19 @@ const SignIn = () => {
       return false
     }
 
-    const user = await AgencyAuthService.getUser(result.data._id)
-    if (!user || user.type !== bookcarsTypes.UserType.Supplier) {
+    let user: bookcarsTypes.User | null = null
+    try {
+      user = await AgencyAuthService.getUser(result.data._id)
+    } catch {
+      user = result.data
+    }
+
+    if (!user) {
+      user = result.data
+    }
+
+    // If we only have the slim sign-in payload, trust type from successful agency endpoint
+    if (user.type && user.type !== bookcarsTypes.UserType.Supplier) {
       await AgencyAuthService.signout(false)
       return false
     }
@@ -113,45 +134,50 @@ const SignIn = () => {
   }
 
   const onSubmit = async ({ email, password }: FormFields) => {
-    try {
-      clearErrors('root')
+    const normalizedEmail = email.trim().toLowerCase()
+    clearErrors('root')
 
-      // 1) Client space (User type)
-      const clientRes = await UserService.signin({
-        email,
+    // 1) Client space (User type)
+    let clientRes: { status: number, data: bookcarsTypes.User } | null = null
+    let clientRequestFailed = false
+    try {
+      clientRes = await UserService.signin({
+        email: normalizedEmail,
         password,
         stayConnected: UserService.getStayConnected(),
       })
+    } catch {
+      // Network / 4xx-5xx / Mongo blip — not the same as wrong credentials
+      clientRequestFailed = true
+    }
 
-      if (clientRes.status === 200 && clientRes.data?._id) {
-        if (clientRes.data.blacklisted) {
-          await UserService.signout(false)
-          signinError(strings.IS_BLACKLISTED)
-          return
-        }
-        await completeClientLogin(clientRes.data._id)
+    if (clientRes?.status === 200 && clientRes.data?._id) {
+      if (clientRes.data.blacklisted) {
+        await UserService.signout(false)
+        signinError(strings.IS_BLACKLISTED)
         return
       }
+      try {
+        await completeClientLogin(clientRes.data)
+      } catch {
+        signinError(strings.SESSION_ERROR)
+      }
+      return
+    }
 
-      // Clear accidental empty session from a 204 frontend response
-      localStorage.removeItem('bc-fe-user')
+    // Clear accidental empty session from a 204 frontend response
+    localStorage.removeItem('bc-fe-user')
 
-      // 2) Agency space (Supplier type) — same email/password, auto-routed
-      const handled = await tryAgencyLogin(email, password)
+    // 2) Agency space (Supplier type) — same email/password, auto-routed
+    try {
+      const handled = await tryAgencyLogin(normalizedEmail, password)
       if (!handled) {
-        signinError()
+        // Only show "wrong password" when both endpoints answered cleanly (204).
+        // If the client call threw, credentials may be valid and the server was down.
+        signinError(clientRequestFailed ? strings.SERVICE_ERROR : undefined)
       }
     } catch {
-      // Frontend axios may throw on network errors; still try agency once
-      try {
-        localStorage.removeItem('bc-fe-user')
-        const handled = await tryAgencyLogin(email, password)
-        if (!handled) {
-          signinError()
-        }
-      } catch {
-        signinError()
-      }
+      signinError(strings.SERVICE_ERROR)
     }
   }
 
@@ -197,6 +223,9 @@ const SignIn = () => {
     setVisible(true)
   }
 
+  const emailField = register('email')
+  const passwordField = register('password')
+
   return (
     <Layout strict={false} onLoad={onLoad}>
       <div className="signin">
@@ -209,8 +238,11 @@ const SignIn = () => {
               <InputLabel htmlFor="signin-email">{commonStrings.EMAIL}</InputLabel>
               <Input
                 id="signin-email"
-                {...register('email')}
+                name={emailField.name}
+                onBlur={emailField.onBlur}
+                inputRef={emailField.ref}
                 onChange={(e) => {
+                  emailField.onChange(e)
                   if (errors.email) {
                     clearErrors('email')
                   }
@@ -229,15 +261,18 @@ const SignIn = () => {
 
             <PasswordInput
               label={commonStrings.PASSWORD}
-              {...register('password')}
-              error={!!errors.password}
-              helperText={errors.password?.message}
+              name={passwordField.name}
+              onBlur={passwordField.onBlur}
+              inputRef={passwordField.ref}
               onChange={(e) => {
+                passwordField.onChange(e)
                 if (errors.password) {
                   clearErrors('password')
                 }
                 setValue('password', e.target.value)
               }}
+              error={!!errors.password}
+              helperText={errors.password?.message}
               required
               autoComplete="current-password"
             />

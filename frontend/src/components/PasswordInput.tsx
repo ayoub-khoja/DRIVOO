@@ -43,8 +43,15 @@ const PasswordInput: React.FC<CombinedProps> = ({
     setShowPassword((prev) => !prev)
   }
 
+  // react-hook-form register() provides `ref`; MUI needs `inputRef` on the native input.
+  const { ref: rhfRef, inputRef, ...restInputProps } = inputProps as typeof inputProps & {
+    ref?: React.Ref<HTMLInputElement>
+    inputRef?: React.Ref<HTMLInputElement>
+  }
+
   const commonProps = {
-    ...inputProps,
+    ...restInputProps,
+    inputRef: inputRef || rhfRef,
     type: showPassword ? 'text' : 'password',
     endAdornment: (
       <InputAdornment position="end">

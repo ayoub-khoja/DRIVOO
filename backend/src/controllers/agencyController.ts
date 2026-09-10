@@ -22,7 +22,7 @@ import { computeInvoiceTotals, round3 } from '../utils/invoiceHelper'
 import { buildInvoicePdf } from '../utils/invoicePdf'
 import { buildInvoiceXml } from '../utils/invoiceXml'
 import AgencyContract from '../models/AgencyContract'
-import { computeContractTotals } from '../utils/contractHelper'
+import { computeContractTotals, CONTRACT_DAILY_LEVY_RATE } from '../utils/contractHelper'
 import { buildContractPdf } from '../utils/contractPdf'
 import { buildReceiptPdf } from '../utils/receiptPdf'
 import AgencyReceipt from '../models/AgencyReceipt'
@@ -1418,6 +1418,8 @@ const toContractDto = (contract: env.AgencyContract): bookcarsTypes.AgencyContra
   deposit: contract.deposit,
   depositReason: contract.depositReason,
   vatRate: contract.vatRate,
+  dailyLevyRate: contract.dailyLevyRate ?? CONTRACT_DAILY_LEVY_RATE,
+  dailyLevyTotal: contract.dailyLevyTotal ?? 0,
   supplements: contract.supplements,
   payments: contract.payments,
   checklist: contract.checklist,
@@ -1654,6 +1656,9 @@ export const createContract = async (req: Request, res: Response) => {
       supplements,
       vatRate,
       payments,
+      dailyLevyRate: Math.max(0, Number(body.dailyLevyRate ?? CONTRACT_DAILY_LEVY_RATE) || 0),
+      departureDate,
+      returnDate,
     })
 
     const prefix = (sessionUser.contractPrefix || 'CRA').toUpperCase()
@@ -1689,6 +1694,8 @@ export const createContract = async (req: Request, res: Response) => {
           deposit: Math.max(0, Number(body.deposit) || 0),
           depositReason: clip(body.depositReason, 240) || undefined,
           vatRate,
+          dailyLevyRate: totals.dailyLevyRate,
+          dailyLevyTotal: totals.dailyLevyTotal,
           supplements,
           payments,
           checklist,
@@ -1802,6 +1809,8 @@ export const getContractPdf = async (req: Request, res: Response) => {
         deposit: contract.deposit,
         depositReason: contract.depositReason,
         vatRate: contract.vatRate,
+        dailyLevyRate: contract.dailyLevyRate ?? CONTRACT_DAILY_LEVY_RATE,
+        dailyLevyTotal: contract.dailyLevyTotal ?? 0,
         supplements: contract.supplements,
         payments: contract.payments,
         checklist: contract.checklist,

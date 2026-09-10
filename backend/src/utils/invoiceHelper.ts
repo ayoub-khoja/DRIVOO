@@ -52,9 +52,11 @@ export const computeInvoiceTotals = (input: InvoiceTotalsInput): InvoiceTotals =
     input.lines.reduce((sum, line) => sum + (Number(line.dailyLevy) || 0), 0),
   )
   const totalGross = round3(lineTotals.reduce((sum, total) => sum + total, 0))
-  const totalHT = round3(Math.max(0, totalGross - (Number(input.discount) || 0)))
+  // TOTAL HT = lignes + prélèvement journalier (same figure as table TOTAUX)
+  const totalHT = round3(Math.max(0, totalGross - (Number(input.discount) || 0) + dailyLevyTotal))
   const totalVAT = round3(totalHT * ((Number(input.vatRate) || 0) / 100))
-  const totalTTC = round3(totalHT + totalVAT + (Number(input.stampDuty) || 0) + dailyLevyTotal)
+  // Levy is already inside TOTAL HT — do not add it again
+  const totalTTC = round3(totalHT + totalVAT + (Number(input.stampDuty) || 0))
 
   const payments = input.payments || {}
   const totalPaid = round3(

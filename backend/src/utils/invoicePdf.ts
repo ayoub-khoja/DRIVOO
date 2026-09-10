@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit'
 import * as logger from './logger'
 import { spellAmount } from './numberToWords'
-import { round3 } from './invoiceHelper'
+import { round3, computeInvoiceTotals } from './invoiceHelper'
 import {
   A4_HEIGHT,
   BAND,
@@ -116,49 +116,81 @@ export const buildInvoicePdf = async (
   const maxY = A4_HEIGHT - PAGE_MARGIN - FOOTER_HEIGHT
   const currency = invoice.currency || 'TND'
 
+  // Always recompute so TOTAUX / TOTAL HT / TVA / TTC stay consistent with current rules
+  // (TOTAL HT = lignes + prélèvement, TVA on that base).
+  const totals = computeInvoiceTotals({
+    lines: invoice.lines,
+    discount: invoice.discount,
+    vatRate: invoice.vatRate,
+    stampDuty: invoice.stampDuty,
+    payments: invoice.payments,
+  })
+  const totalHT = totals.totalHT
+  const totalVAT = totals.totalVAT
+  const totalTTC = totals.totalTTC
+  const totalPaid = totals.totalPaid
+  const balanceDue = totals.balanceDue
+
   //
-  // Header — agency identity on the left, title + unique QR on the right
+  // Header — left agency + center logo + right N°/date/QR (same style as contract)
   //
   let y = PAGE_MARGIN
+  const headerTop = y
+  const logoMaxW = 78
+  const logoMaxH = 46
+  const logoX = left + (CONTENT_WIDTH - logoMaxW) / 2
   const qrX = right - DOCUMENT_QR_SIZE
-  const titleW = 200
+  const titleW = 210
   const titleX = qrX - 12 - titleW
-  const qrBottom = drawDocumentQr(doc, qrPng, qrX, y)
+  const leftColW = Math.max(120, logoX - left - 14)
+  const qrBottom = drawDocumentQr(doc, qrPng, qrX, headerTop)
 
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(ORANGE)
+  doc.text(`N° ${invoice.number}`, titleX, headerTop, { width: titleW, align: 'right' })
+  doc.font('Helvetica').fontSize(8.5).fillColor(MUTED)
+  const issueLine = invoice.issueCity
+    ? `${invoice.issueCity.toUpperCase()} le ${formatDate(invoice.issueDate)}`
+    : `Le ${formatDate(invoice.issueDate)}`
+  doc.text(issueLine, titleX, doc.y + 3, { width: titleW, align: 'right' })
+  const metaBottom = doc.y
+
+  let logoBottom = headerTop
   if (logo) {
     try {
-      doc.image(logo, left, y, { fit: [140, 52] })
+      doc.image(logo, logoX, headerTop, { fit: [logoMaxW, logoMaxH], align: 'center' })
+      logoBottom = headerTop + logoMaxH
     } catch (err) {
       logger.info(`[invoicePdf] logo could not be embedded for ${invoice.number}`, err)
     }
   }
 
-  const identityTop = logo ? y + 58 : y
-  doc.font('Helvetica-Bold').fontSize(logo ? 12 : 16).fillColor(NAVY_DARK)
-  doc.text(agency.fullName || '', left, identityTop, { width: COL_DESIGNATION })
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(NAVY_DARK)
+  doc.text(agency.fullName || '', left, headerTop, { width: leftColW })
 
   let identityY = doc.y + 2
-  doc.font('Helvetica').fontSize(8.5).fillColor(MUTED)
+  doc.font('Helvetica').fontSize(8).fillColor(MUTED)
   const rib = ribFromIban(agency.iban)
-  const identityLines = [
-    agency.taxId ? `Code TVA : ${agency.taxId}` : '',
+  for (const line of [
+    agency.taxId ? `M.F : ${agency.taxId}` : '',
+    agency.rneNumber ? `R.N.E : ${agency.rneNumber}` : '',
     agency.iban ? `IBAN : ${agency.iban}` : '',
     rib ? `RIB : ${rib}` : '',
-  ].filter(Boolean)
-  for (const line of identityLines) {
-    doc.text(line, left, identityY, { width: 300 })
+  ].filter(Boolean)) {
+    doc.text(line, left, identityY, { width: leftColW })
     identityY = doc.y + 1
   }
 
-  doc.font('Helvetica-Bold').fontSize(22).fillColor(NAVY)
-  doc.text('FACTURE', titleX, y, { width: titleW, align: 'right' })
-  doc.font('Helvetica-Bold').fontSize(12).fillColor(ORANGE)
-  doc.text(`N° ${invoice.number}`, titleX, doc.y + 2, { width: titleW, align: 'right' })
+  y = Math.max(identityY, logoBottom, qrBottom, metaBottom) + 6
 
-  y = Math.max(identityY, doc.y, qrBottom) + 16
+  doc.font('Helvetica-Bold').fontSize(16).fillColor(NAVY)
+  doc.text('FACTURE', left, y, {
+    width: CONTENT_WIDTH,
+    align: 'center',
+  })
+  y = doc.y + 6
 
   doc.moveTo(left, y).lineTo(right, y).lineWidth(1.5).strokeColor(ORANGE).stroke()
-  y += 14
+  y += 10
 
   //
   // Client block
@@ -361,11 +393,8 @@ export const buildInvoicePdf = async (
     }
   })
 
-  // TOTAUX row — rental lines + daily levies
-  const dailyLevyTotal = round3(
-    invoice.lines.reduce((sum, line) => sum + (Number(line.dailyLevy) || 0), 0),
-  )
-  const tableGrandTotal = round3(invoice.totalGross + dailyLevyTotal)
+  // TOTAUX row — same amount as TOTAL HT (lignes + prélèvement − remise)
+  const tableGrandTotal = totalHT
   const totauxH = 24
   if (y + totauxH > maxY) {
     doc.addPage()
@@ -393,13 +422,10 @@ export const buildInvoicePdf = async (
   if (invoice.discount > 0) {
     totalRows.push(['REMISE', `- ${money(invoice.discount)}`, false])
   }
-  totalRows.push(['TOTAL HT', money(invoice.totalHT), false])
-  totalRows.push([`TOTAL TVA ${invoice.vatRate}%`, money(invoice.totalVAT), false])
+  totalRows.push(['TOTAL HT', money(totalHT), false])
+  totalRows.push([`TOTAL TVA ${invoice.vatRate}%`, money(totalVAT), false])
   totalRows.push(['TIMBRE FISCALE', money(invoice.stampDuty), false])
-  if (dailyLevyTotal > 0) {
-    totalRows.push(['PRÉLÈVEMENT (2 Dt/j)', money(dailyLevyTotal), false])
-  }
-  totalRows.push(['TOTAL TTC', `${money(invoice.totalTTC)} ${currency}`, true])
+  totalRows.push(['TOTAL TTC', `${money(totalTTC)} ${currency}`, true])
 
   const boxGap = 20
   const boxW = (CONTENT_WIDTH - boxGap) / 2
@@ -419,7 +445,7 @@ export const buildInvoicePdf = async (
   doc.rect(left, lbTop, boxW, 22).fill(NAVY)
   doc.font('Helvetica-Bold').fontSize(9).fillColor(WHITE)
   doc.text('Réglement', left + 10, lbTop + 7, { width: boxW / 2 })
-  doc.text(`${money(invoice.totalPaid)} ${currency}`, left + boxW / 2, lbTop + 7, {
+  doc.text(`${money(totalPaid)} ${currency}`, left + boxW / 2, lbTop + 7, {
     width: boxW / 2 - 10,
     align: 'right',
   })
@@ -435,9 +461,9 @@ export const buildInvoicePdf = async (
 
   doc.moveTo(left + 10, ry + 2).lineTo(left + boxW - 10, ry + 2)
     .lineWidth(0.5).strokeColor(BORDER).stroke()
-  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(invoice.balanceDue > 0 ? DANGER : NAVY_DARK)
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(balanceDue > 0 ? DANGER : NAVY_DARK)
   doc.text('Reste à payer', left + 10, ry + 8, { width: boxW / 2 })
-  doc.text(`${money(invoice.balanceDue)} ${currency}`, left + boxW / 2, ry + 8, {
+  doc.text(`${money(balanceDue)} ${currency}`, left + boxW / 2, ry + 8, {
     width: boxW / 2 - 10,
     align: 'right',
   })
@@ -477,7 +503,7 @@ export const buildInvoicePdf = async (
   doc.font('Helvetica').fontSize(9).fillColor(NAVY_DARK)
   doc.text('Arrêtée la présente facture à la somme de : ', left, y, { continued: true })
   doc.font('Helvetica-Bold')
-  doc.text(`${spellAmount(invoice.totalTTC, currency)}.`, { width: CONTENT_WIDTH })
+  doc.text(`${spellAmount(totalTTC, currency)}.`, { width: CONTENT_WIDTH })
   y = doc.y + 10
 
   if (invoice.notes) {

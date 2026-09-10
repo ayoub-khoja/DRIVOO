@@ -902,7 +902,7 @@ export const signin = async (req: Request, res: Response) => {
       throw new Error('body.email not found')
     }
 
-    const email = helper.trim(emailFromBody, ' ')
+    const email = helper.trim(emailFromBody, ' ').toLowerCase()
 
     if (!helper.isValidEmail(email)) {
       throw new Error('body.email is not valid')
@@ -984,9 +984,17 @@ export const signin = async (req: Request, res: Response) => {
       // Cookie name follows the sign-in app type so Admin and Frontend can coexist on the same origin.
       //
       const cookieName = authHelper.getAuthCookieNameByAppType(type)
+      const clearCookieOptions: CookieOptions = {
+        httpOnly: true,
+        secure: env.COOKIE_OPTIONS.secure,
+        signed: true,
+        sameSite: env.COOKIE_OPTIONS.sameSite,
+        domain: env.COOKIE_OPTIONS.domain,
+        path: '/',
+      }
 
       res
-        .clearCookie(cookieName)
+        .clearCookie(cookieName, clearCookieOptions)
         .cookie(cookieName, token, cookieOptions)
         .status(200)
         .send(loggedUser)
@@ -1022,7 +1030,7 @@ export const socialSignin = async (req: Request, res: Response) => {
       throw new Error('body.email not found')
     }
 
-    const email = helper.trim(emailFromBody, ' ')
+    const email = helper.trim(emailFromBody, ' ').toLowerCase()
 
     if (!helper.isValidEmail(email)) {
       throw new Error('body.email is not valid')
@@ -1105,9 +1113,17 @@ export const socialSignin = async (req: Request, res: Response) => {
     // Social sign-in is always Frontend.
     //
     const cookieName = authHelper.getAuthCookieNameByAppType(bookcarsTypes.AppType.Frontend)
+    const clearCookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: env.COOKIE_OPTIONS.secure,
+      signed: true,
+      sameSite: env.COOKIE_OPTIONS.sameSite,
+      domain: env.COOKIE_OPTIONS.domain,
+      path: '/',
+    }
 
     res
-      .clearCookie(cookieName)
+      .clearCookie(cookieName, clearCookieOptions)
       .cookie(cookieName, token, cookieOptions)
       .status(200)
       .send(loggedUser)
@@ -1128,9 +1144,17 @@ export const socialSignin = async (req: Request, res: Response) => {
  */
 export const signout = async (req: Request, res: Response) => {
   const cookieName = authHelper.getAuthCookieName(req)
+  const clearCookieOptions: CookieOptions = {
+    httpOnly: true,
+    secure: env.COOKIE_OPTIONS.secure,
+    signed: true,
+    sameSite: env.COOKIE_OPTIONS.sameSite,
+    domain: env.COOKIE_OPTIONS.domain,
+    path: '/',
+  }
 
   res
-    .clearCookie(cookieName)
+    .clearCookie(cookieName, clearCookieOptions)
     .sendStatus(200)
 }
 

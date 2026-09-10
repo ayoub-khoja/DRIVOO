@@ -1,19 +1,27 @@
 import QRCode from 'qrcode'
+import * as env from '../config/env.config'
+import * as helper from './helper'
 import { NAVY_DARK, WHITE } from './pdfShared'
 
 /**
  * Unique, stable QR payload for agency printable documents.
- * Format: DRIVOO:<kind>:<number>:<mongoId>
+ * Encodes a public HTTPS URL so phone cameras open the verification page.
  */
 export type AgencyDocumentKind = 'contract' | 'invoice' | 'receipt'
 
 export const DOCUMENT_QR_SIZE = 56
 
+export const buildAgencyDocumentPath = (
+  kind: AgencyDocumentKind,
+  id: string,
+): string => `verify/document/${kind}/${encodeURIComponent(id)}`
+
+/** Public verification URL embedded in the QR code. */
 export const buildAgencyDocumentQrValue = (
   kind: AgencyDocumentKind,
   id: string,
-  number: string,
-): string => `DRIVOO:${kind}:${number}:${id}`
+  _number?: string,
+): string => helper.joinURL(env.FRONTEND_HOST, buildAgencyDocumentPath(kind, id))
 
 /** PNG buffer sized for crisp embedding in PDFKit. */
 export const renderDocumentQrPng = async (
