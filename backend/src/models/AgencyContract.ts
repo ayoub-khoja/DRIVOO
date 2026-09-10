@@ -87,6 +87,8 @@ const agencyContractSchema = new Schema<env.AgencyContract>(
     deposit: { type: Number, default: 0, min: 0 },
     depositReason: { type: String, trim: true, maxlength: 240 },
     vatRate: { type: Number, default: 19, min: 0, max: 100 },
+    dailyLevyRate: { type: Number, default: 2, min: 0 },
+    dailyLevyTotal: { type: Number, default: 0, min: 0 },
     supplements: { type: [supplementSchema], default: [] },
     payments: { type: [paymentSchema], default: [] },
     checklist: { type: [checkSchema], default: [] },

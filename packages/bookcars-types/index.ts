@@ -391,6 +391,10 @@ export interface AgencyContract {
   deposit: number
   depositReason?: string
   vatRate: number
+  /** Daily levy rate in Dt/j (default 2) */
+  dailyLevyRate?: number
+  /** Computed prélèvement = rental days × dailyLevyRate */
+  dailyLevyTotal?: number
   supplements: AgencyContractSupplement[]
   payments: AgencyContractPayment[]
   checklist: AgencyContractCheck[]
@@ -406,7 +410,7 @@ export interface AgencyContract {
 
 export type CreateAgencyContractPayload = Omit<
   AgencyContract,
-  '_id' | 'number' | 'createdAt' | 'totalHT' | 'totalVAT' | 'totalTTC' | 'totalPaid' | 'balanceDue'
+  '_id' | 'number' | 'createdAt' | 'totalHT' | 'totalVAT' | 'totalTTC' | 'totalPaid' | 'balanceDue' | 'dailyLevyTotal'
 > & {
   /** Rental price excluding tax, before supplements — totals are derived from it server side. */
   rentalHT: number

@@ -28,7 +28,7 @@ import {
   CONTRACT_PAYMENT_STATUSES,
   type AgencyContract,
 } from '@/agency/types/contract'
-import { computeContractTotals } from '@/agency/utils/contractMath'
+import { computeContractTotals, CONTRACT_DAILY_LEVY_RATE } from '@/agency/utils/contractMath'
 import { formatMoney } from '@/agency/utils/invoiceMath'
 import env from '@/config/env.config'
 
@@ -41,6 +41,11 @@ interface AgencyAddContractDialogProps {
 
 const today = () => new Date().toISOString().slice(0, 10)
 const nowLocal = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+const tomorrowLocal = () => {
+  const date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+  date.setDate(date.getDate() + 1)
+  return date.toISOString().slice(0, 16)
+}
 
 const emptyParty = {
   fullName: '',
@@ -76,7 +81,7 @@ const AgencyAddContractDialog = ({
     departurePlace: agency.address || '',
     departureKm: 0,
     departureFuel: '',
-    returnDate: nowLocal(),
+    returnDate: tomorrowLocal(),
     returnPlace: agency.address || '',
     returnKm: undefined,
     returnFuel: '',
@@ -86,6 +91,7 @@ const AgencyAddContractDialog = ({
     extraDayPrice: undefined,
     rentalHT: 0,
     vatRate: agency.invoiceVatRate ?? 19,
+    dailyLevyRate: CONTRACT_DAILY_LEVY_RATE,
     deposit: 0,
     depositReason: '',
     supplements: [],
@@ -125,6 +131,9 @@ const AgencyAddContractDialog = ({
     supplements: (watched.supplements || []).map((s) => ({ priceHT: Number(s?.priceHT) || 0 })),
     vatRate: Number(watched.vatRate) || 0,
     payments: (watched.payments || []).map((p) => ({ amount: Number(p?.amount) || 0 })),
+    dailyLevyRate: Number(watched.dailyLevyRate) || 0,
+    departureDate: watched.departureDate,
+    returnDate: watched.returnDate,
   }), [watched])
 
   const currency = env.BASE_CURRENCY || 'TND'
@@ -162,6 +171,7 @@ const AgencyAddContractDialog = ({
         extraDayPrice: values.extraDayPrice,
         rentalHT: values.rentalHT,
         vatRate: values.vatRate,
+        dailyLevyRate: values.dailyLevyRate,
         deposit: values.deposit,
         depositReason: values.depositReason?.trim() || undefined,
         supplements: values.supplements.map((supplement) => ({
@@ -501,6 +511,18 @@ const AgencyAddContractDialog = ({
                   helperText={errors.rentalHT?.message}
                 />
                 <TextField
+                  label={strings.CONTRACT_DAILY_LEVY_RATE}
+                  type="number"
+                  inputProps={{ min: 0, step: '0.001' }}
+                  {...register('dailyLevyRate')}
+                  error={!!errors.dailyLevyRate}
+                  helperText={
+                    errors.dailyLevyRate?.message
+                    || strings.CONTRACT_DAILY_LEVY_HINT.replace('{0}', String(totals.rentalDays))
+                      .replace('{1}', formatMoney(totals.dailyLevyTotal))
+                  }
+                />
+                <TextField
                   label={strings.INVOICE_VAT_RATE}
                   type="number"
                   inputProps={{ min: 0, max: 100, step: '0.1' }}
@@ -527,6 +549,10 @@ const AgencyAddContractDialog = ({
               <div className="agency-invoice-total-row">
                 <span>{strings.CONTRACT_TOTAL_HT}</span>
                 <strong>{formatMoney(totals.totalHT)}</strong>
+              </div>
+              <div className="agency-invoice-total-row">
+                <span>{strings.CONTRACT_DAILY_LEVY}</span>
+                <strong>{formatMoney(totals.dailyLevyTotal)}</strong>
               </div>
               <div className="agency-invoice-total-row">
                 <span>{strings.INVOICE_TOTAL_VAT}</span>

@@ -38,7 +38,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, refreshKey
 
     const currentUser = UserService.getCurrentUser()
     if (!currentUser) {
-      await exit()
+      // No local session — do not call sign-out (that would wipe a valid httpOnly cookie)
+      setUser(null)
+      setUnauthorized(false)
+      setUserLoaded(true)
       return
     }
 

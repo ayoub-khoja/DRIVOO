@@ -3,6 +3,7 @@ import multer from 'multer'
 import routeNames from '../config/agencyRoutes.config'
 import authJwt from '../middlewares/authJwt'
 import * as agencyController from '../controllers/agencyController'
+import * as documentVerifyController from '../controllers/documentVerifyController'
 
 const routes = express.Router()
 const logoUpload = multer({
@@ -53,5 +54,6 @@ routes.route(routeNames.getPublicCars).get(agencyController.getPublicCars)
 routes.route(routeNames.getPublicReviews).get(agencyController.getPublicReviews)
 routes.route(routeNames.createPublicReview).post(agencyController.createPublicReview)
 routes.route(routeNames.getPublicProfile).get(agencyController.getPublicProfile)
+routes.route(routeNames.verifyDocument).get(documentVerifyController.verifyDocument)
 
 export default routes

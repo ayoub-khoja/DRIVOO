@@ -47,6 +47,7 @@ const Faq = lazy(() => import('@/pages/Faq'))
 const CookiePolicy = lazy(() => import('@/pages/CookiePolicy'))
 const AgencyShowcase = lazy(() => import('@/pages/AgencyShowcase'))
 const AgencyPublicProfile = lazy(() => import('@/pages/AgencyPublicProfile'))
+const VerifyDocument = lazy(() => import('@/pages/VerifyDocument'))
 
 const AdminProvider = lazy(() => import('@/admin/context/AdminContext').then((m) => ({ default: m.AdminProvider })))
 const AdminLayout = lazy(() => import('@/admin/components/AdminLayout'))
@@ -201,6 +202,7 @@ const router = createBrowserRouter([
       { path: 'cookie-policy', element: <CookiePolicy /> },
       { path: 'espace-agence', element: <AgencyShowcase /> },
       { path: 'agence/:slug', element: <AgencyPublicProfile /> },
+      { path: 'verify/document/:kind/:id', element: <VerifyDocument /> },
       ...(env.HIDE_SUPPLIERS ? [] : [{ path: 'suppliers', element: <Suppliers /> }]),
       { path: '*', element: <NoMatch /> },
     ],

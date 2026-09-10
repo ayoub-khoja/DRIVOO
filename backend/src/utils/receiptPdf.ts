@@ -92,46 +92,60 @@ export const buildReceiptPdf = async (
   let y = PAGE_MARGIN
 
   //
-  // Header — agency identity on the left, title + unique QR on the right
+  // Header — left agency + center logo + right N°/date/QR (same style as contract)
   //
+  const headerTop = y
+  const logoMaxW = 78
+  const logoMaxH = 46
+  const logoX = left + (CONTENT_WIDTH - logoMaxW) / 2
   const qrX = right - DOCUMENT_QR_SIZE
-  const titleW = 200
+  const titleW = 210
   const titleX = qrX - 12 - titleW
-  const qrBottom = drawDocumentQr(doc, qrPng, qrX, y)
+  const leftColW = Math.max(120, logoX - left - 14)
+  const qrBottom = drawDocumentQr(doc, qrPng, qrX, headerTop)
 
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(ORANGE)
+  doc.text(`N° ${receipt.number}`, titleX, headerTop, { width: titleW, align: 'right' })
+  doc.font('Helvetica').fontSize(8.5).fillColor(MUTED)
+  doc.text(formatDate(receipt.paidAt), titleX, doc.y + 3, { width: titleW, align: 'right' })
+  const metaBottom = doc.y
+
+  let logoBottom = headerTop
   if (logo) {
     try {
-      doc.image(logo, left, y, { fit: [140, 52] })
+      doc.image(logo, logoX, headerTop, { fit: [logoMaxW, logoMaxH], align: 'center' })
+      logoBottom = headerTop + logoMaxH
     } catch (err) {
       logger.info(`[receiptPdf] logo could not be embedded for ${receipt.number}`, err)
     }
   }
 
-  const identityTop = logo ? y + 58 : y
-  doc.font('Helvetica-Bold').fontSize(logo ? 12 : 16).fillColor(NAVY_DARK)
-  doc.text(agency.fullName || '', left, identityTop, { width: 280 })
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(NAVY_DARK)
+  doc.text(agency.fullName || '', left, headerTop, { width: leftColW })
 
   let identityY = doc.y + 2
-  doc.font('Helvetica').fontSize(8.5).fillColor(MUTED)
+  doc.font('Helvetica').fontSize(8).fillColor(MUTED)
   for (const line of [
-    agency.taxId ? `Code TVA : ${agency.taxId}` : '',
+    agency.taxId ? `M.F : ${agency.taxId}` : '',
+    agency.rneNumber ? `R.N.E : ${agency.rneNumber}` : '',
     agency.email || '',
     [agency.phone, agency.phone2].filter(Boolean).join(' | '),
   ].filter(Boolean)) {
-    doc.text(line, left, identityY, { width: 280 })
+    doc.text(line, left, identityY, { width: leftColW })
     identityY = doc.y + 1
   }
 
-  doc.font('Helvetica-Bold').fontSize(20).fillColor(NAVY)
-  doc.text('REÇU DE PAIEMENT', titleX, y, { width: titleW, align: 'right' })
-  doc.font('Helvetica-Bold').fontSize(12).fillColor(ORANGE)
-  doc.text(`N° ${receipt.number}`, titleX, doc.y + 2, { width: titleW, align: 'right' })
-  doc.font('Helvetica').fontSize(9).fillColor(MUTED)
-  doc.text(formatDate(receipt.paidAt), titleX, doc.y + 3, { width: titleW, align: 'right' })
+  y = Math.max(identityY, logoBottom, qrBottom, metaBottom) + 6
 
-  y = Math.max(identityY, doc.y, qrBottom) + 14
+  doc.font('Helvetica-Bold').fontSize(16).fillColor(NAVY)
+  doc.text('REÇU DE PAIEMENT', left, y, {
+    width: CONTENT_WIDTH,
+    align: 'center',
+  })
+  y = doc.y + 6
+
   doc.moveTo(left, y).lineTo(right, y).lineWidth(1.5).strokeColor(ORANGE).stroke()
-  y += 16
+  y += 12
 
   // Paid stamp
   doc.roundedRect(left, y, 72, 20, 10).fill(ORANGE)

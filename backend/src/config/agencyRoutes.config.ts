@@ -34,6 +34,7 @@ const routes = {
   getPublicCars: '/api/agency/public/:slug/cars',
   getPublicReviews: '/api/agency/public/:slug/reviews',
   createPublicReview: '/api/agency/public/:slug/reviews',
+  verifyDocument: '/api/public/document/:kind/:id',
 }
 
 export default routes

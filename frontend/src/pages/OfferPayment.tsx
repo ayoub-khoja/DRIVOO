@@ -17,7 +17,6 @@ import {
 } from '@mui/material'
 import {
   Check as CheckIcon,
-  ExpandMore as ExpandMoreIcon,
   FlightTakeoff as FlightIcon,
 } from '@mui/icons-material'
 import {
@@ -61,14 +60,13 @@ import Unauthorized from '@/components/Unauthorized'
 import DriverLicense from '@/components/DriverLicense'
 import OfferSearchBar from '@/components/offer/OfferSearchBar'
 import OfferProgressBar from '@/components/offer/OfferProgressBar'
-import OfferPaymentCarCard from '@/components/offer/OfferPaymentCarCard'
-import OfferPaymentSidebar from '@/components/offer/OfferPaymentSidebar'
+import OfferOrderRecap from '@/components/offer/OfferOrderRecap'
+import OfferRentalSteps from '@/components/offer/OfferRentalSteps'
 import {
   EMPTY_EXTRA_QUANTITIES,
   OfferExtraQuantities,
 } from '@/utils/offerExtrasHelper'
 import { getFullProtectionTotal } from '@/utils/offerProtectionHelper'
-import { formatBookingRating } from '@/utils/searchFacetsHelper'
 
 import '@/assets/css/offer.css'
 
@@ -115,14 +113,9 @@ const OfferPayment = () => {
   const [payPalInit, setPayPalInit] = useState(false)
   const [payPalProcessing, setPayPalProcessing] = useState(false)
   const [offerInitialOptions, setOfferInitialOptions] = useState<Partial<bookcarsTypes.CarOptions>>()
-  const [flightExpanded, setFlightExpanded] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [country, setCountry] = useState('Tunisie')
-  const [billingCity, setBillingCity] = useState('')
-  const [billingPostal, setBillingPostal] = useState('')
-  const [billingAddress, setBillingAddress] = useState('')
-  const [businessBooking, setBusinessBooking] = useState('no')
   const [paymentMethod, setPaymentMethod] = useState('payLater')
 
   const birthDateRef = useRef<HTMLInputElement | null>(null)
@@ -176,15 +169,6 @@ const OfferPayment = () => {
     }
   }, [visible, car, depositPrice]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const highlights = car ? [
-    `${strings.HIGHLIGHT_RATING} ${formatBookingRating(car.rating) || '—'}/10`,
-    strings.HIGHLIGHT_TERMINAL,
-    strings.HIGHLIGHT_FUEL,
-    strings.HIGHLIGHT_QUEUE,
-    strings.HIGHLIGHT_COUNTER,
-    ...(hasFreeCancellation ? [strings.HIGHLIGHT_CANCEL] : []),
-  ] : []
-
   const getNavigationState = () => ({
     carId: car!._id,
     pickupLocationId: pickupLocation!._id,
@@ -193,6 +177,8 @@ const OfferPayment = () => {
     to,
     extras,
     offerOptions,
+    contact: (location.state as { contact?: unknown } | null)?.contact,
+    pricing: (location.state as { pricing?: unknown } | null)?.pricing,
   })
 
   const onLoad = async (_user?: bookcarsTypes.User) => {
@@ -214,6 +200,7 @@ const OfferPayment = () => {
       to: _to,
       offerOptions: _offerOptions,
       extras: savedExtras,
+      contact,
     } = state
 
     if (!carId || !pickupLocationId || !dropOffLocationId || !_from || !_to) {
@@ -294,7 +281,19 @@ const OfferPayment = () => {
         setValue('additionalDriver', true)
       }
 
-      if (_user?.fullName) {
+      if (contact?.fullName) {
+        const parts = String(contact.fullName).trim().split(/\s+/)
+        setFirstName(parts[0] || '')
+        setLastName(parts.slice(1).join(' ') || '')
+        setValue('fullName', contact.fullName)
+        if (contact.email) setValue('email', contact.email)
+        if (contact.whatsapp) setValue('phone', `+216${contact.whatsapp}`)
+        if (contact.age) {
+          const birthYear = new Date().getFullYear() - Number(contact.age)
+          setValue('birthDate', new Date(birthYear, 0, 1))
+        }
+        if (contact.tosAccepted) setValue('tos', true)
+      } else if (_user?.fullName) {
         const parts = _user.fullName.trim().split(/\s+/)
         setFirstName(parts[0] || '')
         setLastName(parts.slice(1).join(' ') || '')
@@ -490,333 +489,334 @@ const OfferPayment = () => {
             <button
               type="button"
               className="offer-back-link"
-              onClick={() => navigate('/offer/protection', { state: getNavigationState() })}
+              onClick={() => navigate('/offer/extras', { state: getNavigationState() })}
             >
-              ← {strings.BACK_TO_PROTECTION}
+              ← {strings.BACK_TO_OPTIONS}
             </button>
 
-            <div className="offer-header">
-              <h1>{strings.PAYMENT_TITLE}</h1>
-              <p className="offer-subtitle">{strings.NEXT_STEP_CONFIRMATION}</p>
-            </div>
+            <OfferProgressBar activeStep={3} />
 
-            <OfferProgressBar activeStep={4} />
+            <form className="offer-payment-form" onSubmit={handleSubmit(onSubmit)}>
+              <div className="offer-checkout-options-hidden">
+                <CheckoutOptions
+                  car={car}
+                  from={from}
+                  to={to}
+                  language={language}
+                  clientSecret={clientSecret}
+                  payPalLoaded={payPalLoaded}
+                  initialOptions={offerInitialOptions}
+                  onPriceChange={(value) => setPrice(value)}
+                  onAdManuallyCheckedChange={() => {}}
+                  onCancellationChange={(v) => setValue('cancellation', v)}
+                  onAmendmentsChange={(v) => setValue('amendments', v)}
+                  onTheftProtectionChange={(v) => setValue('theftProtection', v)}
+                  onCollisionDamageWaiverChange={(v) => setValue('collisionDamageWaiver', v)}
+                  onFullInsuranceChange={(v) => setValue('fullInsurance', v)}
+                  onAdditionalDriverChange={(v) => setValue('additionalDriver', v)}
+                />
+              </div>
 
-            <div className="offer-layout">
-              <div className="offer-main">
-                {hasFreeCancellation && (
-                  <div className="offer-payment-cancel-box">
-                    <CheckIcon />
-                    <div>
-                      <strong>{strings.PAYMENT_CANCEL_TITLE}</strong>
-                      <p>{strings.PAYMENT_CANCEL_TEXT}</p>
+              <div className="offer-checkout-top">
+                <OfferOrderRecap
+                  car={car}
+                  pickupLocation={pickupLocation}
+                  dropOffLocation={dropOffLocation}
+                  from={from}
+                  to={to}
+                  language={language}
+                  totalPrice={checkoutPrice}
+                  protectionPrice={protectionPrice}
+                  hasProtection={hasProtection}
+                />
+
+                <section className="offer-contact-card">
+                  <header className="offer-section-header">
+                    <h2>{strings.CONTACT_TITLE}</h2>
+                  </header>
+                  <div className="offer-contact-body">
+                    {!authenticated ? (
+                      <>
+                        <div className="offer-form-row">
+                          <FormControl fullWidth margin="dense" className="offer-form-field">
+                            <InputLabel className="required">{strings.FIRST_NAME}</InputLabel>
+                            <OutlinedInput
+                              value={firstName}
+                              label={strings.FIRST_NAME}
+                              onChange={(e) => setFirstName(e.target.value)}
+                            />
+                          </FormControl>
+                          <FormControl fullWidth margin="dense" className="offer-form-field">
+                            <InputLabel className="required">{strings.LAST_NAME}</InputLabel>
+                            <OutlinedInput
+                              value={lastName}
+                              label={strings.LAST_NAME}
+                              onChange={(e) => setLastName(e.target.value)}
+                            />
+                          </FormControl>
+                        </div>
+
+                        <FormControl fullWidth margin="dense" className="offer-form-field">
+                          <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
+                          <OutlinedInput
+                            type="email"
+                            label={commonStrings.EMAIL}
+                            error={!!errors.email || emailRegistered}
+                            onChange={(e) => {
+                              clearErrors('email')
+                              setEmailRegistered(false)
+                              setValue('email', e.target.value)
+                            }}
+                            onBlur={async (e) => {
+                              trigger('email')
+                              if (validator.isEmail(e.target.value)) {
+                                const status = await UserService.validateEmail({ email: e.target.value })
+                                setEmailRegistered(status !== 200)
+                                setEmailInfo(status === 200)
+                              }
+                            }}
+                          />
+                          <FormHelperText error={!!errors.email || emailRegistered}>
+                            {(errors.email?.message) || (emailRegistered && commonStrings.EMAIL_ALREADY_REGISTERED) || (emailInfo && checkoutStrings.EMAIL_INFO) || ''}
+                          </FormHelperText>
+                        </FormControl>
+
+                        <FormControl fullWidth margin="dense" className="offer-form-field">
+                          <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
+                          <OutlinedInput
+                            label={commonStrings.PHONE}
+                            error={!!errors.phone}
+                            onChange={(e) => {
+                              clearErrors('phone')
+                              setValue('phone', e.target.value)
+                            }}
+                            onBlur={(e) => {
+                              trigger('phone')
+                              setPhoneInfo(validator.isMobilePhone(e.target.value))
+                            }}
+                          />
+                          <FormHelperText>{(errors.phone?.message) || (phoneInfo && checkoutStrings.PHONE_INFO) || ''}</FormHelperText>
+                        </FormControl>
+
+                        <FormControl fullWidth margin="dense" className="offer-form-field">
+                          <DatePicker
+                            {...register('birthDate')}
+                            ref={birthDateRef}
+                            label={commonStrings.BIRTH_DATE}
+                            variant="outlined"
+                            required
+                            onChange={(d) => setValue('birthDate', d ?? undefined, { shouldValidate: true })}
+                            language={language}
+                          />
+                          <FormHelperText error={!!errors.birthDate}>{errors.birthDate?.message || ''}</FormHelperText>
+                        </FormControl>
+
+                        <FormControl fullWidth margin="dense" className="offer-form-field">
+                          <InputLabel className="required">{strings.COUNTRY_RESIDENCE}</InputLabel>
+                          <Select value={country} label={strings.COUNTRY_RESIDENCE} onChange={(e) => setCountry(e.target.value)}>
+                            {COUNTRIES.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+                          </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth margin="dense" className="offer-form-field">
+                          <OutlinedInput
+                            startAdornment={<FlightIcon className="offer-flight-icon" />}
+                            placeholder={strings.FLIGHT_SEARCH_PLACEHOLDER}
+                          />
+                        </FormControl>
+
+                        <p className="offer-privacy-note">
+                          {strings.PRIVACY_NOTE}
+                          {' '}
+                          <Link href="/privacy" target="_blank">{headerStrings.PRIVACY_POLICY}</Link>
+                        </p>
+                        <SocialLogin reloadPage />
+                      </>
+                    ) : (
+                      <p className="offer-form-subtitle">
+                        {user?.fullName}
+                        {user?.email ? ` · ${user.email}` : ''}
+                      </p>
+                    )}
+
+                    <FormControl margin="dense" className="offer-tos-row">
+                      <FormControlLabel
+                        control={<Checkbox {...register('tos')} color="primary" />}
+                        label={<Link href="/tos" target="_blank">{commonStrings.TOS}</Link>}
+                      />
+                      <FormHelperText error={!!errors.tos}>{errors.tos?.message || ''}</FormHelperText>
+                    </FormControl>
+                  </div>
+                </section>
+              </div>
+
+              <section className="offer-form-card offer-payment-choice-card">
+                <header className="offer-section-header offer-section-header-inline">
+                  <h2>{strings.PAYMENT_CHOICE_TITLE}</h2>
+                </header>
+                <RadioGroup
+                  value={paymentMethod}
+                  onChange={(e) => applyPaymentMethod(e.target.value)}
+                  className="offer-payment-methods"
+                >
+                  {car.supplier.payLater && (
+                    <FormControlLabel value="payLater" control={<Radio />} disabled={!!clientSecret || payPalLoaded} label={checkoutStrings.PAY_LATER} />
+                  )}
+                  {car.deposit > 0 && (
+                    <FormControlLabel value="payDeposit" control={<Radio />} disabled={!!clientSecret || payPalLoaded} label={checkoutStrings.PAY_DEPOSIT} />
+                  )}
+                  {depositPrice > 0 && (
+                    <FormControlLabel value="payOnline" control={<Radio />} disabled={!!clientSecret || payPalLoaded} label={checkoutStrings.PAY_ONLINE} />
+                  )}
+                  {depositPrice <= 0 && (
+                    <FormControlLabel value="payInFull" control={<Radio />} disabled={!!clientSecret || payPalLoaded} label={checkoutStrings.PAY_IN_FULL} />
+                  )}
+                </RadioGroup>
+
+                <div className="offer-payment-breakdown">
+                  <div className="offer-price-row">
+                    <span>{strings.TOTAL_RENTAL}</span>
+                    <span>{bookcarsHelper.formatPrice(basePrice, commonStrings.CURRENCY, language)}</span>
+                  </div>
+                  {hasProtection && protectionPrice > 0 && (
+                    <div className="offer-price-row">
+                      <span>{strings.PAYMENT_PROTECTION}</span>
+                      <span>{bookcarsHelper.formatPrice(protectionPrice, commonStrings.CURRENCY, language)}</span>
                     </div>
+                  )}
+                  <div className="offer-price-row offer-price-total-ttc">
+                    <span>{strings.TOTAL_TTC}</span>
+                    <strong>{bookcarsHelper.formatPrice(checkoutPrice, commonStrings.CURRENCY, language)}</strong>
+                  </div>
+                  {!payLater && (
+                    <>
+                      <div className="offer-price-row offer-pay-now">
+                        <span>{strings.PAY_NOW_AMOUNT}</span>
+                        <strong>
+                          {bookcarsHelper.formatPrice(
+                            payDeposit ? depositPrice : (payInFull ? checkoutPrice + depositPrice : checkoutPrice),
+                            commonStrings.CURRENCY,
+                            language,
+                          )}
+                        </strong>
+                      </div>
+                      {(payDeposit) && (
+                        <div className="offer-price-row">
+                          <span>{strings.PAY_REMAINING}</span>
+                          <span>
+                            {bookcarsHelper.formatPrice(
+                              Math.max(0, checkoutPrice - depositPrice),
+                              commonStrings.CURRENCY,
+                              language,
+                            )}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {clientSecret && stripePromise && (
+                  <div className="offer-stripe-embed">
+                    <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+                      <EmbeddedCheckout />
+                    </EmbeddedCheckoutProvider>
                   </div>
                 )}
 
-                <OfferPaymentCarCard car={car} pickupLocation={pickupLocation} language={language} />
+                {payPalLoaded && (
+                  <PayPalButtons
+                    createOrder={async () => {
+                      let amount = checkoutPrice
+                      if (payDeposit) amount = depositPrice
+                      else if (payInFull) amount = checkoutPrice + depositPrice
+                      return PayPalService.createOrder(
+                        bookingId!,
+                        amount,
+                        PaymentService.getCurrency(),
+                        bookcarsHelper.truncateString(car.name, PayPalService.ORDER_NAME_MAX_LENGTH),
+                        bookcarsHelper.truncateString(`${car.name} - ${daysLabel}`, PayPalService.ORDER_DESCRIPTION_MAX_LENGTH),
+                      )
+                    }}
+                    onApprove={async (data, actions) => {
+                      try {
+                        setPayPalProcessing(true)
+                        await actions.order?.capture()
+                        const status = await PayPalService.checkOrder(bookingId!, data.orderID)
+                        if (status === 200) { setVisible(false); setSuccess(true) }
+                        else setPaymentFailed(true)
+                      } catch (err) {
+                        helper.error(err)
+                      } finally {
+                        setPayPalProcessing(false)
+                      }
+                    }}
+                    onInit={() => setPayPalInit(true)}
+                  />
+                )}
+              </section>
 
-                <form className="offer-payment-form" onSubmit={handleSubmit(onSubmit)}>
-                  <div className="offer-checkout-options-hidden">
-                    <CheckoutOptions
-                      car={car}
-                      from={from}
-                      to={to}
-                      language={language}
-                      clientSecret={clientSecret}
-                      payPalLoaded={payPalLoaded}
-                      initialOptions={offerInitialOptions}
-                      onPriceChange={(value) => setPrice(value)}
-                      onAdManuallyCheckedChange={() => {}}
-                      onCancellationChange={(v) => setValue('cancellation', v)}
-                      onAmendmentsChange={(v) => setValue('amendments', v)}
-                      onTheftProtectionChange={(v) => setValue('theftProtection', v)}
-                      onCollisionDamageWaiverChange={(v) => setValue('collisionDamageWaiver', v)}
-                      onFullInsuranceChange={(v) => setValue('fullInsurance', v)}
-                      onAdditionalDriverChange={(v) => setValue('additionalDriver', v)}
-                    />
-                  </div>
+              {car.supplier.licenseRequired && (
+                <section className="offer-form-card">
+                  <h3>{commonStrings.DRIVER_LICENSE}</h3>
+                  <DriverLicense
+                    user={user}
+                    variant="outlined"
+                    onUpload={(filename) => {
+                      setLicenseRequired(!filename)
+                      setLicense(filename)
+                    }}
+                    onDelete={() => { setLicense(null); setLicenseRequired(true) }}
+                    hideDelete={!!clientSecret || payPalLoaded}
+                  />
+                </section>
+              )}
 
-                  {!authenticated && (
-                    <section className="offer-form-card">
-                      <h3>{strings.DRIVER_INFO_TITLE}</h3>
-                      <p className="offer-form-subtitle">{strings.DRIVER_INFO_SUBTITLE}</p>
+              {hasFreeCancellation && (
+                <div className="offer-banner-success offer-payment-footer-banner">
+                  <CheckIcon />
+                  <span>{strings.FREE_CANCEL}</span>
+                </div>
+              )}
 
-                      <FormControl fullWidth margin="dense" className="offer-form-field">
-                        <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
-                        <OutlinedInput
-                          type="email"
-                          label={commonStrings.EMAIL}
-                          error={!!errors.email || emailRegistered}
-                          onChange={(e) => {
-                            clearErrors('email')
-                            setEmailRegistered(false)
-                            setValue('email', e.target.value)
-                          }}
-                          onBlur={async (e) => {
-                            trigger('email')
-                            if (validator.isEmail(e.target.value)) {
-                              const status = await UserService.validateEmail({ email: e.target.value })
-                              setEmailRegistered(status !== 200)
-                              setEmailInfo(status === 200)
-                            }
-                          }}
-                        />
-                        <FormHelperText error={!!errors.email || emailRegistered}>
-                          {(errors.email?.message) || (emailRegistered && commonStrings.EMAIL_ALREADY_REGISTERED) || (emailInfo && checkoutStrings.EMAIL_INFO) || ''}
-                        </FormHelperText>
-                      </FormControl>
-
-                      <div className="offer-form-row">
-                        <FormControl fullWidth margin="dense" className="offer-form-field">
-                          <InputLabel className="required">{strings.FIRST_NAME}</InputLabel>
-                          <OutlinedInput
-                            value={firstName}
-                            label={strings.FIRST_NAME}
-                            onChange={(e) => setFirstName(e.target.value)}
-                          />
-                        </FormControl>
-                        <FormControl fullWidth margin="dense" className="offer-form-field">
-                          <InputLabel className="required">{strings.LAST_NAME}</InputLabel>
-                          <OutlinedInput
-                            value={lastName}
-                            label={strings.LAST_NAME}
-                            onChange={(e) => setLastName(e.target.value)}
-                          />
-                        </FormControl>
-                      </div>
-
-                      <FormControl fullWidth margin="dense" className="offer-form-field">
-                        <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                        <OutlinedInput
-                          label={commonStrings.PHONE}
-                          error={!!errors.phone}
-                          onChange={(e) => {
-                            clearErrors('phone')
-                            setValue('phone', e.target.value)
-                          }}
-                          onBlur={(e) => {
-                            trigger('phone')
-                            setPhoneInfo(validator.isMobilePhone(e.target.value))
-                          }}
-                        />
-                        <FormHelperText>{(errors.phone?.message) || (phoneInfo && checkoutStrings.PHONE_INFO) || ''}</FormHelperText>
-                      </FormControl>
-
-                      <FormControl fullWidth margin="dense" className="offer-form-field">
-                        <InputLabel className="required">{strings.COUNTRY_RESIDENCE}</InputLabel>
-                        <Select value={country} label={strings.COUNTRY_RESIDENCE} onChange={(e) => setCountry(e.target.value)}>
-                          {COUNTRIES.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
-                        </Select>
-                      </FormControl>
-
-                      <FormControl fullWidth margin="dense" className="offer-form-field">
-                        <DatePicker
-                          {...register('birthDate')}
-                          ref={birthDateRef}
-                          label={commonStrings.BIRTH_DATE}
-                          variant="outlined"
-                          required
-                          onChange={(d) => setValue('birthDate', d ?? undefined, { shouldValidate: true })}
-                          language={language}
-                        />
-                        <FormHelperText error={!!errors.birthDate}>{errors.birthDate?.message || ''}</FormHelperText>
-                      </FormControl>
-
-                      <p className="offer-privacy-note">
-                        {strings.PRIVACY_NOTE}
-                        {' '}
-                        <Link href="/privacy" target="_blank">{headerStrings.PRIVACY_POLICY}</Link>
-                      </p>
-
-                      <SocialLogin reloadPage />
-                    </section>
-                  )}
-
-                  <section className="offer-form-card">
-                    <h3>{strings.FLIGHT_TITLE}</h3>
-                    <p className="offer-form-subtitle">{strings.FLIGHT_SUBTITLE.replace('{location}', pickupLocation.name)}</p>
-                    <FormControl fullWidth margin="dense" className="offer-form-field">
-                      <OutlinedInput
-                        startAdornment={<FlightIcon className="offer-flight-icon" />}
-                        placeholder={strings.FLIGHT_SEARCH_PLACEHOLDER}
-                      />
-                    </FormControl>
-                    <button
-                      type="button"
-                      className="offer-flight-toggle"
-                      onClick={() => setFlightExpanded(!flightExpanded)}
-                    >
-                      {strings.FLIGHT_MANUAL}
-                      <ExpandMoreIcon className={flightExpanded ? 'expanded' : ''} />
-                    </button>
-                  </section>
-
-                  <section className="offer-form-card">
-                    <h3>{strings.BILLING_TITLE}</h3>
-                    <div className="offer-form-row">
-                      <FormControl fullWidth margin="dense" className="offer-form-field">
-                        <InputLabel className="required">{strings.FIRST_NAME}</InputLabel>
-                        <OutlinedInput value={firstName} label={strings.FIRST_NAME} onChange={(e) => setFirstName(e.target.value)} />
-                      </FormControl>
-                      <FormControl fullWidth margin="dense" className="offer-form-field">
-                        <InputLabel className="required">{strings.LAST_NAME}</InputLabel>
-                        <OutlinedInput value={lastName} label={strings.LAST_NAME} onChange={(e) => setLastName(e.target.value)} />
-                      </FormControl>
-                    </div>
-                    <FormControl fullWidth margin="dense" className="offer-form-field">
-                      <InputLabel className="required">{strings.BILLING_ADDRESS}</InputLabel>
-                      <OutlinedInput value={billingAddress} label={strings.BILLING_ADDRESS} onChange={(e) => setBillingAddress(e.target.value)} />
-                    </FormControl>
-                    <div className="offer-form-row">
-                      <FormControl fullWidth margin="dense" className="offer-form-field">
-                        <InputLabel className="required">{strings.BILLING_CITY}</InputLabel>
-                        <OutlinedInput value={billingCity} label={strings.BILLING_CITY} onChange={(e) => setBillingCity(e.target.value)} />
-                      </FormControl>
-                      <FormControl fullWidth margin="dense" className="offer-form-field">
-                        <InputLabel className="required">{strings.BILLING_POSTAL}</InputLabel>
-                        <OutlinedInput value={billingPostal} label={strings.BILLING_POSTAL} onChange={(e) => setBillingPostal(e.target.value)} />
-                      </FormControl>
-                    </div>
-                    <FormControl fullWidth margin="dense" className="offer-form-field">
-                      <InputLabel className="required">{strings.COUNTRY_RESIDENCE}</InputLabel>
-                      <Select value={country} label={strings.COUNTRY_RESIDENCE} onChange={(e) => setCountry(e.target.value)}>
-                        {COUNTRIES.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
-                      </Select>
-                    </FormControl>
-                    <p className="offer-form-label">{strings.BUSINESS_BOOKING}</p>
-                    <RadioGroup row value={businessBooking} onChange={(e) => setBusinessBooking(e.target.value)}>
-                      <FormControlLabel value="yes" control={<Radio size="small" />} label={strings.YES} />
-                      <FormControlLabel value="no" control={<Radio size="small" />} label={strings.NO} />
-                    </RadioGroup>
-                  </section>
-
-                  {car.supplier.licenseRequired && (
-                    <section className="offer-form-card">
-                      <h3>{commonStrings.DRIVER_LICENSE}</h3>
-                      <DriverLicense
-                        user={user}
-                        variant="outlined"
-                        onUpload={(filename) => {
-                          setLicenseRequired(!filename)
-                          setLicense(filename)
-                        }}
-                        onDelete={() => { setLicense(null); setLicenseRequired(true) }}
-                        hideDelete={!!clientSecret || payPalLoaded}
-                      />
-                    </section>
-                  )}
-
-                  <section className="offer-form-card">
-                    <h3>{strings.PAYMENT_METHOD_TITLE}</h3>
-                    <RadioGroup
-                      value={paymentMethod}
-                      onChange={(e) => applyPaymentMethod(e.target.value)}
-                    >
-                      {car.supplier.payLater && (
-                        <FormControlLabel value="payLater" control={<Radio />} disabled={!!clientSecret || payPalLoaded} label={checkoutStrings.PAY_LATER} />
-                      )}
-                      {car.deposit > 0 && (
-                        <FormControlLabel value="payDeposit" control={<Radio />} disabled={!!clientSecret || payPalLoaded} label={checkoutStrings.PAY_DEPOSIT} />
-                      )}
-                      {depositPrice > 0 && (
-                        <FormControlLabel value="payOnline" control={<Radio />} disabled={!!clientSecret || payPalLoaded} label={checkoutStrings.PAY_ONLINE} />
-                      )}
-                      {depositPrice <= 0 && (
-                        <FormControlLabel value="payInFull" control={<Radio />} disabled={!!clientSecret || payPalLoaded} label={checkoutStrings.PAY_IN_FULL} />
-                      )}
-                    </RadioGroup>
-
-                    {clientSecret && stripePromise && (
-                      <div className="offer-stripe-embed">
-                        <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
-                          <EmbeddedCheckout />
-                        </EmbeddedCheckoutProvider>
-                      </div>
-                    )}
-
-                    {payPalLoaded && (
-                      <PayPalButtons
-                        createOrder={async () => {
-                          let amount = checkoutPrice
-                          if (payDeposit) amount = depositPrice
-                          else if (payInFull) amount = checkoutPrice + depositPrice
-                          return PayPalService.createOrder(
-                            bookingId!,
-                            amount,
-                            PaymentService.getCurrency(),
-                            bookcarsHelper.truncateString(car.name, PayPalService.ORDER_NAME_MAX_LENGTH),
-                            bookcarsHelper.truncateString(`${car.name} - ${daysLabel}`, PayPalService.ORDER_DESCRIPTION_MAX_LENGTH),
-                          )
-                        }}
-                        onApprove={async (data, actions) => {
-                          try {
-                            setPayPalProcessing(true)
-                            await actions.order?.capture()
-                            const status = await PayPalService.checkOrder(bookingId!, data.orderID)
-                            if (status === 200) { setVisible(false); setSuccess(true) }
-                            else setPaymentFailed(true)
-                          } catch (err) {
-                            helper.error(err)
-                          } finally {
-                            setPayPalProcessing(false)
-                          }
-                        }}
-                        onInit={() => setPayPalInit(true)}
-                      />
-                    )}
-                  </section>
-
-                  {hasFreeCancellation && (
-                    <div className="offer-banner-success offer-payment-footer-banner">
-                      <CheckIcon />
-                      <span>{strings.FREE_CANCEL}</span>
-                    </div>
-                  )}
-
-                  <div className="offer-payment-submit-row">
-                    {((env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.Stripe && !clientSecret)
-                      || (env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.PayPal && !payPalInit)
-                      || payLater) && (
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        className="offer-payment-submit-btn"
-                        disabled={isSubmitting || (payPalLoaded && !payPalInit) || (!authenticated && (!firstName.trim() || !lastName.trim()))}
-                      >
-                        {(isSubmitting || (payPalLoaded && !payPalInit))
-                          ? <CircularProgress color="inherit" size={24} />
-                          : checkoutStrings.BOOK}
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="form-error">
-                    {paymentFailed && <Error message={checkoutStrings.PAYMENT_FAILED} />}
-                    {recaptchaError && <Error message={commonStrings.RECAPTCHA_ERROR} />}
-                    {licenseRequired && <Error message={checkoutStrings.LICENSE_REQUIRED} />}
-                  </div>
-
-                  <FormControl margin="dense" className="offer-tos-row">
-                    <FormControlLabel
-                      control={<Checkbox {...register('tos')} color="primary" />}
-                      label={<Link href="/tos" target="_blank">{commonStrings.TOS}</Link>}
-                    />
-                    <FormHelperText error={!!errors.tos}>{errors.tos?.message || ''}</FormHelperText>
-                  </FormControl>
-                </form>
+              <div className="offer-payment-submit-row">
+                {((env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.Stripe && !clientSecret)
+                  || (env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.PayPal && !payPalInit)
+                  || payLater) && (
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    className="offer-payment-submit-btn"
+                    disabled={isSubmitting || (payPalLoaded && !payPalInit) || (!authenticated && (!firstName.trim() || !lastName.trim()))}
+                  >
+                    {(isSubmitting || (payPalLoaded && !payPalInit))
+                      ? <CircularProgress color="inherit" size={24} />
+                      : (payLater
+                        ? checkoutStrings.BOOK
+                        : strings.PAY_CTA.replace(
+                          '{amount}',
+                          bookcarsHelper.formatPrice(
+                            payDeposit ? depositPrice : (payInFull ? checkoutPrice + depositPrice : checkoutPrice),
+                            commonStrings.CURRENCY,
+                            language,
+                          ),
+                        ))}
+                  </Button>
+                )}
               </div>
 
-              <OfferPaymentSidebar
-                car={car}
-                language={language}
-                basePrice={basePrice}
-                protectionPrice={protectionPrice}
-                totalPrice={checkoutPrice}
-                hasProtection={hasProtection}
-                highlights={highlights}
+              <div className="form-error">
+                {paymentFailed && <Error message={checkoutStrings.PAYMENT_FAILED} />}
+                {recaptchaError && <Error message={commonStrings.RECAPTCHA_ERROR} />}
+                {licenseRequired && <Error message={checkoutStrings.LICENSE_REQUIRED} />}
+              </div>
+
+              <OfferRentalSteps
+                depositLabel={car.deposit > 0
+                  ? bookcarsHelper.formatPrice(car.deposit, commonStrings.CURRENCY, language)
+                  : undefined}
               />
-            </div>
+            </form>
           </div>
       </Layout>
       {payPalProcessing && <Backdrop text={checkoutStrings.CHECKING} />}

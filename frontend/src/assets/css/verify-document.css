@@ -1,0 +1,121 @@
+.verify-document {
+  --vd-navy: #12233a;
+  --vd-orange: #f5a623;
+  --vd-muted: #5b6b80;
+  --vd-band: #f2f5f9;
+  --vd-ok: #0f7b4a;
+  --vd-bad: #c2410c;
+  min-height: calc(100vh - 120px);
+  padding: 32px 16px 64px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 166, 35, 0.18), transparent 55%),
+    linear-gradient(180deg, #f7f9fc 0%, #eef2f7 100%);
+}
+
+.verify-document-card {
+  max-width: 560px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px 32px;
+  box-shadow: 0 12px 40px rgba(18, 35, 58, 0.08);
+}
+
+.verify-document-card h1 {
+  margin: 0 0 6px;
+  font-size: 1.45rem;
+  color: var(--vd-navy);
+}
+
+.verify-document-card .vd-subtitle {
+  margin: 0 0 20px;
+  color: var(--vd-muted);
+  font-size: 0.95rem;
+}
+
+.verify-document-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.verify-document-status.ok {
+  background: rgba(15, 123, 74, 0.1);
+  color: var(--vd-ok);
+}
+
+.verify-document-status.bad {
+  background: rgba(194, 65, 12, 0.1);
+  color: var(--vd-bad);
+}
+
+.verify-document-meta {
+  display: grid;
+  gap: 10px;
+}
+
+.verify-document-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e8eef5;
+  font-size: 0.92rem;
+}
+
+.verify-document-row:last-child {
+  border-bottom: none;
+}
+
+.verify-document-row .label {
+  color: var(--vd-muted);
+  flex-shrink: 0;
+}
+
+.verify-document-row .value {
+  color: var(--vd-navy);
+  font-weight: 600;
+  text-align: right;
+}
+
+.verify-document-agency {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--vd-band);
+}
+
+.verify-document-agency .name {
+  font-weight: 700;
+  color: var(--vd-navy);
+  margin-bottom: 4px;
+}
+
+.verify-document-agency .detail {
+  color: var(--vd-muted);
+  font-size: 0.88rem;
+}
+
+.verify-document-loading,
+.verify-document-error {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--vd-muted);
+}
+
+.verify-document-kind {
+  display: inline-block;
+  margin-bottom: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(245, 166, 35, 0.15);
+  color: #b06a00;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
