@@ -17,6 +17,50 @@ export const listContracts = (
     .get(`/api/agency/contracts/${page}/${pageSize}/?s=${encodeURIComponent(keyword)}`)
     .then((res) => res.data)
 
+export type AgencyContractRecapResult = {
+  from: string
+  to: string
+  count: number
+  totalTTC: number
+  totalPaid: number
+  balanceDue: number
+  currency: string
+  rows: AgencyContract[]
+}
+
+/** Contracts whose issue date falls in [from, to] (YYYY-MM-DD). */
+export const getContractsRecap = (from: string, to: string): Promise<AgencyContractRecapResult> =>
+  agencyAxiosInstance
+    .get(`/api/agency/contracts-recap?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
+    .then((res) => res.data)
+
+/** Period PDF: summary table of every contract in range (inline preview). */
+export const getContractsRecapPdf = (from: string, to: string): Promise<Blob> =>
+  agencyAxiosInstance
+    .get(
+      `/api/agency/contracts-recap/pdf?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      { responseType: 'blob' },
+    )
+    .then((res) => new Blob([res.data], { type: 'application/pdf' }))
+
+/** Save the period PDF (all contracts) to disk. */
+export const downloadContractsRecapPdf = async (from: string, to: string): Promise<void> => {
+  const blob = await agencyAxiosInstance
+    .get(
+      `/api/agency/contracts-recap/pdf?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&download=1`,
+      { responseType: 'blob' },
+    )
+    .then((res) => new Blob([res.data], { type: 'application/pdf' }))
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `Recap-Contrats-${from}_${to}.pdf`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
+}
+
 export const getContract = (id: string): Promise<AgencyContract> =>
   agencyAxiosInstance
     .get(`/api/agency/contract/${encodeURIComponent(id)}`)

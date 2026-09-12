@@ -24,6 +24,9 @@ import { buildInvoiceXml } from '../utils/invoiceXml'
 import AgencyContract from '../models/AgencyContract'
 import { computeContractTotals, CONTRACT_DAILY_LEVY_RATE } from '../utils/contractHelper'
 import { buildContractPdf } from '../utils/contractPdf'
+import { buildContractRecapPdf } from '../utils/contractRecapPdf'
+import { buildPeriodTablePdf } from '../utils/periodTablePdf'
+import { formatDate, money } from '../utils/pdfShared'
 import { buildReceiptPdf } from '../utils/receiptPdf'
 import AgencyReceipt from '../models/AgencyReceipt'
 import AgencyReminder from '../models/AgencyReminder'
@@ -1851,6 +1854,282 @@ export const getContractPdf = async (req: Request, res: Response) => {
   }
 }
 
+const parseRecapBound = (raw: unknown, endOfDay = false): Date | null => {
+  const value = String(raw || '').trim()
+  if (!value) {
+    return null
+  }
+  const date = new Date(value.includes('T') ? value : `${value}T${endOfDay ? '23:59:59.999' : '00:00:00'}`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const loadContractsForRecap = async (
+  agencyId: mongoose.Types.ObjectId,
+  from: Date,
+  to: Date,
+) => AgencyContract.find({
+  agency: agencyId,
+  issueDate: { $gte: from, $lte: to },
+}).sort({ issueDate: 1, number: 1 })
+
+/**
+ * List contracts for a selected issue-date period (recap view, no pagination).
+ */
+export const getContractsRecap = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const from = parseRecapBound(req.query.from, false)
+    const to = parseRecapBound(req.query.to, true)
+    if (!from || !to || from > to) {
+      res.status(400).send('Invalid period')
+      return
+    }
+
+    const contracts = await loadContractsForRecap(sessionUser._id, from, to)
+    const rows = contracts.map(toContractDto)
+    const totalTTC = round3(rows.reduce((sum, row) => sum + (row.totalTTC || 0), 0))
+    const totalPaid = round3(rows.reduce((sum, row) => sum + (row.totalPaid || 0), 0))
+    const balanceDue = round3(rows.reduce((sum, row) => sum + (row.balanceDue || 0), 0))
+    const currency = rows[0]?.currency || 'TND'
+
+    res.json({
+      from: from.toISOString(),
+      to: to.toISOString(),
+      count: rows.length,
+      totalTTC,
+      totalPaid,
+      balanceDue,
+      currency,
+      rows,
+    })
+  } catch (err) {
+    logger.error(`[agency.getContractsRecap] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Period PDF: professional summary table of every contract in the selected range
+ * (same layout as the first page of the previous batch export).
+ */
+export const getContractsRecapPdf = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const from = parseRecapBound(req.query.from, false)
+    const to = parseRecapBound(req.query.to, true)
+    if (!from || !to || from > to) {
+      res.status(400).send('Invalid period')
+      return
+    }
+
+    const contracts = await loadContractsForRecap(sessionUser._id, from, to)
+    if (contracts.length === 0) {
+      res.status(404).send('No contracts in period')
+      return
+    }
+
+    const agencyInfo = {
+      fullName: sessionUser.fullName,
+      email: sessionUser.email,
+      avatar: sessionUser.avatar,
+      address: sessionUser.address,
+      city: sessionUser.city,
+      governorate: sessionUser.governorate,
+      postalCode: sessionUser.postalCode,
+      phone: sessionUser.phone,
+      phone2: sessionUser.phone2,
+      phone3: sessionUser.phone3,
+      website: sessionUser.website,
+      taxId: sessionUser.taxId,
+      rneNumber: sessionUser.rneNumber,
+      iban: sessionUser.iban,
+    }
+
+    const currency = contracts[0]?.currency || 'TND'
+    const pdf = await buildContractRecapPdf(
+      {
+        from,
+        to,
+        currency,
+        rows: contracts.map((contract) => ({
+          number: contract.number,
+          issueDate: contract.issueDate,
+          driverName: contract.driver?.fullName || '',
+          vehicleModel: contract.vehicleModel,
+          vehiclePlate: contract.vehiclePlate,
+          departureDate: contract.departureDate,
+          returnDate: contract.returnDate,
+          totalTTC: contract.totalTTC,
+          totalPaid: contract.totalPaid,
+          balanceDue: contract.balanceDue,
+        })),
+      },
+      agencyInfo,
+    )
+
+    const fromLabel = from.toISOString().slice(0, 10)
+    const toLabel = to.toISOString().slice(0, 10)
+    const disposition = req.query.download ? 'attachment' : 'inline'
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Length', pdf.length)
+    res.setHeader('Content-Disposition', `${disposition}; filename="Recap-Contrats-${fromLabel}_${toLabel}.pdf"`)
+    res.status(200).end(pdf)
+  } catch (err) {
+    logger.error(`[agency.getContractsRecapPdf] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+const sessionAgencyPdfInfo = (sessionUser: env.User) => ({
+  fullName: sessionUser.fullName,
+  email: sessionUser.email,
+  avatar: sessionUser.avatar,
+  address: sessionUser.address,
+  city: sessionUser.city,
+  governorate: sessionUser.governorate,
+  postalCode: sessionUser.postalCode,
+  phone: sessionUser.phone,
+  phone2: sessionUser.phone2,
+  phone3: sessionUser.phone3,
+  website: sessionUser.website,
+  taxId: sessionUser.taxId,
+  rneNumber: sessionUser.rneNumber,
+  iban: sessionUser.iban,
+})
+
+const loadInvoicesForRecap = async (
+  agencyId: mongoose.Types.ObjectId,
+  from: Date,
+  to: Date,
+) => AgencyInvoice.find({
+  agency: agencyId,
+  issueDate: { $gte: from, $lte: to },
+}).sort({ issueDate: 1, number: 1 })
+
+/**
+ * List invoices for a selected issue-date period (recap view, no pagination).
+ */
+export const getInvoicesRecap = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const from = parseRecapBound(req.query.from, false)
+    const to = parseRecapBound(req.query.to, true)
+    if (!from || !to || from > to) {
+      res.status(400).send('Invalid period')
+      return
+    }
+
+    const invoices = await loadInvoicesForRecap(sessionUser._id, from, to)
+    const rows = invoices.map(toInvoiceDto)
+    const totalTTC = round3(rows.reduce((sum, row) => sum + (row.totalTTC || 0), 0))
+    const totalPaid = round3(rows.reduce((sum, row) => sum + (row.totalPaid || 0), 0))
+    const balanceDue = round3(rows.reduce((sum, row) => sum + (row.balanceDue || 0), 0))
+    const currency = rows[0]?.currency || 'TND'
+
+    res.json({
+      from: from.toISOString(),
+      to: to.toISOString(),
+      count: rows.length,
+      totalTTC,
+      totalPaid,
+      balanceDue,
+      currency,
+      rows,
+    })
+  } catch (err) {
+    logger.error(`[agency.getInvoicesRecap] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Period PDF: summary table of every invoice in the selected range.
+ */
+export const getInvoicesRecapPdf = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const from = parseRecapBound(req.query.from, false)
+    const to = parseRecapBound(req.query.to, true)
+    if (!from || !to || from > to) {
+      res.status(400).send('Invalid period')
+      return
+    }
+
+    const invoices = await loadInvoicesForRecap(sessionUser._id, from, to)
+    if (invoices.length === 0) {
+      res.status(404).send('No invoices in period')
+      return
+    }
+
+    const currency = invoices[0]?.currency || 'TND'
+    const totalTTC = invoices.reduce((sum, row) => sum + (Number(row.totalTTC) || 0), 0)
+    const totalPaid = invoices.reduce((sum, row) => sum + (Number(row.totalPaid) || 0), 0)
+    const balanceDue = invoices.reduce((sum, row) => sum + (Number(row.balanceDue) || 0), 0)
+
+    const pdf = await buildPeriodTablePdf(
+      {
+        title: 'RÉCAPITULATIF DES FACTURES',
+        subject: 'Récapitulatif des factures',
+        from,
+        to,
+        itemLabel: 'facture(s)',
+        columns: [
+          { label: 'N°', width: 90 },
+          { label: 'Date', width: 70 },
+          { label: 'Client', width: 150 },
+          { label: 'Objet', width: 180 },
+          { label: 'Total TTC', width: 90, align: 'right' },
+          { label: 'Payé', width: 85, align: 'right' },
+          { label: 'Solde', width: 85, align: 'right' },
+        ],
+        rows: invoices.map((invoice) => [
+          invoice.number,
+          formatDate(invoice.issueDate),
+          invoice.clientName || '—',
+          invoice.object || '—',
+          `${money(invoice.totalTTC)} ${currency}`,
+          `${money(invoice.totalPaid)} ${currency}`,
+          `${money(invoice.balanceDue)} ${currency}`,
+        ]),
+        totalsTitle: 'TOTAUX DE LA PÉRIODE',
+        totalsLine: `Factures : ${invoices.length}    ·    Total TTC : ${money(totalTTC)} ${currency}    ·    Payé : ${money(totalPaid)} ${currency}    ·    Solde : ${money(balanceDue)} ${currency}`,
+      },
+      sessionAgencyPdfInfo(sessionUser),
+    )
+
+    const fromLabel = from.toISOString().slice(0, 10)
+    const toLabel = to.toISOString().slice(0, 10)
+    const disposition = req.query.download ? 'attachment' : 'inline'
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Length', pdf.length)
+    res.setHeader('Content-Disposition', `${disposition}; filename="Recap-Factures-${fromLabel}_${toLabel}.pdf"`)
+    res.status(200).end(pdf)
+  } catch (err) {
+    logger.error(`[agency.getInvoicesRecapPdf] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
 const RECEIPT_PAYMENT_METHODS = new Set(['cash', 'card', 'transfer', 'cheque'])
 
 const toReceiptDto = (receipt: env.AgencyReceipt): bookcarsTypes.AgencyReceipt => ({
@@ -2182,6 +2461,138 @@ export const getReceiptPdf = async (req: Request, res: Response) => {
     res.status(200).end(pdf)
   } catch (err) {
     logger.error(`[agency.getReceiptPdf] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+const loadReceiptsForRecap = async (
+  agencyId: mongoose.Types.ObjectId,
+  from: Date,
+  to: Date,
+) => AgencyReceipt.find({
+  agency: agencyId,
+  paidAt: { $gte: from, $lte: to },
+}).sort({ paidAt: 1, number: 1 })
+
+const receiptPaymentLabel = (method: string) => {
+  switch (method) {
+    case 'cash':
+      return 'Espèces'
+    case 'card':
+      return 'Carte'
+    case 'transfer':
+      return 'Virement'
+    case 'cheque':
+      return 'Chèque'
+    default:
+      return method || '—'
+  }
+}
+
+/**
+ * List receipts for a selected payment-date period (recap view, no pagination).
+ */
+export const getReceiptsRecap = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const from = parseRecapBound(req.query.from, false)
+    const to = parseRecapBound(req.query.to, true)
+    if (!from || !to || from > to) {
+      res.status(400).send('Invalid period')
+      return
+    }
+
+    const receipts = await loadReceiptsForRecap(sessionUser._id, from, to)
+    const rows = receipts.map(toReceiptDto)
+    const totalAmount = round3(rows.reduce((sum, row) => sum + (row.amount || 0), 0))
+    const currency = rows[0]?.currency || 'TND'
+
+    res.json({
+      from: from.toISOString(),
+      to: to.toISOString(),
+      count: rows.length,
+      totalAmount,
+      currency,
+      rows,
+    })
+  } catch (err) {
+    logger.error(`[agency.getReceiptsRecap] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Period PDF: summary table of every receipt in the selected range.
+ */
+export const getReceiptsRecapPdf = async (req: Request, res: Response) => {
+  try {
+    const sessionUser = await requireSessionSupplier(req)
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const from = parseRecapBound(req.query.from, false)
+    const to = parseRecapBound(req.query.to, true)
+    if (!from || !to || from > to) {
+      res.status(400).send('Invalid period')
+      return
+    }
+
+    const receipts = await loadReceiptsForRecap(sessionUser._id, from, to)
+    if (receipts.length === 0) {
+      res.status(404).send('No receipts in period')
+      return
+    }
+
+    const currency = receipts[0]?.currency || 'TND'
+    const totalAmount = receipts.reduce((sum, row) => sum + (Number(row.amount) || 0), 0)
+
+    const pdf = await buildPeriodTablePdf(
+      {
+        title: 'RÉCAPITULATIF DES REÇUS',
+        subject: 'Récapitulatif des reçus de paiement',
+        from,
+        to,
+        itemLabel: 'reçu(s)',
+        columns: [
+          { label: 'N°', width: 85 },
+          { label: 'Date', width: 70 },
+          { label: 'Client', width: 140 },
+          { label: 'Véhicule', width: 130 },
+          { label: 'Mode', width: 80 },
+          { label: 'Description', width: 140 },
+          { label: 'Montant', width: 85, align: 'right' },
+        ],
+        rows: receipts.map((receipt) => [
+          receipt.number,
+          formatDate(receipt.paidAt),
+          receipt.clientName || '—',
+          receipt.vehicleLabel || '—',
+          receiptPaymentLabel(receipt.paymentMethod),
+          receipt.description || '—',
+          `${money(receipt.amount)} ${currency}`,
+        ]),
+        totalsTitle: 'TOTAUX DE LA PÉRIODE',
+        totalsLine: `Reçus : ${receipts.length}    ·    Total encaissé : ${money(totalAmount)} ${currency}`,
+      },
+      sessionAgencyPdfInfo(sessionUser),
+    )
+
+    const fromLabel = from.toISOString().slice(0, 10)
+    const toLabel = to.toISOString().slice(0, 10)
+    const disposition = req.query.download ? 'attachment' : 'inline'
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Length', pdf.length)
+    res.setHeader('Content-Disposition', `${disposition}; filename="Recap-Recus-${fromLabel}_${toLabel}.pdf"`)
+    res.status(200).end(pdf)
+  } catch (err) {
+    logger.error(`[agency.getReceiptsRecapPdf] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }

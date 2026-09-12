@@ -30,6 +30,33 @@ export const getCar = (id: string): Promise<bookcarsTypes.Car> =>
     )
     .then((res) => res.data)
 
+export type ShowcaseCar = {
+  _id: string
+  name: string
+  brand?: string
+  model?: string
+  image?: string
+  range?: string
+}
+
+/**
+ * Random available cars for the home about collage / fleet cards.
+ * Pass an agency profile slug to pin the selection to one supplier.
+ * Pass byRange to get one car for mini / midi / maxi.
+ */
+export const getShowcaseCars = (limit = 3, agencySlug = '', byRange = false): Promise<ShowcaseCar[]> => {
+  const params = new URLSearchParams({ limit: String(limit) })
+  if (agencySlug) {
+    params.set('agency', agencySlug)
+  }
+  if (byRange) {
+    params.set('byRange', '1')
+  }
+  return axiosInstance
+    .get(`/api/showcase-cars?${params.toString()}`)
+    .then((res) => res.data)
+}
+
 /**
  * Get cars by agency and location.
  *

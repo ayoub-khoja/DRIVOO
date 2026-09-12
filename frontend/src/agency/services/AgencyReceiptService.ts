@@ -17,6 +17,45 @@ export const listReceipts = (
     .get(`/api/agency/receipts/${page}/${pageSize}/?s=${encodeURIComponent(keyword)}`)
     .then((res) => res.data)
 
+export type AgencyReceiptRecapResult = {
+  from: string
+  to: string
+  count: number
+  totalAmount: number
+  currency: string
+  rows: AgencyReceipt[]
+}
+
+export const getReceiptsRecap = (from: string, to: string): Promise<AgencyReceiptRecapResult> =>
+  agencyAxiosInstance
+    .get(`/api/agency/receipts-recap?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
+    .then((res) => res.data)
+
+export const getReceiptsRecapPdf = (from: string, to: string): Promise<Blob> =>
+  agencyAxiosInstance
+    .get(
+      `/api/agency/receipts-recap/pdf?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      { responseType: 'blob' },
+    )
+    .then((res) => new Blob([res.data], { type: 'application/pdf' }))
+
+export const downloadReceiptsRecapPdf = async (from: string, to: string): Promise<void> => {
+  const blob = await agencyAxiosInstance
+    .get(
+      `/api/agency/receipts-recap/pdf?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&download=1`,
+      { responseType: 'blob' },
+    )
+    .then((res) => new Blob([res.data], { type: 'application/pdf' }))
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `Recap-Recus-${from}_${to}.pdf`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
+}
+
 export const getReceipt = (id: string): Promise<AgencyReceipt> =>
   agencyAxiosInstance
     .get(`/api/agency/receipt/${encodeURIComponent(id)}`)
