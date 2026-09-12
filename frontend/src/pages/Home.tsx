@@ -39,8 +39,30 @@ import HomeSections from '@/components/HomeSections'
 import Mini from '@/assets/img/mini.png'
 import Midi from '@/assets/img/midi.png'
 import Maxi from '@/assets/img/maxi.png'
+import * as CarService from '@/services/CarService'
+import type { ShowcaseCar } from '@/services/CarService'
 
 import '@/assets/css/home.css'
+
+const RANGE_FALLBACKS: Record<string, string> = {
+  [bookcarsTypes.CarRange.Mini]: Mini,
+  [bookcarsTypes.CarRange.Midi]: Midi,
+  [bookcarsTypes.CarRange.Maxi]: Maxi,
+}
+
+const carImageUrl = (image?: string) => {
+  if (!image) {
+    return ''
+  }
+  if (/^https?:\/\//i.test(image)) {
+    return image
+  }
+  try {
+    return bookcarsHelper.joinURL(env.CDN_CARS, image)
+  } catch {
+    return ''
+  }
+}
 
 const Home = () => {
   const navigate = useNavigate()
@@ -63,6 +85,7 @@ const Home = () => {
   const [midiPricePday, setMidiPricePday] = useState(50)
   const [maxiPricePhr, setMaxiPricePhr] = useState(4.5)
   const [maxiPricePday, setMaxiPricePday] = useState(80)
+  const [rangeCars, setRangeCars] = useState<Partial<Record<string, ShowcaseCar>>>({})
 
   useEffect(() => {
     const init = async () => {
@@ -82,6 +105,33 @@ const Home = () => {
 
     init()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    let cancelled = false
+
+    CarService.getShowcaseCars(3, env.HOME_ABOUT_AGENCY_SLUG, true)
+      .then((cars) => {
+        if (cancelled || !Array.isArray(cars)) {
+          return
+        }
+        const next: Partial<Record<string, ShowcaseCar>> = {}
+        cars.forEach((car) => {
+          if (car.range && car.image) {
+            next[car.range] = car
+          }
+        })
+        setRangeCars(next)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRangeCars({})
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const root = homeRef.current
@@ -149,6 +199,30 @@ const Home = () => {
   }
 
   const language = UserService.getLanguage()
+
+  const fleetCards = [
+    {
+      range: bookcarsTypes.CarRange.Mini,
+      label: carsStrings.CAR_RANGE_MINI,
+      priceHour: miniPricePhr,
+      priceDay: miniPricePday,
+      index: '01',
+    },
+    {
+      range: bookcarsTypes.CarRange.Midi,
+      label: carsStrings.CAR_RANGE_MIDI,
+      priceHour: midiPricePhr,
+      priceDay: midiPricePday,
+      index: '02',
+    },
+    {
+      range: bookcarsTypes.CarRange.Maxi,
+      label: carsStrings.CAR_RANGE_MAXI,
+      priceHour: maxiPricePhr,
+      priceDay: maxiPricePday,
+      index: '03',
+    },
+  ]
 
   return (
     <Layout onLoad={onLoad} strict={false}>
@@ -313,102 +387,61 @@ const Home = () => {
             <p>{strings.CAR_SIZE_TEXT}</p>
           </div>
           <div className="boxes">
-            <div className="box">
-              <div className="box-img">
-                <img alt="Mini" src={Mini} />
-              </div>
-              <div className="box-content">
-                <span>{carsStrings.CAR_RANGE_MINI}</span>
-                <ul>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(miniPricePhr, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · phr</span>
-                  </li>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(miniPricePday, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · pday</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="car-size-action">
-                <Button
-                  variant="contained"
-                  className="btn-primary btn-car-size"
-                  aria-label="Search for a car"
-                  disabled={ranges.length === 0}
-                  onClick={() => {
-                    setRanges([bookcarsTypes.CarRange.Mini])
-                    setOpenRangeSearchFormDialog(true)
-                  }}
-                >
-                  {strings.SEARCH_FOR_CAR}
-                </Button>
-              </div>
-            </div>
-            <div className="box">
-              <div className="box-img">
-                <img alt="Midi" src={Midi} />
-              </div>
-              <div className="box-content">
-                <span>{carsStrings.CAR_RANGE_MIDI}</span>
-                <ul>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(midiPricePhr, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · phr</span>
-                  </li>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(midiPricePday, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · pday</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="car-size-action">
-                <Button
-                  variant="contained"
-                  className="btn-primary btn-car-size"
-                  aria-label="Search for a car"
-                  disabled={ranges.length === 0}
-                  onClick={() => {
-                    setRanges([bookcarsTypes.CarRange.Midi])
-                    setOpenRangeSearchFormDialog(true)
-                  }}
-                >
-                  {strings.SEARCH_FOR_CAR}
-                </Button>
-              </div>
-            </div>
-            <div className="box">
-              <div className="box-img">
-                <img alt="Maxi" src={Maxi} />
-              </div>
-              <div className="box-content">
-                <span>{carsStrings.CAR_RANGE_MAXI}</span>
-                <ul>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(maxiPricePhr, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · phr</span>
-                  </li>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(maxiPricePday, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · pday</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="car-size-action">
-                <Button
-                  variant="contained"
-                  className="btn-primary btn-car-size"
-                  aria-label="Search for a car"
-                  disabled={ranges.length === 0}
-                  onClick={() => {
-                    setRanges([bookcarsTypes.CarRange.Maxi])
-                    setOpenRangeSearchFormDialog(true)
-                  }}
-                >
-                  {strings.SEARCH_FOR_CAR}
-                </Button>
-              </div>
-            </div>
+            {fleetCards.map((card) => {
+              const showcase = rangeCars[card.range]
+              const fallback = RANGE_FALLBACKS[card.range]
+              const src = showcase?.image ? carImageUrl(showcase.image) || fallback : fallback
+              const alt = showcase?.name || card.label
+
+              return (
+                <article key={card.range} className="box">
+                  <div className="box-img">
+                    <img
+                      alt={alt}
+                      src={src}
+                      loading="lazy"
+                      onError={(event) => {
+                        const img = event.currentTarget
+                        if (img.dataset.fallbackApplied === '1') {
+                          return
+                        }
+                        img.dataset.fallbackApplied = '1'
+                        img.src = fallback
+                      }}
+                    />
+                    <span className="box-index">{card.index}</span>
+                  </div>
+                  <div className="box-content">
+                    <h3>{card.label}</h3>
+                    <p className="box-from">{strings.CAR_SIZE_FROM}</p>
+                    <ul>
+                      <li>
+                        <span className="price">{bookcarsHelper.formatPrice(card.priceHour, commonStrings.CURRENCY, language)}</span>
+                        <span className="unit">{strings.CAR_SIZE_PER_HOUR}</span>
+                      </li>
+                      <li>
+                        <span className="price">{bookcarsHelper.formatPrice(card.priceDay, commonStrings.CURRENCY, language)}</span>
+                        <span className="unit">{strings.CAR_SIZE_PER_DAY}</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="car-size-action">
+                    <Button
+                      variant="contained"
+                      className="btn-primary btn-car-size"
+                      aria-label={strings.SEARCH_FOR_CAR}
+                      disabled={ranges.length === 0}
+                      onClick={() => {
+                        setRanges([card.range])
+                        setOpenRangeSearchFormDialog(true)
+                      }}
+                    >
+                      {strings.SEARCH_FOR_CAR}
+                    </Button>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </div>
         <div className="faq drivoo-reveal">

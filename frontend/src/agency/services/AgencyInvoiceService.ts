@@ -17,6 +17,47 @@ export const listInvoices = (
     .get(`/api/agency/invoices/${page}/${pageSize}/?s=${encodeURIComponent(keyword)}`)
     .then((res) => res.data)
 
+export type AgencyInvoiceRecapResult = {
+  from: string
+  to: string
+  count: number
+  totalTTC: number
+  totalPaid: number
+  balanceDue: number
+  currency: string
+  rows: AgencyInvoice[]
+}
+
+export const getInvoicesRecap = (from: string, to: string): Promise<AgencyInvoiceRecapResult> =>
+  agencyAxiosInstance
+    .get(`/api/agency/invoices-recap?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
+    .then((res) => res.data)
+
+export const getInvoicesRecapPdf = (from: string, to: string): Promise<Blob> =>
+  agencyAxiosInstance
+    .get(
+      `/api/agency/invoices-recap/pdf?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      { responseType: 'blob' },
+    )
+    .then((res) => new Blob([res.data], { type: 'application/pdf' }))
+
+export const downloadInvoicesRecapPdf = async (from: string, to: string): Promise<void> => {
+  const blob = await agencyAxiosInstance
+    .get(
+      `/api/agency/invoices-recap/pdf?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&download=1`,
+      { responseType: 'blob' },
+    )
+    .then((res) => new Blob([res.data], { type: 'application/pdf' }))
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `Recap-Factures-${from}_${to}.pdf`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
+}
+
 export const getInvoice = (id: string): Promise<AgencyInvoice> =>
   agencyAxiosInstance
     .get(`/api/agency/invoice/${encodeURIComponent(id)}`)

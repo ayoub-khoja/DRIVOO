@@ -8,13 +8,11 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  FormControl,
+  IconButton,
   InputAdornment,
-  InputLabel,
-  MenuItem,
   OutlinedInput,
-  Select,
   TextField,
+  Tooltip,
 } from '@mui/material'
 import {
   AddRounded,
@@ -22,9 +20,9 @@ import {
   ClearRounded,
   CloseRounded,
   EventNoteOutlined,
-  FilterListRounded,
   Search as SearchIcon,
-  SouthRounded,
+  EastRounded,
+  VisibilityOutlined,
 } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { format } from 'date-fns'
@@ -36,27 +34,31 @@ import { strings as commonStrings } from '@/lang/common'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
 import * as AgencyBookingService from '@/agency/services/AgencyBookingService'
 import AgencyAddBookingDialog from '@/agency/pages/AgencyAddBookingDialog'
+import AgencyBookingDetailDialog from '@/agency/components/AgencyBookingDetailDialog'
 import BookingStatus from '@/components/BookingStatus'
 import * as PaymentService from '@/services/PaymentService'
-import * as helper from '@/utils/helper'
 
 const PAGE_SIZE = 10
 
-type StatusFilter = 'all' | bookcarsTypes.BookingStatus
+type StatusFilter = 'all' | 'awaiting' | 'accepted' | 'refused'
 
 const ALL_LISTABLE_STATUSES: bookcarsTypes.BookingStatus[] = [
   ...AgencyBookingService.ACTIVE_BOOKING_STATUSES,
   bookcarsTypes.BookingStatus.Cancelled,
 ]
 
-const STATUS_FILTER_OPTIONS: StatusFilter[] = [
-  'all',
-  bookcarsTypes.BookingStatus.Pending,
+const ACCEPTED_STATUSES: bookcarsTypes.BookingStatus[] = [
   bookcarsTypes.BookingStatus.Reserved,
   bookcarsTypes.BookingStatus.Deposit,
   bookcarsTypes.BookingStatus.Paid,
   bookcarsTypes.BookingStatus.PaidInFull,
-  bookcarsTypes.BookingStatus.Cancelled,
+]
+
+const STATUS_CHIPS: { value: StatusFilter, tone: string }[] = [
+  { value: 'all', tone: 'neutral' },
+  { value: 'awaiting', tone: 'awaiting' },
+  { value: 'accepted', tone: 'accepted' },
+  { value: 'refused', tone: 'refused' },
 ]
 
 const toDayStart = (value: string): Date | undefined => {
@@ -73,6 +75,19 @@ const toDayEnd = (value: string): Date | undefined => {
   }
   const date = new Date(`${value}T23:59:59.999`)
   return Number.isNaN(date.getTime()) ? undefined : date
+}
+
+const statusesForFilter = (filter: StatusFilter): bookcarsTypes.BookingStatus[] => {
+  if (filter === 'awaiting') {
+    return [bookcarsTypes.BookingStatus.Pending]
+  }
+  if (filter === 'accepted') {
+    return ACCEPTED_STATUSES
+  }
+  if (filter === 'refused') {
+    return [bookcarsTypes.BookingStatus.Cancelled]
+  }
+  return ALL_LISTABLE_STATUSES
 }
 
 const AgencyBookings = () => {
@@ -96,9 +111,10 @@ const AgencyBookings = () => {
   const [openForm, setOpenForm] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [refuseTarget, setRefuseTarget] = useState<bookcarsTypes.Booking | null>(null)
+  const [detailBooking, setDetailBooking] = useState<bookcarsTypes.Booking | null>(null)
 
   const selectedStatuses = useMemo(
-    () => (statusFilter === 'all' ? ALL_LISTABLE_STATUSES : [statusFilter]),
+    () => statusesForFilter(statusFilter),
     [statusFilter],
   )
 
@@ -191,7 +207,13 @@ const AgencyBookings = () => {
     if (value === 'all') {
       return strings.BOOKING_FILTER_STATUS_ALL
     }
-    return helper.getBookingStatus(value)
+    if (value === 'awaiting') {
+      return strings.BOOKING_AWAITING
+    }
+    if (value === 'accepted') {
+      return strings.BOOKING_ACCEPTED
+    }
+    return strings.BOOKING_REFUSED
   }
 
   const applySearch = () => {
@@ -287,12 +309,7 @@ const AgencyBookings = () => {
       </div>
 
       <section className="agency-bookings-filters" aria-label={strings.BOOKING_FILTERS}>
-        <div className="agency-bookings-filters-head">
-          <FilterListRounded fontSize="small" />
-          <span>{strings.BOOKING_FILTERS}</span>
-        </div>
-
-        <div className="agency-bookings-filters-grid">
+        <div className="agency-bookings-filters-top">
           <OutlinedInput
             size="small"
             className="agency-bookings-search"
@@ -309,52 +326,54 @@ const AgencyBookings = () => {
                 <SearchIcon fontSize="small" />
               </InputAdornment>
             )}
+            endAdornment={keyword ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  edge="end"
+                  aria-label={strings.BOOKING_FILTER_CLEAR}
+                  onClick={() => {
+                    setKeyword('')
+                    setQuery('')
+                  }}
+                >
+                  <ClearRounded fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : undefined}
           />
 
-          <FormControl size="small" className="agency-bookings-status">
-            <InputLabel id="agency-booking-status-label">{strings.BOOKING_STATUS}</InputLabel>
-            <Select
-              labelId="agency-booking-status-label"
-              label={strings.BOOKING_STATUS}
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-            >
-              {STATUS_FILTER_OPTIONS.map((option) => (
-                <MenuItem key={option} value={option}>
-                  {statusLabel(option)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <TextField
-            size="small"
-            type="date"
-            label={strings.BOOKING_FILTER_FROM}
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            inputProps={{ max: dateTo || undefined }}
-          />
-
-          <TextField
-            size="small"
-            type="date"
-            label={strings.BOOKING_FILTER_TO}
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            inputProps={{ min: dateFrom || undefined }}
-          />
+          <div className="agency-bookings-date-range" role="group" aria-label={strings.BOOKING_DATES}>
+            <TextField
+              size="small"
+              type="date"
+              label={strings.BOOKING_FILTER_FROM}
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ max: dateTo || undefined }}
+            />
+            <span className="agency-bookings-date-sep" aria-hidden>→</span>
+            <TextField
+              size="small"
+              type="date"
+              label={strings.BOOKING_FILTER_TO}
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ min: dateFrom || undefined }}
+            />
+          </div>
 
           <div className="agency-bookings-filters-actions">
-            <Button variant="contained" className="btn-primary" onClick={applySearch}>
+            <Button variant="contained" className="btn-primary agency-bookings-apply" onClick={applySearch}>
               {strings.BOOKING_FILTER_APPLY}
             </Button>
             {hasActiveFilters && (
               <Button
-                variant="outlined"
+                variant="text"
                 color="inherit"
+                className="agency-bookings-reset"
                 startIcon={<ClearRounded />}
                 onClick={clearFilters}
               >
@@ -362,6 +381,21 @@ const AgencyBookings = () => {
               </Button>
             )}
           </div>
+        </div>
+
+        <div className="agency-bookings-status-chips" role="tablist" aria-label={strings.BOOKING_STATUS}>
+          {STATUS_CHIPS.map((chip) => (
+            <button
+              key={chip.value}
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === chip.value}
+              className={`agency-bookings-chip is-${chip.tone}${statusFilter === chip.value ? ' is-active' : ''}`}
+              onClick={() => setStatusFilter(chip.value)}
+            >
+              {statusLabel(chip.value)}
+            </button>
+          ))}
         </div>
 
         {hasActiveFilters && (
@@ -376,29 +410,17 @@ const AgencyBookings = () => {
                 }}
               />
             ) : null}
-            {statusFilter !== 'all' ? (
+            {appliedFrom || appliedTo ? (
               <Chip
                 size="small"
-                label={`${strings.BOOKING_STATUS}: ${statusLabel(statusFilter)}`}
-                onDelete={() => setStatusFilter('all')}
-              />
-            ) : null}
-            {appliedFrom ? (
-              <Chip
-                size="small"
-                label={`${strings.BOOKING_FILTER_FROM}: ${appliedFrom.split('-').reverse().join('/')}`}
+                label={`${strings.BOOKING_DATES}: ${[
+                  appliedFrom ? appliedFrom.split('-').reverse().join('/') : '…',
+                  appliedTo ? appliedTo.split('-').reverse().join('/') : '…',
+                ].join(' → ')}`}
                 onDelete={() => {
                   setDateFrom('')
-                  setAppliedFrom('')
-                }}
-              />
-            ) : null}
-            {appliedTo ? (
-              <Chip
-                size="small"
-                label={`${strings.BOOKING_FILTER_TO}: ${appliedTo.split('-').reverse().join('/')}`}
-                onDelete={() => {
                   setDateTo('')
+                  setAppliedFrom('')
                   setAppliedTo('')
                 }}
               />
@@ -492,7 +514,7 @@ const AgencyBookings = () => {
                             <strong>{formatDate(booking.from)}</strong>
                             <span className="agency-bookings-time">{formatTime(booking.from)}</span>
                           </div>
-                          <SouthRounded className="agency-bookings-date-arrow" fontSize="small" />
+                          <EastRounded className="agency-bookings-date-arrow" fontSize="small" />
                           <div className="agency-bookings-date-block">
                             <span className="agency-bookings-date-label">{strings.BOOKING_DATE_TO}</span>
                             <strong>{formatDate(booking.to)}</strong>
@@ -510,52 +532,70 @@ const AgencyBookings = () => {
                         </strong>
                       </td>
                       <td>
-                        <div className="agency-bookings-status-stack">
-                          <BookingStatus value={booking.status} />
+                        <div className="agency-bookings-status-cell">
                           {awaiting ? (
-                            <span className="agency-bookings-decision is-awaiting">{strings.BOOKING_AWAITING}</span>
+                            <span className="agency-bookings-badge is-awaiting">{strings.BOOKING_AWAITING}</span>
                           ) : null}
                           {accepted && booking.isDeposit ? (
-                            <span className="agency-bookings-decision is-auto" title={strings.BOOKING_AUTO_ACCEPTED}>
-                              {strings.BOOKING_PAYMENT_BADGE}
+                            <span className="agency-bookings-badge is-auto" title={strings.BOOKING_AUTO_ACCEPTED}>
+                              {strings.BOOKING_ACCEPTED}
+                              <em>{strings.BOOKING_PAYMENT_BADGE}</em>
                             </span>
                           ) : null}
                           {accepted && !booking.isDeposit ? (
-                            <span className="agency-bookings-decision is-accepted">{strings.BOOKING_ACCEPTED}</span>
+                            <span className="agency-bookings-badge is-accepted">{strings.BOOKING_ACCEPTED}</span>
                           ) : null}
                           {refused ? (
-                            <span className="agency-bookings-decision is-refused">{strings.BOOKING_REFUSED}</span>
+                            <span className="agency-bookings-badge is-refused">{strings.BOOKING_REFUSED}</span>
+                          ) : null}
+                          {!awaiting && !accepted && !refused ? (
+                            <BookingStatus value={booking.status} />
                           ) : null}
                         </div>
                       </td>
                       <td>
-                        {awaiting ? (
-                          <div className="agency-bookings-actions">
-                            <Button
+                        <div className="agency-bookings-actions">
+                          <Tooltip title={strings.BOOKING_VIEW}>
+                            <IconButton
                               size="small"
-                              variant="contained"
-                              className="agency-bookings-accept"
-                              startIcon={rowBusy ? <CircularProgress size={14} color="inherit" /> : <CheckRounded />}
-                              disabled={!!busyId}
-                              onClick={() => onAccept(booking)}
+                              className="agency-bookings-view"
+                              aria-label={strings.BOOKING_VIEW}
+                              onClick={() => setDetailBooking(booking)}
                             >
-                              {strings.BOOKING_ACCEPT}
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              color="error"
-                              className="agency-bookings-refuse"
-                              startIcon={<CloseRounded />}
-                              disabled={!!busyId}
-                              onClick={() => setRefuseTarget(booking)}
-                            >
-                              {strings.BOOKING_REFUSE}
-                            </Button>
-                          </div>
-                        ) : (
-                          <span className="agency-bookings-actions-empty">—</span>
-                        )}
+                              <VisibilityOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          {awaiting ? (
+                            <>
+                              <Tooltip title={strings.BOOKING_ACCEPT}>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    className="agency-bookings-accept-icon"
+                                    aria-label={strings.BOOKING_ACCEPT}
+                                    disabled={!!busyId}
+                                    onClick={() => onAccept(booking)}
+                                  >
+                                    {rowBusy ? <CircularProgress size={16} color="inherit" /> : <CheckRounded fontSize="small" />}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title={strings.BOOKING_REFUSE}>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    className="agency-bookings-refuse-icon"
+                                    aria-label={strings.BOOKING_REFUSE}
+                                    disabled={!!busyId}
+                                    onClick={() => setRefuseTarget(booking)}
+                                  >
+                                    <CloseRounded fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            </>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -588,6 +628,22 @@ const AgencyBookings = () => {
         onCreated={() => {
           setOpenForm(false)
           void load(1)
+        }}
+      />
+
+      <AgencyBookingDetailDialog
+        open={!!detailBooking}
+        booking={detailBooking}
+        language={language}
+        busy={!!busyId}
+        onClose={() => setDetailBooking(null)}
+        onAccept={(booking) => {
+          setDetailBooking(null)
+          onAccept(booking)
+        }}
+        onRefuse={(booking) => {
+          setDetailBooking(null)
+          setRefuseTarget(booking)
         }}
       />
 

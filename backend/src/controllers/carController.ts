@@ -1354,3 +1354,97 @@ export const getFrontendCars = async (req: Request, res: Response) => {
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }
+
+/**
+ * Public home showcase: random available cars with images.
+ * Optional ?agency=<profileSlug> to pin the collage to one supplier.
+ * Optional ?byRange=1 to return one car for mini / midi / maxi (fleet cards).
+ */
+export const getShowcaseCars = async (req: Request, res: Response) => {
+  try {
+    const limit = Math.min(6, Math.max(1, Number.parseInt(String(req.query.limit || '3'), 10) || 3))
+    const agencySlug = String(req.query.agency || '').trim().toLowerCase()
+    const byRange = ['1', 'true', 'yes'].includes(String(req.query.byRange || '').trim().toLowerCase())
+
+    const match: mongoose.QueryFilter<bookcarsTypes.Car> = {
+      available: true,
+      image: { $exists: true, $nin: [null, ''] },
+    }
+
+    if (agencySlug) {
+      const agency = await User.findOne({
+        profileSlug: agencySlug,
+        type: bookcarsTypes.UserType.Supplier,
+        blacklisted: { $ne: true },
+        expireAt: null,
+        agencyApproved: { $ne: false },
+      }).select('_id').lean()
+
+      if (!agency) {
+        res.status(200).json([])
+        return
+      }
+      match.supplier = agency._id
+    } else {
+      const suppliers = await User.find({
+        type: bookcarsTypes.UserType.Supplier,
+        blacklisted: { $ne: true },
+        expireAt: null,
+        agencyApproved: { $ne: false },
+      }).select('_id').lean()
+      match.supplier = { $in: suppliers.map((supplier) => supplier._id) }
+    }
+
+    const project = {
+      _id: 1,
+      name: 1,
+      brand: 1,
+      model: 1,
+      image: 1,
+      range: 1,
+    }
+
+    const toPayload = (car: { _id: unknown; name?: string; brand?: string; model?: string; image?: string; range?: string }) => ({
+      _id: String(car._id),
+      name: car.name,
+      brand: car.brand,
+      model: car.model,
+      image: car.image,
+      range: car.range,
+    })
+
+    if (byRange) {
+      const ranges = [
+        bookcarsTypes.CarRange.Mini,
+        bookcarsTypes.CarRange.Midi,
+        bookcarsTypes.CarRange.Maxi,
+      ]
+      const sampled = await Promise.all(
+        ranges.map(async (range) => {
+          const cars = await Car.aggregate([
+            { $match: { ...match, range } },
+            { $sample: { size: 1 } },
+            { $project: project },
+          ])
+          return cars[0] || null
+        }),
+      )
+
+      res.set('Cache-Control', 'public, max-age=120')
+      res.status(200).json(sampled.filter(Boolean).map(toPayload))
+      return
+    }
+
+    const cars = await Car.aggregate([
+      { $match: match },
+      { $sample: { size: limit } },
+      { $project: project },
+    ])
+
+    res.set('Cache-Control', 'public, max-age=120')
+    res.status(200).json(cars.map(toPayload))
+  } catch (err) {
+    logger.error(`[car.getShowcaseCars] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
