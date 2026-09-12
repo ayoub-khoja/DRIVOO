@@ -6,11 +6,12 @@ import {
   DialogContent,
   TextField,
 } from '@mui/material'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/agency/lang/agency'
 import * as AgencyBranchService from '@/agency/services/AgencyBranchService'
+import PhoneInputField from '@/components/PhoneInputField'
 import { agencyBranchSchema, AgencyBranchFormFields } from '@/agency/models/AgencyBranchForm'
 
 interface AgencyAddBranchDialogProps {
@@ -34,6 +35,7 @@ const AgencyAddBranchDialog = ({ open, onClose, onCreated }: AgencyAddBranchDial
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -101,11 +103,20 @@ const AgencyAddBranchDialog = ({ open, onClose, onCreated }: AgencyAddBranchDial
               error={!!errors.email}
               helperText={errors.email?.message}
             />
-            <TextField
-              label={strings.BRANCH_PHONE}
-              {...register('phone')}
-              error={!!errors.phone}
-              helperText={errors.phone?.message}
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInputField
+                  label={strings.BRANCH_PHONE}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  error={!!errors.phone}
+                  helperText={errors.phone?.message}
+                />
+              )}
             />
             <TextField
               label={strings.BRANCH_CITY}

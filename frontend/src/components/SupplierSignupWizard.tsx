@@ -19,7 +19,7 @@ import {
   DeleteOutline as DeleteOutlineIcon,
   InsertDriveFileOutlined as InsertDriveFileOutlinedIcon,
 } from '@mui/icons-material'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { LoginSocialGoogle, IResolveParams } from ':reactjs-social-login'
 import * as bookcarsTypes from ':bookcars-types'
 import env from '@/config/env.config'
@@ -30,6 +30,7 @@ import * as GeoService from '@/services/GeoService'
 import * as langHelper from '@/utils/langHelper'
 import * as helper from '@/utils/helper'
 import Error from '@/components/Error'
+import PhoneInputField from '@/components/PhoneInputField'
 import {
   SupplierFormFields,
   supplierCompanySchema,
@@ -115,7 +116,7 @@ const SupplierSignupWizard = ({
     },
   })
 
-  const { register, formState: { errors, isSubmitting }, setValue, clearErrors, setError, getValues, watch } = form
+  const { register, control, formState: { errors, isSubmitting }, setValue, clearErrors, setError, getValues, watch } = form
   const rneDocument = watch('rneDocument')
   const governorate = watch('governorate')
   const city = watch('city')
@@ -559,16 +560,38 @@ const SupplierSignupWizard = ({
               <p>{strings.EMAIL_OFFICIAL_HINT}</p>
             </div>
             <div className="signup-grid-2">
-              <FormControl fullWidth margin="dense" error={!!fieldError('phone')}>
-                <InputLabel className="required">{strings.PHONE_MAIN}</InputLabel>
-                <OutlinedInput type="text" {...register('phone')} label={strings.PHONE_MAIN} />
-                <FormHelperText error={!!fieldError('phone')}>{fieldError('phone')?.message || ''}</FormHelperText>
-              </FormControl>
-              <FormControl fullWidth margin="dense" error={!!fieldError('whatsapp')}>
-                <InputLabel className="required">{strings.WHATSAPP}</InputLabel>
-                <OutlinedInput type="text" {...register('whatsapp')} label={strings.WHATSAPP} required />
-                <FormHelperText error={!!fieldError('whatsapp')}>{fieldError('whatsapp')?.message || ''}</FormHelperText>
-              </FormControl>
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInputField
+                    label={strings.PHONE_MAIN}
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    required
+                    error={!!fieldError('phone')}
+                    helperText={fieldError('phone')?.message || ''}
+                  />
+                )}
+              />
+              <Controller
+                name="whatsapp"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInputField
+                    label={strings.WHATSAPP}
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    required
+                    error={!!fieldError('whatsapp')}
+                    helperText={fieldError('whatsapp')?.message || ''}
+                  />
+                )}
+              />
               <FormControl fullWidth margin="dense" error={!!fieldError('email')} className="signup-span-2">
                 <InputLabel className="required" shrink={email ? true : undefined}>{strings.EMAIL_OFFICIAL}</InputLabel>
                 <OutlinedInput

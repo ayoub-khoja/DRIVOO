@@ -21,10 +21,19 @@ const TUNISIA_CENTER = { lat: 33.8869, lng: 9.5375 }
 const LOCATION_BIAS_RADIUS_M = 50_000
 const NEAREST_MAX_KM = 80
 const REQUEST_TIMEOUT_MS = 8_000
+/** Cities, municipalities and airports only (no neighborhoods, streets, POIs). */
+const INCLUDED_PLACE_TYPES = [
+  'locality',
+  'administrative_area_level_2',
+  'airport',
+] as const
+
+const ALLOWED_PLACE_TYPES = new Set<string>(INCLUDED_PLACE_TYPES)
 
 interface PlacesNewPrediction {
   placeId?: string
   place?: string
+  types?: string[]
   text?: { text?: string }
   structuredFormat?: {
     mainText?: { text?: string }
@@ -106,12 +115,14 @@ export const getPlacePredictions = async (input: string): Promise<PlaceSuggestio
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': apiKey(),
         'X-Goog-FieldMask':
-          'suggestions.placePrediction.placeId,suggestions.placePrediction.place,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
+          'suggestions.placePrediction.placeId,suggestions.placePrediction.place,suggestions.placePrediction.types,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
       },
       body: JSON.stringify({
         input: keyword,
         includedRegionCodes: ['tn'],
+        includedPrimaryTypes: [...INCLUDED_PLACE_TYPES],
         languageCode: UserService.getLanguage() || 'fr',
+        regionCode: 'tn',
         locationBias: {
           circle: {
             center: {
@@ -143,23 +154,31 @@ export const getPlacePredictions = async (input: string): Promise<PlaceSuggestio
       .map((row) => row.placePrediction)
       .filter(Boolean) as PlacesNewPrediction[]
 
-    return suggestions.map((prediction) => {
-      const placeId = prediction.placeId || prediction.place?.replace(/^places\//, '') || ''
-      const name = prediction.structuredFormat?.mainText?.text
-        || prediction.text?.text
-        || placeId
-      const secondaryText = prediction.structuredFormat?.secondaryText?.text
-        || prediction.text?.text
-        || undefined
+    return suggestions
+      .filter((prediction) => {
+        const types = prediction.types || []
+        // Drop neighborhoods / streets / POIs if Google still returns them
+        if (types.length === 0) {
+          return true
+        }
+        return types.some((type) => ALLOWED_PLACE_TYPES.has(type))
+      })
+      .map((prediction) => {
+        const placeId = prediction.placeId || prediction.place?.replace(/^places\//, '') || ''
+        // City / municipality name only — no secondary address line
+        const name = prediction.structuredFormat?.mainText?.text
+          || prediction.text?.text
+          || placeId
 
-      return {
-        _id: `${GOOGLE_PLACE_PREFIX}${placeId}`,
-        name,
-        secondaryText,
-        placeId,
-        isGooglePlace: true,
-      }
-    }).filter((row) => row.placeId)
+        return {
+          _id: `${GOOGLE_PLACE_PREFIX}${placeId}`,
+          name,
+          secondaryText: undefined,
+          placeId,
+          isGooglePlace: true,
+        }
+      })
+      .filter((row) => row.placeId)
   } catch (err) {
     if (err instanceof GooglePlacesError) {
       throw err

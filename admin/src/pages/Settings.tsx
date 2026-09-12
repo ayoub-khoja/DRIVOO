@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import {
   Input,
   InputLabel,
-  FormHelperText,
   FormControl,
   FormControlLabel,
   Switch,
   Button,
   Paper
 } from '@mui/material'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -22,6 +21,7 @@ import * as BankDetailsService from '@/services/BankDetailsService'
 import * as SettingService from '@/services/SettingService'
 import Backdrop from '@/components/SimpleBackdrop'
 import Avatar from '@/components/Avatar'
+import PhoneInputField from '@/components/PhoneInputField'
 import * as helper from '@/utils/helper'
 import { useUserContext, UserContextType } from '@/context/UserContext'
 import BankDetailsForm from '@/components/BankDetailsForm'
@@ -42,7 +42,7 @@ const Settings = () => {
   const [bankDetails, setBankDetails] = useState<bookcarsTypes.BankDetails | null>(null)
   const [settings, setSettings] = useState<bookcarsTypes.Setting | null>(null)
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, clearErrors, setValue } = useForm<FormFields>({
+  const { control, register, handleSubmit, formState: { errors, isSubmitting }, clearErrors, setValue, trigger } = useForm<FormFields>({
     resolver: zodResolver(schema),
     mode: 'onSubmit'
   })
@@ -167,20 +167,30 @@ const Settings = () => {
                 <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
                 <Input {...register('email')} type="text" disabled />
               </FormControl>
-              <FormControl fullWidth margin="dense" error={!!errors.phone}>
-                <InputLabel>{commonStrings.PHONE}</InputLabel>
-                <Input
-                  {...register('phone')}
-                  type="text"
-                  autoComplete="off"
-                  onChange={() => {
-                    if (errors.phone) {
-                      clearErrors('phone')
-                    }
-                  }}
-                />
-                <FormHelperText>{errors.phone?.message || ''}</FormHelperText>
-              </FormControl>
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <PhoneInputField
+                    label={commonStrings.PHONE}
+                    value={field.value || ''}
+                    onChange={(v) => {
+                      field.onChange(v)
+                      if (errors.phone) {
+                        clearErrors('phone')
+                      }
+                    }}
+                    onBlur={() => {
+                      field.onBlur()
+                      trigger('phone')
+                    }}
+                    name={field.name}
+                    error={!!fieldState.error}
+                    helperText={fieldState.error?.message || ''}
+                    variant="standard"
+                  />
+                )}
+              />
               <FormControl fullWidth margin="dense">
                 <InputLabel>{commonStrings.LOCATION}</InputLabel>
                 <Input {...register('location')} type="text" autoComplete="off" />

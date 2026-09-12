@@ -29,7 +29,7 @@ import {
 } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { PayPalButtons } from '@paypal/react-paypal-js'
-import { useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import validator from 'validator'
 import { createSchema, FormFields } from '@/models/CheckoutForm'
@@ -64,6 +64,7 @@ import ViewOnMapButton from '@/components/ViewOnMapButton'
 import MapDialog from '@/components/MapDialog'
 import Backdrop from '@/components/SimpleBackdrop'
 import Unauthorized from '@/components/Unauthorized'
+import PhoneInputField from '@/components/PhoneInputField'
 
 import '@/assets/css/checkout.css'
 
@@ -115,7 +116,6 @@ const Checkout = () => {
   const birthDateRef = useRef<HTMLInputElement | null>(null)
   const additionalDriverBirthDateRef = useRef<HTMLInputElement | null>(null)
   const additionalDriverEmailRef = useRef<HTMLInputElement | null>(null)
-  const additionalDriverPhoneRef = useRef<HTMLInputElement | null>(null)
 
   const _fr = language === 'fr'
   const _ar = language === 'ar'
@@ -132,6 +132,7 @@ const Checkout = () => {
     register,
     handleSubmit,
     setValue,
+    getValues,
     formState: { errors, isSubmitting },
     clearErrors,
     setFocus,
@@ -147,7 +148,6 @@ const Checkout = () => {
   })
 
   const additionalDriverEmail = useWatch({ control, name: 'additionalDriverEmail' })
-  const additionalDriverPhone = useWatch({ control, name: 'additionalDriverPhone' })
 
   const additionalDriver = useWatch({ control, name: 'additionalDriver' })
   const payLater = useWatch({ control, name: 'payLater' })
@@ -336,8 +336,8 @@ const Checkout = () => {
         additionalDriverBirthDateRef.current.focus()
       } else if (firstErrorField === 'additionalDriverEmail' && additionalDriverEmailRef.current) {
         additionalDriverEmailRef.current.focus()
-      } else if (firstErrorField === 'additionalDriverPhone' && additionalDriverPhoneRef.current) {
-        additionalDriverPhoneRef.current.focus()
+      } else if (firstErrorField === 'additionalDriverPhone') {
+        document.getElementById('additionalDriverPhone')?.focus()
       } else {
         setFocus(firstErrorField)
       }
@@ -602,32 +602,36 @@ const Checkout = () => {
                               {(emailInfo && !errors.email && strings.EMAIL_INFO) || ''}
                             </FormHelperText>
                           </FormControl>
-                          <FormControl fullWidth margin="dense">
-                            <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                            <OutlinedInput
-                              // {...register('phone')}
-                              type="text"
-                              label={commonStrings.PHONE}
-                              error={!!errors.phone}
-                              required
-                              autoComplete="off"
-                              onChange={(e) => {
-                                if (errors.phone) {
-                                  clearErrors('phone')
+                          <Controller
+                            name="phone"
+                            control={control}
+                            render={({ field }) => (
+                              <PhoneInputField
+                                label={commonStrings.PHONE}
+                                value={field.value || ''}
+                                onChange={(v) => {
+                                  if (errors.phone) {
+                                    clearErrors('phone')
+                                  }
+                                  setPhoneInfo(false)
+                                  field.onChange(v)
+                                }}
+                                onBlur={() => {
+                                  field.onBlur()
+                                  trigger('phone')
+                                  setPhoneInfo(validatePhone(getValues('phone') || ''))
+                                }}
+                                name={field.name}
+                                required
+                                error={!!errors.phone}
+                                helperText={
+                                  (errors.phone && errors.phone.message)
+                                  || (phoneInfo && strings.PHONE_INFO)
+                                  || ''
                                 }
-                                setPhoneInfo(false)
-                                setValue('phone', e.target.value)
-                              }}
-                              onBlur={(e) => {
-                                trigger('phone')
-                                setPhoneInfo(validatePhone(e.target.value))
-                              }}
-                            />
-                            <FormHelperText error={!!errors.phone}>
-                              {(errors.phone && errors.phone.message) || ''}
-                              {(phoneInfo && strings.PHONE_INFO) || ''}
-                            </FormHelperText>
-                          </FormControl>
+                              />
+                            )}
+                          />
                           <FormControl fullWidth margin="dense">
                             <DatePicker
                               {...register('birthDate')}
@@ -757,31 +761,31 @@ const Checkout = () => {
                               {(errors.additionalDriverEmail && errors.additionalDriverEmail.message) || ''}
                             </FormHelperText>
                           </FormControl>
-                          <FormControl fullWidth margin="dense">
-                            <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                            <OutlinedInput
-                              // {...register('additionalDriverPhone')}
-                              inputRef={additionalDriverPhoneRef}
-                              value={additionalDriverPhone}
-                              type="text"
-                              label={commonStrings.PHONE}
-                              error={!!errors.additionalDriverPhone}
-                              required={adRequired}
-                              autoComplete="off"
-                              onChange={(e) => {
-                                if (errors.additionalDriverPhone) {
-                                  clearErrors('additionalDriverPhone')
-                                }
-                                setValue('additionalDriverPhone', e.target.value)
-                              }}
-                              onBlur={() => {
-                                trigger('additionalDriverPhone')
-                              }}
-                            />
-                            <FormHelperText error={!!errors.additionalDriverPhone}>
-                              {(errors.additionalDriverPhone && errors.additionalDriverPhone.message) || ''}
-                            </FormHelperText>
-                          </FormControl>
+                          <Controller
+                            name="additionalDriverPhone"
+                            control={control}
+                            render={({ field }) => (
+                              <PhoneInputField
+                                label={commonStrings.PHONE}
+                                value={field.value || ''}
+                                onChange={(v) => {
+                                  if (errors.additionalDriverPhone) {
+                                    clearErrors('additionalDriverPhone')
+                                  }
+                                  field.onChange(v)
+                                }}
+                                onBlur={() => {
+                                  field.onBlur()
+                                  trigger('additionalDriverPhone')
+                                }}
+                                name={field.name}
+                                id="additionalDriverPhone"
+                                required={adRequired}
+                                error={!!errors.additionalDriverPhone}
+                                helperText={(errors.additionalDriverPhone && errors.additionalDriverPhone.message) || ''}
+                              />
+                            )}
+                          />
                           <FormControl fullWidth margin="dense">
                             <DatePicker
                               {...register('additionalDriverBirthDate')}

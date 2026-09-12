@@ -13,7 +13,7 @@ import {
   Switch,
 } from '@mui/material'
 import { Info as InfoIcon } from '@mui/icons-material'
-import { useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -31,6 +31,7 @@ import Backdrop from '@/components/SimpleBackdrop'
 import Avatar from '@/components/Avatar'
 import DatePicker from '@/components/DatePicker'
 import DriverLicense from '@/components/DriverLicense'
+import PhoneInputField from '@/components/PhoneInputField'
 import { schema, FormFields } from '@/models/UserForm'
 
 import '@/assets/css/update-user.css'
@@ -502,25 +503,30 @@ const UpdateUser = () => {
                 <span>{commonStrings.OPTIONAL}</span>
               </div>
 
-              <FormControl fullWidth margin="dense">
-                <InputLabel>{commonStrings.PHONE}</InputLabel>
-                <Input
-                  {...register('phone', {
-                    onBlur: () => trigger('phone'),
-                  })}
-                  type="text"
-                  autoComplete="off"
-                  error={!!errors.phone}
-                  onChange={() => {
-                    if (errors.phone) {
-                      clearErrors('phone')
-                    }
-                  }}
-                />
-                <FormHelperText error={!!errors.phone}>
-                  {errors.phone?.message || ''}
-                </FormHelperText>
-              </FormControl>
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <PhoneInputField
+                    label={commonStrings.PHONE}
+                    value={field.value || ''}
+                    onChange={(v) => {
+                      field.onChange(v)
+                      if (errors.phone) {
+                        clearErrors('phone')
+                      }
+                    }}
+                    onBlur={() => {
+                      field.onBlur()
+                      trigger('phone')
+                    }}
+                    name={field.name}
+                    error={!!fieldState.error}
+                    helperText={fieldState.error?.message || ''}
+                    variant="standard"
+                  />
+                )}
+              />
 
               <FormControl fullWidth margin="dense">
                 <InputLabel>{commonStrings.LOCATION}</InputLabel>

@@ -9,6 +9,7 @@ import Car from '../models/Car'
 import * as bookingController from './bookingController'
 import * as ipinfoHelper from '../utils/ipinfoHelper'
 import * as carRentalStatusHelper from '../utils/carRentalStatusHelper'
+import { statusAfterSuccessfulPayment } from '../utils/bookingStatusHelper'
 
 /**
  * Create PayPal order.
@@ -81,13 +82,10 @@ export const checkPayPalOrder = async (req: Request, res: Response) => {
       booking.paypalOrderId = orderId
       booking.expireAt = undefined
 
-      let status = bookcarsTypes.BookingStatus.Paid
-      if (booking.isDeposit) {
-        status = bookcarsTypes.BookingStatus.Deposit
-      } else if (booking.isPayedInFull) {
-        status = bookcarsTypes.BookingStatus.PaidInFull
-      }
-      booking.status = status
+      booking.status = statusAfterSuccessfulPayment({
+        isDeposit: booking.isDeposit,
+        isPayedInFull: booking.isPayedInFull,
+      })
 
       await booking.save()
       await carRentalStatusHelper.syncCarFullyBooked(booking.car)

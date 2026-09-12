@@ -31,6 +31,7 @@ import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/admin/lang/admin'
 import * as AdminApiService from '@/admin/services/AdminApiService'
 import env from '@/config/env.config'
+import PhoneInputField from '@/components/PhoneInputField'
 
 const PAGE_SIZE = 10
 
@@ -542,8 +543,16 @@ const AdminAgencies = () => {
                   <EditField label={strings.LEGAL_LAST} value={form.legalRepLastName} onChange={setField('legalRepLastName')} />
                   <EditField label={strings.LEGAL_TITLE} value={form.legalRepTitle} onChange={setField('legalRepTitle')} />
                   <EditField label={strings.LEGAL_CIN} value={form.legalRepCin} onChange={setField('legalRepCin')} />
-                  <EditField label={strings.COL_PHONE} value={form.phone} onChange={setField('phone')} />
-                  <EditField label={strings.WHATSAPP} value={form.whatsapp} onChange={setField('whatsapp')} />
+                  <PhoneInputField
+                    label={strings.COL_PHONE}
+                    value={form.phone}
+                    onChange={setField('phone')}
+                  />
+                  <PhoneInputField
+                    label={strings.WHATSAPP}
+                    value={form.whatsapp}
+                    onChange={setField('whatsapp')}
+                  />
                 </div>
               </section>
             </DialogContent>

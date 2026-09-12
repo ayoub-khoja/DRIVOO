@@ -24,6 +24,7 @@ import * as AgencyBookingService from '@/agency/services/AgencyBookingService'
 import * as AgencyCarService from '@/agency/services/AgencyCarService'
 import * as AgencyLocationService from '@/agency/services/AgencyLocationService'
 import * as helper from '@/utils/helper'
+import PhoneInputField from '@/components/PhoneInputField'
 import env from '@/config/env.config'
 
 interface AgencyAddBookingDialogProps {
@@ -62,7 +63,7 @@ const AgencyAddBookingDialog = ({
     dropOffLocationId: '',
     from: nowLocal(),
     to: nowLocal(),
-    status: bookcarsTypes.BookingStatus.Reserved,
+    status: bookcarsTypes.BookingStatus.Pending,
     cancellation: false,
     amendments: false,
     theftProtection: false,
@@ -359,11 +360,20 @@ const AgencyAddBookingDialog = ({
                 error={!!errors.email}
                 helperText={errors.email?.message}
               />
-              <TextField
-                label={commonStrings.PHONE}
-                {...register('phone')}
-                error={!!errors.phone}
-                helperText={errors.phone?.message}
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInputField
+                    label={commonStrings.PHONE}
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    error={!!errors.phone}
+                    helperText={errors.phone?.message}
+                  />
+                )}
               />
               <TextField
                 className="agency-car-span-2"
@@ -501,11 +511,20 @@ const AgencyAddBookingDialog = ({
                     error={!!errors.additionalDriverEmail}
                     helperText={errors.additionalDriverEmail?.message}
                   />
-                  <TextField
-                    label={commonStrings.PHONE}
-                    {...register('additionalDriverPhone')}
-                    error={!!errors.additionalDriverPhone}
-                    helperText={errors.additionalDriverPhone?.message}
+                  <Controller
+                    name="additionalDriverPhone"
+                    control={control}
+                    render={({ field }) => (
+                      <PhoneInputField
+                        label={commonStrings.PHONE}
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        error={!!errors.additionalDriverPhone}
+                        helperText={errors.additionalDriverPhone?.message}
+                      />
+                    )}
                   />
                   <TextField
                     className="agency-car-span-2"
@@ -552,9 +571,6 @@ const AgencyAddBookingDialog = ({
 
 const ACTIVE_STATUSES: bookcarsTypes.BookingStatus[] = [
   bookcarsTypes.BookingStatus.Pending,
-  bookcarsTypes.BookingStatus.Deposit,
-  bookcarsTypes.BookingStatus.Paid,
-  bookcarsTypes.BookingStatus.PaidInFull,
   bookcarsTypes.BookingStatus.Reserved,
 ]
 

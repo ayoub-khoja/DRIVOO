@@ -44,6 +44,7 @@ import CarSelectList from '@/components/CarSelectList'
 import StatusList from '@/components/StatusList'
 import DateTimePicker from '@/components/DateTimePicker'
 import DatePicker from '@/components/DatePicker'
+import PhoneInputField from '@/components/PhoneInputField'
 import { Option } from '@/models/common'
 import { schema, FormFields } from '@/models/BookingForm'
 
@@ -105,27 +106,24 @@ const AdditionalDriverForm = ({ control, register, errors, clearErrors, trigger,
         {errors.additionalDriverEmail && <FormHelperText error>{errors.additionalDriverEmail.message}</FormHelperText>}
       </FormControl>
 
-      <FormControl fullWidth margin="dense">
-        <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-        <Input
-          value={additionalDriverPhone || ''}
-          type="text"
-          error={!!errors.additionalDriverPhone}
-          required
-          autoComplete="off"
-          onChange={(e) => {
-            if (errors.additionalDriverPhone) {
-              clearErrors('additionalDriverPhone')
-            }
-
-            setValue('additionalDriverPhone', e.target.value)
-          }}
-          onBlur={() => {
-            trigger('additionalDriverPhone')
-          }}
-        />
-        {errors.additionalDriverPhone && <FormHelperText error>{errors.additionalDriverPhone.message}</FormHelperText>}
-      </FormControl>
+      <PhoneInputField
+        label={commonStrings.PHONE}
+        value={additionalDriverPhone || ''}
+        onChange={(v) => {
+          if (errors.additionalDriverPhone) {
+            clearErrors('additionalDriverPhone')
+          }
+          setValue('additionalDriverPhone', v)
+        }}
+        onBlur={() => {
+          trigger('additionalDriverPhone')
+        }}
+        name="additionalDriverPhone"
+        error={!!errors.additionalDriverPhone}
+        helperText={errors.additionalDriverPhone?.message || ''}
+        variant="standard"
+        required
+      />
       <FormControl fullWidth margin="dense">
         <DatePicker
           label={commonStrings.BIRTH_DATE}

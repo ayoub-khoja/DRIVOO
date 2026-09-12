@@ -67,3 +67,20 @@ export const create = (payload: bookcarsTypes.UpsertBookingPayload): Promise<boo
   agencyAxiosInstance
     .post('/api/create-booking', payload)
     .then((res) => res.data)
+
+export const updateStatus = (ids: string[], status: bookcarsTypes.BookingStatus): Promise<number> =>
+  agencyAxiosInstance
+    .post('/api/update-booking-status', { ids, status })
+    .then((res) => res.status)
+
+/** Pending = awaiting agency accept / refuse. */
+export const isAwaitingDecision = (status: bookcarsTypes.BookingStatus): boolean =>
+  status === bookcarsTypes.BookingStatus.Pending
+
+/** Accepted manually (Reserved) or via payment (Deposit / Paid*). */
+export const isAccepted = (status: bookcarsTypes.BookingStatus): boolean => [
+  bookcarsTypes.BookingStatus.Reserved,
+  bookcarsTypes.BookingStatus.Deposit,
+  bookcarsTypes.BookingStatus.Paid,
+  bookcarsTypes.BookingStatus.PaidInFull,
+].includes(status)

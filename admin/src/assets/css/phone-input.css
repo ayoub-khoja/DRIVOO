@@ -1,0 +1,312 @@
+/* Phone field: flag trigger + searchable country menu (product UX). */
+
+.phone-input-field {
+  --phone-accent: #e53935;
+  --phone-accent-soft: rgba(229, 57, 53, 0.12);
+}
+
+.phone-input-field .MuiInputLabel-root {
+  background: var(--phone-input-label-bg, #fff);
+  padding-inline: 4px;
+}
+
+.phone-input-control.PhoneInput {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 14px;
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.phone-input-control.PhoneInput:hover {
+  border-color: rgba(0, 0, 0, 0.6);
+}
+
+.phone-input-control.PhoneInput:focus-within {
+  border-color: var(--phone-accent);
+  border-width: 2px;
+  padding: 0 13px;
+  box-shadow: 0 0 0 3px var(--phone-accent-soft);
+}
+
+.phone-input-control.PhoneInput.phone-input-control--error {
+  border-color: var(--mui-palette-error-main, #d32f2f);
+}
+
+.phone-input-control.PhoneInput.phone-input-control--error:focus-within {
+  border-color: var(--mui-palette-error-main, #d32f2f);
+  border-width: 2px;
+}
+
+.phone-input-control .PhoneInputCountry,
+.phone-country-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  padding-right: 10px;
+  border-right: 1px solid #d8dee8;
+  align-self: stretch;
+}
+
+.phone-country-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  line-height: 0;
+}
+
+.phone-country-trigger:hover {
+  background: #f5f7fa;
+}
+
+.phone-country-trigger--open,
+.phone-country-trigger:focus-visible {
+  outline: none;
+  border-color: var(--phone-accent);
+  box-shadow: 0 0 0 2px var(--phone-accent-soft);
+}
+
+.phone-country-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.phone-country-trigger img,
+.phone-country-trigger svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+}
+
+.phone-country-intl-icon {
+  color: #8a94a6;
+}
+
+.phone-input-control .PhoneInputCountrySelectArrow {
+  opacity: 0.45;
+  margin-left: 2px;
+  width: 0.4em;
+  height: 0.4em;
+  border-color: currentColor;
+  color: #5b6b80;
+}
+
+.phone-input-control .PhoneInputCountryIcon,
+.phone-input-control .phone-input-circle-flag {
+  width: 20px;
+  height: 20px;
+  box-shadow: none;
+  background: transparent;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.phone-input-control .phone-input-circle-flag img,
+.phone-input-control .phone-input-circle-flag svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+}
+
+.phone-input-control .PhoneInputInput,
+.phone-input-control .phone-input-number {
+  flex: 1;
+  min-width: 0;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  font: inherit;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  color: rgba(0, 0, 0, 0.87);
+  padding: 16.5px 0;
+}
+
+.phone-input-control .PhoneInputInput::placeholder,
+.phone-input-control .phone-input-number::placeholder {
+  color: rgba(0, 0, 0, 0.38);
+  opacity: 1;
+}
+
+.phone-input-field.Mui-disabled .phone-input-control.PhoneInput {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* Dropdown portal (outside .phone-input-field — redefine accent vars here) */
+.phone-country-menu {
+  --phone-accent: #e53935;
+  --phone-accent-soft: rgba(229, 57, 53, 0.12);
+  position: fixed;
+  z-index: 1400;
+  display: flex;
+  flex-direction: column;
+  max-height: min(360px, 70vh);
+  overflow: hidden;
+  border: 1px solid #e4e9f0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  color: #12233a;
+}
+
+.phone-country-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.phone-country-search-icon {
+  color: var(--phone-accent);
+  flex-shrink: 0;
+}
+
+.phone-country-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  color: #12233a;
+}
+
+.phone-country-list {
+  overflow: auto;
+  padding: 6px;
+}
+
+.phone-country-option {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #12233a;
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.phone-country-option:hover,
+.phone-country-option--active {
+  background: #e53935;
+  color: #fff;
+}
+
+.phone-country-option:hover .phone-country-option-name,
+.phone-country-option:hover .phone-country-option-code,
+.phone-country-option--active .phone-country-option-name,
+.phone-country-option--active .phone-country-option-code {
+  color: #fff;
+  opacity: 1;
+}
+
+.phone-country-option--selected:not(.phone-country-option--active):not(:hover) {
+  background: #fff5f5;
+}
+
+.phone-country-option-flag {
+  display: inline-flex;
+  width: 22px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.phone-country-option-flag img,
+.phone-country-option-flag svg {
+  display: block;
+  width: 22px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.phone-country-option-flag-fallback {
+  display: block;
+  width: 22px;
+  height: 14px;
+  border-radius: 2px;
+  background: #c5cdd8;
+}
+
+.phone-country-option-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phone-country-option-code {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.phone-country-empty {
+  padding: 16px 12px;
+  color: #7a889c;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Standard / underline variant */
+.phone-input-field--standard .phone-input-control.PhoneInput {
+  min-height: 40px;
+  padding: 0 0 4px;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.phone-input-field--standard .phone-input-control.PhoneInput:hover {
+  border-bottom-color: rgba(0, 0, 0, 0.87);
+}
+
+.phone-input-field--standard .phone-input-control.PhoneInput:focus-within {
+  border-width: 0 0 2px;
+  padding: 0 0 3px;
+  border-bottom-color: var(--phone-accent);
+  box-shadow: none;
+}
+
+.phone-input-field--standard .PhoneInputCountry,
+.phone-input-field--standard .phone-country-select {
+  padding-right: 8px;
+  margin-right: 8px;
+}
+
+.phone-input-field--standard .PhoneInputInput,
+.phone-input-field--standard .phone-input-number {
+  padding: 8px 0;
+}
+
+.phone-input-field--standard .phone-country-trigger {
+  margin: 2px 0;
+}
