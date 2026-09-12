@@ -12,6 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { strings } from '@/agency/lang/agency'
 import { agencyReceiptSchema, AgencyReceiptFormFields } from '@/agency/models/AgencyReceiptForm'
 import * as AgencyReceiptService from '@/agency/services/AgencyReceiptService'
+import PhoneInputField from '@/components/PhoneInputField'
 import type { AgencyReceipt } from '@/agency/types/receipt'
 import env from '@/config/env.config'
 
@@ -118,9 +119,18 @@ const AgencyAddReceiptDialog = ({
               error={!!errors.clientEmail}
               helperText={errors.clientEmail?.message}
             />
-            <TextField
-              label={strings.RECEIPT_PHONE}
-              {...register('clientPhone')}
+            <Controller
+              name="clientPhone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInputField
+                  label={strings.RECEIPT_PHONE}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
             <TextField
               className="agency-car-span-2"

@@ -17,7 +17,7 @@ import {
   StorefrontOutlined as StorefrontOutlinedIcon,
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import env from '@/config/env.config'
@@ -34,6 +34,7 @@ import DatePicker from '@/components/DatePicker'
 import SocialLogin from '@/components/SocialLogin'
 import { schema, FormFields } from '@/models/SignUpForm'
 import PasswordInput from '@/components/PasswordInput'
+import PhoneInputField from '@/components/PhoneInputField'
 import SupplierSignupWizard from '@/components/SupplierSignupWizard'
 
 import '@/assets/css/signup.css'
@@ -323,25 +324,27 @@ const SignUp = () => {
                 </FormHelperText>
               </FormControl>
 
-              <FormControl fullWidth margin="dense" error={!!clientForm.formState.errors.phone}>
-                <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                <OutlinedInput
-                  type="text"
-                  {...clientForm.register('phone', {
-                    onChange: () => {
+              <Controller
+                name="phone"
+                control={clientForm.control}
+                render={({ field }) => (
+                  <PhoneInputField
+                    label={commonStrings.PHONE}
+                    value={field.value || ''}
+                    onChange={(v) => {
+                      field.onChange(v)
                       if (clientForm.formState.errors.phone) {
                         clientForm.clearErrors('phone')
                       }
-                    },
-                  })}
-                  label={commonStrings.PHONE}
-                  autoComplete="off"
-                  required
-                />
-                <FormHelperText error={!!clientForm.formState.errors.phone}>
-                  {clientForm.formState.errors.phone?.message || ''}
-                </FormHelperText>
-              </FormControl>
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    required
+                    error={!!clientForm.formState.errors.phone}
+                    helperText={clientForm.formState.errors.phone?.message || ''}
+                  />
+                )}
+              />
 
               <FormControl fullWidth margin="dense" error={!!clientForm.formState.errors.birthDate}>
                 <DatePicker

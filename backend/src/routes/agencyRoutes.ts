@@ -55,5 +55,6 @@ routes.route(routeNames.getPublicReviews).get(agencyController.getPublicReviews)
 routes.route(routeNames.createPublicReview).post(agencyController.createPublicReview)
 routes.route(routeNames.getPublicProfile).get(agencyController.getPublicProfile)
 routes.route(routeNames.verifyDocument).get(documentVerifyController.verifyDocument)
+routes.route(routeNames.verifyDocumentPdf).get(documentVerifyController.verifyDocumentPdf)
 
 export default routes

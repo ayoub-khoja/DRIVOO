@@ -7,7 +7,6 @@ import {
   FormControl,
   FormControlLabel,
   FormHelperText,
-  InputAdornment,
   InputLabel,
   Link,
   MenuItem,
@@ -35,6 +34,7 @@ import OfferSearchBar from '@/components/offer/OfferSearchBar'
 import OfferProgressBar from '@/components/offer/OfferProgressBar'
 import OfferOrderRecap from '@/components/offer/OfferOrderRecap'
 import OfferRentalSteps from '@/components/offer/OfferRentalSteps'
+import PhoneInputField from '@/components/PhoneInputField'
 import {
   EMPTY_EXTRA_QUANTITIES,
   OfferExtraQuantities,
@@ -363,11 +363,12 @@ const OfferExtras = () => {
 
               <div className="offer-form-row">
                 <FormControl fullWidth margin="dense" className="offer-form-field">
-                  <InputLabel>{strings.CONTACT_AGE}</InputLabel>
+                  <InputLabel shrink>{strings.CONTACT_AGE}</InputLabel>
                   <Select
                     value={age === '' ? '' : age}
                     label={strings.CONTACT_AGE}
                     displayEmpty
+                    notched
                     onChange={(e) => {
                       const next = e.target.value as number | string
                       setAge(next === '' ? '' : Number(next))
@@ -380,11 +381,12 @@ const OfferExtras = () => {
                   </Select>
                 </FormControl>
                 <FormControl fullWidth margin="dense" className="offer-form-field">
-                  <InputLabel>{strings.CONTACT_LICENSE_YEARS}</InputLabel>
+                  <InputLabel shrink>{strings.CONTACT_LICENSE_YEARS}</InputLabel>
                   <Select
                     value={licenseYears === '' ? '' : licenseYears}
                     label={strings.CONTACT_LICENSE_YEARS}
                     displayEmpty
+                    notched
                     onChange={(e) => {
                       const next = e.target.value as number | string
                       setLicenseYears(next === '' ? '' : Number(next))
@@ -443,20 +445,13 @@ const OfferExtras = () => {
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="offer-form-field">
-                <InputLabel className="required">{strings.CONTACT_WHATSAPP}</InputLabel>
-                <OutlinedInput
-                  value={whatsapp}
-                  label={strings.CONTACT_WHATSAPP}
-                  placeholder={strings.CONTACT_WHATSAPP_PLACEHOLDER}
-                  onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                  startAdornment={(
-                    <InputAdornment position="start">
-                      <span className="offer-whatsapp-prefix" aria-hidden>🇹🇳 +216</span>
-                    </InputAdornment>
-                  )}
-                />
-              </FormControl>
+              <PhoneInputField
+                className="offer-form-field"
+                label={strings.CONTACT_WHATSAPP}
+                value={whatsapp}
+                onChange={setWhatsapp}
+                required
+              />
 
               <FormControl margin="dense" className="offer-tos-row" error={tosError}>
                 <FormControlLabel

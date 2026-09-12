@@ -10,6 +10,7 @@ import User from '../models/User'
 import Car from '../models/Car'
 import * as bookingController from './bookingController'
 import * as carRentalStatusHelper from '../utils/carRentalStatusHelper'
+import { statusAfterSuccessfulPayment } from '../utils/bookingStatusHelper'
 
 /**
  * Create Checkout Session.
@@ -133,12 +134,10 @@ export const checkCheckoutSession = async (req: Request, res: Response) => {
     if (session.payment_status === 'paid') {
       booking.expireAt = undefined
 
-      let status = bookcarsTypes.BookingStatus.Paid
-      if (booking.isDeposit) {
-        status = bookcarsTypes.BookingStatus.Deposit
-      } else if (booking.isPayedInFull) {
-        status = bookcarsTypes.BookingStatus.PaidInFull
-      }
+      let status = statusAfterSuccessfulPayment({
+        isDeposit: booking.isDeposit,
+        isPayedInFull: booking.isPayedInFull,
+      })
       booking.status = status
 
       await booking.save()

@@ -10,7 +10,7 @@ import {
   Button,
   Paper
 } from '@mui/material'
-import { useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -23,6 +23,7 @@ import DatePicker from '@/components/DatePicker'
 import Avatar from '@/components/Avatar'
 import * as helper from '@/utils/helper'
 import DriverLicense from '@/components/DriverLicense'
+import PhoneInputField from '@/components/PhoneInputField'
 import Footer from '@/components/Footer'
 import { useUserContext, UserContextType } from '@/context/UserContext'
 import { schema, FormFields } from '@/models/SettingsForm'
@@ -147,21 +148,28 @@ const Settings = () => {
                   <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
                   <Input {...register('email')} type="text" disabled />
                 </FormControl>
-                <FormControl fullWidth margin="dense" error={!!errors.phone}>
-                  <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                  <Input
-                    {...register('phone')}
-                    type="text"
-                    required
-                    autoComplete="off"
-                    onChange={() => {
-                      if (errors.phone) {
-                        clearErrors('phone')
-                      }
-                    }}
-                  />
-                  <FormHelperText>{errors.phone?.message || ''}</FormHelperText>
-                </FormControl>
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInputField
+                      label={commonStrings.PHONE}
+                      value={field.value || ''}
+                      onChange={(v) => {
+                        field.onChange(v)
+                        if (errors.phone) {
+                          clearErrors('phone')
+                        }
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      required
+                      variant="standard"
+                      error={!!errors.phone}
+                      helperText={errors.phone?.message || ''}
+                    />
+                  )}
+                />
                 <FormControl fullWidth margin="dense" error={!!errors.birthDate}>
                   <DatePicker
                     label={commonStrings.BIRTH_DATE}

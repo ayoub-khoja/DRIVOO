@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from '@mui/material'
 import { AddRounded, DeleteOutlineRounded } from '@mui/icons-material'
-import { useFieldArray, useForm, useWatch, type Resolver } from 'react-hook-form'
+import { Controller, useFieldArray, useForm, useWatch, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/agency/lang/agency'
@@ -22,6 +22,7 @@ import * as AgencyInvoiceService from '@/agency/services/AgencyInvoiceService'
 import type { AgencyInvoice } from '@/agency/types/invoice'
 import { computeInvoiceTotals, computeDailyLevyTotal, rentalDays, formatMoney, DAILY_LEVY_RATE } from '@/agency/utils/invoiceMath'
 import env from '@/config/env.config'
+import PhoneInputField from '@/components/PhoneInputField'
 
 interface AgencyAddInvoiceDialogProps {
   open: boolean
@@ -210,7 +211,19 @@ const AgencyAddInvoiceDialog = ({
             />
             <TextField label={strings.INVOICE_CLIENT_CODE} {...register('clientCode')} />
             <TextField label={strings.INVOICE_CLIENT_ID} {...register('clientIdNumber')} />
-            <TextField label={strings.INVOICE_CLIENT_PHONE} {...register('clientPhone')} />
+            <Controller
+              name="clientPhone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInputField
+                  label={strings.INVOICE_CLIENT_PHONE}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
             <TextField label={strings.INVOICE_CLIENT_ADDRESS} {...register('clientAddress')} />
             <TextField label={strings.INVOICE_ISSUE_CITY} {...register('issueCity')} />
             <TextField

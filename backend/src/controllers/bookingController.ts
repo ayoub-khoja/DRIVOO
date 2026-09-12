@@ -24,6 +24,7 @@ import * as logger from '../utils/logger'
 import stripeAPI from '../payment/stripe'
 import * as firebaseMessaging from '../services/firebase/messaging'
 import * as carRentalStatusHelper from '../utils/carRentalStatusHelper'
+import { statusAfterSuccessfulPayment } from '../utils/bookingStatusHelper'
 
 /**
  * Create a Booking.
@@ -330,13 +331,10 @@ export const checkout = async (req: Request, res: Response) => {
         }
 
         body.booking.paymentIntentId = paymentIntentId
-        let status = bookcarsTypes.BookingStatus.Paid
-        if (body.booking.isDeposit) {
-          status = bookcarsTypes.BookingStatus.Deposit
-        } else if (body.booking.isPayedInFull) {
-          status = bookcarsTypes.BookingStatus.PaidInFull
-        }
-        body.booking.status = status
+        body.booking.status = statusAfterSuccessfulPayment({
+          isDeposit: body.booking.isDeposit,
+          isPayedInFull: body.booking.isPayedInFull,
+        })
       } else {
         //
         // Bookings created from checkout with Stripe are temporary
@@ -702,11 +700,28 @@ export const updateStatus = async (req: Request, res: Response) => {
     const { body }: { body: bookcarsTypes.UpdateStatusPayload } = req
     const { ids: _ids, status } = body
     const ids = _ids.map((id) => new mongoose.Types.ObjectId(id))
-    const bulk = Booking.collection.initializeOrderedBulkOp()
-    const bookings = await Booking.find({ _id: { $in: ids } })
+    const sessionUserId = req.user?._id
+    const sessionUser = sessionUserId ? await User.findById(sessionUserId) : null
 
-    bulk.find({ _id: { $in: ids } }).update({ $set: { status } })
-    await bulk.execute()
+    if (!sessionUser) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const query: Record<string, unknown> = { _id: { $in: ids } }
+    // Agencies may only update their own bookings.
+    if (sessionUser.type === bookcarsTypes.UserType.Supplier) {
+      query.supplier = sessionUser._id
+    }
+
+    const bookings = await Booking.find(query)
+    if (!bookings.length) {
+      res.status(404).send('Not found')
+      return
+    }
+
+    const allowedIds = bookings.map((booking) => booking._id)
+    await Booking.updateMany({ _id: { $in: allowedIds } }, { $set: { status } })
 
     for (const booking of bookings) {
       if (booking.status !== status) {

@@ -25,7 +25,7 @@ import {
 } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { PayPalButtons } from '@paypal/react-paypal-js'
-import { useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { getDateFnsLocale } from '@/utils/locale'
@@ -48,6 +48,7 @@ import * as StripeService from '@/services/StripeService'
 import * as PayPalService from '@/services/PayPalService'
 import { useRecaptchaContext, RecaptchaContextType } from '@/context/RecaptchaContext'
 import Layout from '@/components/Layout'
+import PhoneInputField from '@/components/PhoneInputField'
 import NoMatch from './NoMatch'
 import Progress from '@/components/Progress'
 import Error from '@/components/Error'
@@ -133,6 +134,7 @@ const OfferPayment = () => {
     register,
     handleSubmit,
     setValue,
+    getValues,
     formState: { errors, isSubmitting },
     clearErrors,
     trigger,
@@ -287,7 +289,9 @@ const OfferPayment = () => {
         setLastName(parts.slice(1).join(' ') || '')
         setValue('fullName', contact.fullName)
         if (contact.email) setValue('email', contact.email)
-        if (contact.whatsapp) setValue('phone', `+216${contact.whatsapp}`)
+        if (contact.whatsapp) {
+          setValue('phone', contact.whatsapp.startsWith('+') ? contact.whatsapp : `+216${contact.whatsapp}`)
+        }
         if (contact.age) {
           const birthYear = new Date().getFullYear() - Number(contact.age)
           setValue('birthDate', new Date(birthYear, 0, 1))
@@ -581,22 +585,31 @@ const OfferPayment = () => {
                           </FormHelperText>
                         </FormControl>
 
-                        <FormControl fullWidth margin="dense" className="offer-form-field">
-                          <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                          <OutlinedInput
-                            label={commonStrings.PHONE}
-                            error={!!errors.phone}
-                            onChange={(e) => {
-                              clearErrors('phone')
-                              setValue('phone', e.target.value)
-                            }}
-                            onBlur={(e) => {
-                              trigger('phone')
-                              setPhoneInfo(validator.isMobilePhone(e.target.value))
-                            }}
-                          />
-                          <FormHelperText>{(errors.phone?.message) || (phoneInfo && checkoutStrings.PHONE_INFO) || ''}</FormHelperText>
-                        </FormControl>
+                        <Controller
+                          name="phone"
+                          control={control}
+                          render={({ field }) => (
+                            <PhoneInputField
+                              className="offer-form-field"
+                              label={commonStrings.PHONE}
+                              value={field.value || ''}
+                              onChange={(v) => {
+                                clearErrors('phone')
+                                setPhoneInfo(false)
+                                field.onChange(v)
+                              }}
+                              onBlur={() => {
+                                field.onBlur()
+                                trigger('phone')
+                                setPhoneInfo(validator.isMobilePhone(getValues('phone') || ''))
+                              }}
+                              name={field.name}
+                              required
+                              error={!!errors.phone}
+                              helperText={(errors.phone?.message) || (phoneInfo && checkoutStrings.PHONE_INFO) || ''}
+                            />
+                          )}
+                        />
 
                         <FormControl fullWidth margin="dense" className="offer-form-field">
                           <DatePicker

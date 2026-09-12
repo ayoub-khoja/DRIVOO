@@ -15,7 +15,7 @@ import {
   Person as DriverIcon
 } from '@mui/icons-material'
 import { DateTimeValidationError } from '@mui/x-date-pickers'
-import { useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -36,6 +36,7 @@ import CarSelectList from '@/components/CarSelectList'
 import StatusList from '@/components/StatusList'
 import DateTimePicker from '@/components/DateTimePicker'
 import DatePicker from '@/components/DatePicker'
+import PhoneInputField from '@/components/PhoneInputField'
 import { Option, Supplier } from '@/models/common'
 import { schema, FormFields } from '@/models/BookingForm'
 
@@ -59,6 +60,7 @@ const CreateBooking = () => {
     formState: { errors, isSubmitting },
     clearErrors,
     getValues,
+    trigger,
   } = useForm<FormFields>({
     resolver: zodResolver(schema),
     mode: 'onSubmit',
@@ -402,17 +404,31 @@ const CreateBooking = () => {
                   {errors.additionalDriverEmail && <FormHelperText error>{errors.additionalDriverEmail.message}</FormHelperText>}
                 </FormControl>
 
-                <FormControl fullWidth margin="dense">
-                  <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                  <Input
-                    {...register('additionalDriverPhone')}
-                    type="text"
-                    error={!!errors.additionalDriverPhone}
-                    required
-                    autoComplete="off"
-                  />
-                  {errors.additionalDriverPhone && <FormHelperText error>{errors.additionalDriverPhone.message}</FormHelperText>}
-                </FormControl>
+                <Controller
+                  name="additionalDriverPhone"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <PhoneInputField
+                      label={commonStrings.PHONE}
+                      value={field.value || ''}
+                      onChange={(v) => {
+                        field.onChange(v)
+                        if (errors.additionalDriverPhone) {
+                          clearErrors('additionalDriverPhone')
+                        }
+                      }}
+                      onBlur={() => {
+                        field.onBlur()
+                        trigger('additionalDriverPhone')
+                      }}
+                      name={field.name}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message || ''}
+                      variant="standard"
+                      required
+                    />
+                  )}
+                />
                 <FormControl fullWidth margin="dense">
                   <DatePicker
                     label={commonStrings.BIRTH_DATE}

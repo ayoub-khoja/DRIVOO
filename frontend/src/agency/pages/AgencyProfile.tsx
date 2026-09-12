@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Autocomplete, Button, CircularProgress, TextField } from '@mui/material'
-import { useForm, type Resolver } from 'react-hook-form'
+import { Controller, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/agency/lang/agency'
@@ -12,6 +12,7 @@ import * as GeoService from '@/services/GeoService'
 import AgencyLogoUploader from '@/agency/components/AgencyLogoUploader'
 import AgencySharePanel from '@/agency/components/AgencySharePanel'
 import { agencyProfileSchema, AgencyProfileFormFields } from '@/agency/models/AgencyProfileForm'
+import PhoneInputField from '@/components/PhoneInputField'
 
 const emptyValues: AgencyProfileFormFields = {
   fullName: '',
@@ -76,6 +77,7 @@ const AgencyProfile = () => {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setValue,
@@ -273,10 +275,58 @@ const AgencyProfile = () => {
         <section className="agency-profile-panel">
           <h3>{strings.PROFILE_CONTACT}</h3>
           <div className="agency-profile-grid">
-            <TextField label={strings.PROFILE_PHONE} fullWidth {...register('phone')} />
-            <TextField label={strings.PROFILE_WHATSAPP} fullWidth {...register('whatsapp')} />
-            <TextField label={strings.PROFILE_PHONE2} fullWidth {...register('phone2')} />
-            <TextField label={strings.PROFILE_PHONE3} fullWidth {...register('phone3')} />
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInputField
+                  label={strings.PROFILE_PHONE}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
+            <Controller
+              name="whatsapp"
+              control={control}
+              render={({ field }) => (
+                <PhoneInputField
+                  label={strings.PROFILE_WHATSAPP}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
+            <Controller
+              name="phone2"
+              control={control}
+              render={({ field }) => (
+                <PhoneInputField
+                  label={strings.PROFILE_PHONE2}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
+            <Controller
+              name="phone3"
+              control={control}
+              render={({ field }) => (
+                <PhoneInputField
+                  label={strings.PROFILE_PHONE3}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
             <TextField label={strings.PROFILE_WEBSITE} fullWidth className="agency-profile-span-2" {...register('website')} />
             <TextField label={strings.PROFILE_ADDRESS} fullWidth className="agency-profile-span-2" {...register('address')} />
             <Autocomplete

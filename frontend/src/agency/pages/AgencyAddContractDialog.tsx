@@ -21,6 +21,7 @@ import {
   type AgencyContractFormFields,
 } from '@/agency/models/AgencyContractForm'
 import * as AgencyContractService from '@/agency/services/AgencyContractService'
+import PhoneInputField from '@/components/PhoneInputField'
 import {
   CONTRACT_CHECKLIST,
   CONTRACT_KM_PACKAGES,
@@ -223,7 +224,19 @@ const AgencyAddContractDialog = ({
         InputLabelProps={{ shrink: true }}
         {...register(`${prefix}.licenseIssuedAt` as const)}
       />
-      <TextField label={strings.CONTRACT_DRIVER_PHONE} {...register(`${prefix}.phone` as const)} />
+      <Controller
+        name={`${prefix}.phone` as const}
+        control={control}
+        render={({ field }) => (
+          <PhoneInputField
+            label={strings.CONTRACT_DRIVER_PHONE}
+            value={field.value || ''}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            name={field.name}
+          />
+        )}
+      />
       <TextField
         className="agency-car-span-2"
         label={strings.CONTRACT_DRIVER_ADDRESS}

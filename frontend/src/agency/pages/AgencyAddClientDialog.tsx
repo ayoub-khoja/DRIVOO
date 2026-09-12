@@ -6,7 +6,7 @@ import {
   DialogContent,
   TextField,
 } from '@mui/material'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { intervalToDuration } from 'date-fns'
@@ -14,6 +14,7 @@ import validator from 'validator'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/agency/lang/agency'
 import * as AgencyClientService from '@/agency/services/AgencyClientService'
+import PhoneInputField from '@/components/PhoneInputField'
 import env from '@/config/env.config'
 
 interface AgencyAddClientDialogProps {
@@ -53,6 +54,7 @@ const AgencyAddClientDialog = ({
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -138,12 +140,21 @@ const AgencyAddClientDialog = ({
               helperText={errors.email?.message}
               disabled={submitting}
             />
-            <TextField
-              label={strings.CLIENTS_PHONE}
-              {...register('phone')}
-              error={!!errors.phone}
-              helperText={errors.phone?.message}
-              disabled={submitting}
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInputField
+                  label={strings.CLIENTS_PHONE}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  error={!!errors.phone}
+                  helperText={errors.phone?.message}
+                  disabled={submitting}
+                />
+              )}
             />
             <TextField
               label={strings.CLIENTS_CIN}
