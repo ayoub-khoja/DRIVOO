@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { TextFieldVariants } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
-import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
 import * as LocationService from '@/services/LocationService'
 import * as GooglePlacesService from '@/services/GooglePlacesService'
@@ -51,12 +50,16 @@ const LocationSelectList = ({
 
   useEffect(() => {
     if (!value) {
+      setSelectedOptions([])
       return
     }
     const _value = multiple
       ? (Array.isArray(value) ? value : [value])
       : [value as bookcarsTypes.Location]
-    if (!bookcarsHelper.arrayEqual(selectedOptions, _value)) {
+    const sameIds =
+      selectedOptions.length === _value.length
+      && selectedOptions.every((opt, i) => opt?._id === _value[i]?._id)
+    if (!sameIds) {
       setSelectedOptions(_value)
     }
   }, [value, multiple, selectedOptions])
@@ -273,8 +276,12 @@ const LocationSelectList = ({
         setRows([])
         setPage(1)
         setKeyword('')
+        setSelectedOptions([])
         setFetch(true)
         scheduleFetch('')
+        if (onChange) {
+          onChange([])
+        }
       }}
     />
   )

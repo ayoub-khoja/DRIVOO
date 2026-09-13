@@ -338,12 +338,6 @@ const OfferPayment = () => {
 
       if (!authenticated) {
         setValue('fullName', fullName)
-        const status = await UserService.validateEmail({ email: data.email! })
-        if (status !== 200) {
-          setEmailRegistered(true)
-          setEmailInfo(false)
-          return
-        }
       }
 
       if (car.supplier.licenseRequired && !license) {
@@ -565,23 +559,22 @@ const OfferPayment = () => {
                           <OutlinedInput
                             type="email"
                             label={commonStrings.EMAIL}
-                            error={!!errors.email || emailRegistered}
+                            error={!!errors.email}
                             onChange={(e) => {
                               clearErrors('email')
                               setEmailRegistered(false)
                               setValue('email', e.target.value)
+                              const valid = validator.isEmail(e.target.value)
+                              setEmailInfo(valid)
                             }}
                             onBlur={async (e) => {
                               trigger('email')
-                              if (validator.isEmail(e.target.value)) {
-                                const status = await UserService.validateEmail({ email: e.target.value })
-                                setEmailRegistered(status !== 200)
-                                setEmailInfo(status === 200)
-                              }
+                              setEmailInfo(validator.isEmail(e.target.value))
+                              setEmailRegistered(false)
                             }}
                           />
-                          <FormHelperText error={!!errors.email || emailRegistered}>
-                            {(errors.email?.message) || (emailRegistered && commonStrings.EMAIL_ALREADY_REGISTERED) || (emailInfo && checkoutStrings.EMAIL_INFO) || ''}
+                          <FormHelperText error={!!errors.email}>
+                            {(errors.email?.message) || (emailInfo && checkoutStrings.EMAIL_INFO) || ''}
                           </FormHelperText>
                         </FormControl>
 

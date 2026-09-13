@@ -8,6 +8,7 @@ import { PayPalProvider } from '@/context/PayPalContext'
 import { SettingProvider } from '@/context/SettingContext'
 import { init as initGA } from '@/utils/ga4'
 import ScrollToTop from '@/components/ScrollToTop'
+import ScrollTopButton from '@/components/ScrollTopButton'
 import NProgressIndicator from '@/components/NProgressIndicator'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import FirebaseMessagingBridge from '@/components/FirebaseMessagingBridge'
@@ -105,6 +106,7 @@ const AppLayout = () => {
                     <Header />
                     <Outlet />
                   </Suspense>
+                  <ScrollTopButton />
                 </div>
               </PayPalProvider>
             </RecaptchaProvider>

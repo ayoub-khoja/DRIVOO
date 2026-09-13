@@ -97,13 +97,20 @@ const MultipleSelect = ({
     }
     if (Array.isArray(selectedOptions)) {
       setValues(selectedOptions)
-      // Only clear the visible text when a previous selection was removed,
-      // never while the user is typing with an empty selection.
-      if (selectedOptions.length === 0 && values.length > 0) {
+
+      if (!multiple) {
+        const selectedName = selectedOptions[0]?.name || ''
+        if (selectedOptions.length > 0) {
+          // Keep the visible text in sync when value is set from props (e.g. search page)
+          setInputValue((prev) => (prev === selectedName ? prev : selectedName))
+        } else if (values.length > 0) {
+          setInputValue('')
+        }
+      } else if (selectedOptions.length === 0 && values.length > 0) {
         setInputValue('')
       }
     }
-  }, [selectedOptions, type]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedOptions, type, multiple]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="multiple-select">

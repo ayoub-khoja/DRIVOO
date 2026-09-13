@@ -182,19 +182,6 @@ const Checkout = () => {
         return
       }
 
-      if (!authenticated) {
-        // check email
-        const status = await UserService.validateEmail({ email: data.email! })
-        if (status === 200) {
-          setEmailRegistered(false)
-          setEmailInfo(true)
-        } else {
-          setEmailRegistered(true)
-          setEmailInfo(false)
-          return
-        }
-      }
-
       if (car.supplier.licenseRequired && !license) {
         setLicenseRequired(true)
         return
@@ -559,7 +546,7 @@ const Checkout = () => {
                               // {...register('email')}
                               type="text"
                               label={commonStrings.EMAIL}
-                              error={!!errors.email || emailRegistered}
+                              error={!!errors.email}
                               required
                               autoComplete="off"
                               onChange={(e) => {
@@ -567,38 +554,18 @@ const Checkout = () => {
                                   clearErrors('email')
                                 }
                                 setEmailRegistered(false)
-                                setEmailInfo(false)
                                 setValue('email', e.target.value)
+                                setEmailInfo(validateEmail(e.target.value))
                               }}
                               onBlur={async (e) => {
                                 trigger('email')
                                 const email = e.target.value
-
-                                if (validateEmail(email)) {
-                                  const status = await UserService.validateEmail({ email })
-                                  if (status === 200) {
-                                    setEmailRegistered(false)
-                                    setEmailInfo(true)
-                                  } else {
-                                    setEmailRegistered(true)
-                                    setEmailInfo(false)
-                                  }
-                                } else {
-                                  setEmailRegistered(false)
-                                  setEmailInfo(false)
-                                }
+                                setEmailRegistered(false)
+                                setEmailInfo(validateEmail(email))
                               }}
                             />
-                            <FormHelperText error={!!errors.email || emailRegistered}>
+                            <FormHelperText error={!!errors.email}>
                               {(errors.email && errors.email.message) || ''}
-                              {(emailRegistered && (
-                                <span>
-                                  <span>{commonStrings.EMAIL_ALREADY_REGISTERED}</span>
-                                  <span> </span>
-                                  <a href={`/sign-in?c=${car._id}&p=${pickupLocation._id}&d=${dropOffLocation._id}&f=${from.getTime()}&t=${to.getTime()}&from=checkout`}>{strings.SIGN_IN}</a>
-                                </span>
-                              ))
-                                || ''}
                               {(emailInfo && !errors.email && strings.EMAIL_INFO) || ''}
                             </FormHelperText>
                           </FormControl>

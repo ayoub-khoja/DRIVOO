@@ -42,23 +42,94 @@ const carImageUrl = (image?: string) => {
   }
 }
 
+const modelKey = (car: ShowcaseCar) => {
+  const brand = (car.brand || '').trim().toLowerCase()
+  const model = (car.model || '').trim().toLowerCase()
+  if (brand && model) {
+    return `${brand}|${model}`
+  }
+  return (car.name || '').trim().toLowerCase() || car._id
+}
+
+const preloadImage = (src: string) => new Promise<boolean>((resolve) => {
+  if (!src) {
+    resolve(false)
+    return
+  }
+  const img = new Image()
+  img.onload = () => resolve(true)
+  img.onerror = () => resolve(false)
+  img.src = src
+})
+
 const HomeSections = ({ onBook }: HomeSectionsProps) => {
   const [showcaseCars, setShowcaseCars] = useState<ShowcaseCar[]>([])
 
   useEffect(() => {
     let cancelled = false
 
-    CarService.getShowcaseCars(3, env.HOME_ABOUT_AGENCY_SLUG)
-      .then((cars) => {
-        if (!cancelled) {
-          setShowcaseCars(Array.isArray(cars) ? cars.filter((car) => !!car.image) : [])
+    const load = async () => {
+      try {
+        // Ask for more than 3 so we can keep distinct models that actually load
+        const cars = await CarService.getShowcaseCars(9, env.HOME_ABOUT_AGENCY_SLUG)
+        if (cancelled || !Array.isArray(cars)) {
+          return
         }
-      })
-      .catch(() => {
+
+        const candidates = cars.filter((car) => !!car.image)
+        const picked: ShowcaseCar[] = []
+        const seenModels = new Set<string>()
+
+        for (const car of candidates) {
+          const key = modelKey(car)
+          if (seenModels.has(key)) {
+            continue
+          }
+          const url = carImageUrl(car.image)
+          const ok = await preloadImage(url)
+          if (!ok || cancelled) {
+            continue
+          }
+          seenModels.add(key)
+          picked.push(car)
+          if (picked.length >= 3) {
+            break
+          }
+        }
+
+        // If still short, accept other loaded cars even if model repeats
+        if (picked.length < 3) {
+          for (const car of candidates) {
+            if (picked.some((p) => p._id === car._id)) {
+              continue
+            }
+            const key = modelKey(car)
+            if (picked.some((p) => modelKey(p) === key)) {
+              continue
+            }
+            const url = carImageUrl(car.image)
+            const ok = await preloadImage(url)
+            if (!ok || cancelled) {
+              continue
+            }
+            picked.push(car)
+            if (picked.length >= 3) {
+              break
+            }
+          }
+        }
+
+        if (!cancelled) {
+          setShowcaseCars(picked)
+        }
+      } catch {
         if (!cancelled) {
           setShowcaseCars([])
         }
-      })
+      }
+    }
+
+    void load()
 
     return () => {
       cancelled = true
@@ -67,7 +138,7 @@ const HomeSections = ({ onBook }: HomeSectionsProps) => {
 
   const collageSlots = SLOT_CLASSES.map((slotClass, index) => {
     const car = showcaseCars[index]
-    const src = car?.image ? carImageUrl(car.image) : FALLBACK_IMAGES[index]
+    const src = car?.image ? carImageUrl(car.image) : ''
     const alt = car?.name || ''
     return { slotClass, src, alt, fallback: FALLBACK_IMAGES[index] }
   })
@@ -86,11 +157,11 @@ const HomeSections = ({ onBook }: HomeSectionsProps) => {
                 <div key={slot.slotClass} className={`drivoo-about-img ${slot.slotClass}`}>
                   <img
                     src={slot.src || slot.fallback}
-                    alt={slot.alt}
+                    alt={slot.alt || 'DRIVOO'}
                     loading="lazy"
                     onError={(event) => {
                       const img = event.currentTarget
-                      if (img.dataset.fallbackApplied === '1') {
+                      if (!slot.src || img.dataset.fallbackApplied === '1') {
                         return
                       }
                       img.dataset.fallbackApplied = '1'

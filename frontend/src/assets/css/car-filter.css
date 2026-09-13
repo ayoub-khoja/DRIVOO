@@ -8,6 +8,11 @@ div.car-filter form {
   padding: 15px 8px;
 }
 
+div.car-filter .car-filter-fields {
+  display: flex;
+  flex-direction: column;
+}
+
 div.car-filter .pickup-location,
 div.car-filter .drop-off-location,
 div.car-filter .from,
@@ -40,4 +45,63 @@ div.car-filter .chk-same-location label {
 
 div.car-filter .chk-same-location input[type='checkbox'] {
   cursor: pointer;
+}
+
+/* Top bar (search results) */
+div.car-filter.car-filter-bar {
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
+  margin: 0 0 12px;
+  width: 100%;
+}
+
+div.car-filter.car-filter-bar form {
+  padding: 12px 14px 8px;
+}
+
+div.car-filter.car-filter-bar .car-filter-fields {
+  align-items: flex-end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+div.car-filter.car-filter-bar .pickup-location,
+div.car-filter.car-filter-bar .drop-off-location,
+div.car-filter.car-filter-bar .from,
+div.car-filter.car-filter-bar .to,
+div.car-filter.car-filter-bar .fc-search {
+  padding: 0;
+}
+
+div.car-filter.car-filter-bar .drop-off-location {
+  grid-column: 1 / -1;
+}
+
+div.car-filter.car-filter-bar .btn-search {
+  margin: 0;
+  min-height: 40px;
+  min-width: 130px;
+  width: auto;
+}
+
+div.car-filter.car-filter-bar .chk-same-location {
+  margin-top: 4px;
+  padding: 0;
+  width: auto;
+}
+
+@media only screen and (width <= 960px) {
+  div.car-filter.car-filter-bar .car-filter-fields {
+    grid-template-columns: 1fr;
+  }
+
+  div.car-filter.car-filter-bar .drop-off-location {
+    grid-column: auto;
+  }
+
+  div.car-filter.car-filter-bar .btn-search {
+    width: 100%;
+  }
 }

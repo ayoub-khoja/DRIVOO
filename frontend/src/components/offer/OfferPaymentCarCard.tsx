@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-  Check as CheckIcon,
   InfoOutlined as InfoIcon,
   Person as SeatsIcon,
   AccountTree as GearboxIcon,
@@ -8,13 +7,11 @@ import {
   Speed as MileageIcon,
   LocationOn as LocationIcon,
   DirectionsCar as CarPlaceholderIcon,
-  AccountCircle as SupplierPlaceholderIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
 import { strings } from '@/lang/offer'
-import { strings as commonStrings } from '@/lang/common'
 import * as helper from '@/utils/helper'
 import {
   formatBookingRating,
@@ -30,7 +27,6 @@ interface OfferPaymentCarCardProps {
 
 const OfferPaymentCarCard = ({ car, pickupLocation, language }: OfferPaymentCarCardProps) => {
   const carImageUrl = car.image ? bookcarsHelper.joinURL(env.CDN_CARS, car.image) : ''
-  const supplierAvatarUrl = car.supplier?.avatar ? bookcarsHelper.joinURL(env.CDN_USERS, car.supplier.avatar) : ''
   const bookingScore = formatBookingRating(car.rating)
   const ratingLabel = getRatingLabel(car.rating, language)
   const similarLabel = getSimilarCategoryLabel(car.range, language)
@@ -74,14 +70,6 @@ const OfferPaymentCarCard = ({ car, pickupLocation, language }: OfferPaymentCarC
         </div>
       </div>
       <div className="offer-car-card-footer">
-        <div className="offer-supplier">
-          {supplierAvatarUrl ? (
-            <img src={supplierAvatarUrl} alt={car.supplier?.fullName} />
-          ) : (
-            <SupplierPlaceholderIcon />
-          )}
-          <span>{car.supplier?.fullName}</span>
-        </div>
         {bookingScore && (
           <div className="offer-rating">
             <span className="offer-rating-score">{bookingScore}</span>

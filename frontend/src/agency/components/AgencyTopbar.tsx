@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Badge,
   Button,
+  CircularProgress,
   IconButton,
   Menu,
   MenuItem,
+  Popover,
 } from '@mui/material'
 import { NotificationsOutlined } from '@mui/icons-material'
+import { formatDistanceToNow } from 'date-fns'
+import { fr, enUS, arTN, es, it, de } from 'date-fns/locale'
 import { toast } from 'react-toastify'
 import { CircleFlag } from 'react-circle-flags'
+import * as bookcarsTypes from ':bookcars-types'
 import env from '@/config/env.config'
 import { strings } from '@/agency/lang/agency'
 import { strings as commonStrings } from '@/lang/common'
@@ -22,22 +27,36 @@ import * as helper from '@/utils/helper'
 import * as langHelper from '@/utils/langHelper'
 
 const FLAG_SIZE = 22
+const PREVIEW_LIMIT = 6
+
+const dateLocaleMap = {
+  fr,
+  en: enUS,
+  ar: arTN,
+  es,
+  it,
+  de,
+} as const
 
 const AgencyTopbar = () => {
   const navigate = useNavigate()
   const { agency } = useAgencyContext()
   const [lang, setLang] = useState(helper.getLanguage(langHelper.getLanguage()))
   const [langAnchorEl, setLangAnchorEl] = useState<HTMLElement | null>(null)
+  const [notifAnchorEl, setNotifAnchorEl] = useState<HTMLElement | null>(null)
   const [notificationCount, setNotificationCount] = useState(0)
+  const [notifications, setNotifications] = useState<bookcarsTypes.Notification[]>([])
+  const [notifLoading, setNotifLoading] = useState(false)
 
   const logoUrl = resolveLogoUrl(agency?.avatar)
   const initial = (agency?.fullName || 'A').trim().charAt(0).toUpperCase()
+  const language = langHelper.getLanguage()
+  const dateLocale = dateLocaleMap[language as keyof typeof dateLocaleMap] || fr
 
   useEffect(() => {
-    const language = langHelper.getLanguage()
     setLang(helper.getLanguage(language))
     langHelper.setLanguage(strings, language)
-  }, [])
+  }, [language])
 
   useEffect(() => {
     const userId = agency?._id
@@ -60,6 +79,64 @@ const AgencyTopbar = () => {
       document.removeEventListener('visibilitychange', onFocus)
     }
   }, [agency?._id])
+
+  const loadNotifications = useCallback(async () => {
+    if (!agency?._id) {
+      return
+    }
+    try {
+      setNotifLoading(true)
+      const data = await NotificationService.getNotifications(agency._id, 1)
+      const page = data && data.length > 0 ? data[0] : null
+      const rows = page?.resultData || []
+      setNotifications(rows.slice(0, PREVIEW_LIMIT))
+    } catch {
+      setNotifications([])
+    } finally {
+      setNotifLoading(false)
+    }
+  }, [agency?._id])
+
+  const openNotifications = async (event: React.MouseEvent<HTMLElement>) => {
+    setNotifAnchorEl(event.currentTarget)
+    await loadNotifications()
+  }
+
+  const closeNotifications = () => setNotifAnchorEl(null)
+
+  const handleViewAll = () => {
+    closeNotifications()
+    navigate('/agency/notifications')
+  }
+
+  const handleNotificationClick = async (notification: bookcarsTypes.Notification) => {
+    if (!agency?._id) {
+      return
+    }
+
+    try {
+      if (!notification.isRead) {
+        const status = await NotificationService.markAsRead(agency._id, [notification._id])
+        if (status === 200) {
+          setNotifications((prev) => prev.map((item) => (
+            item._id === notification._id ? { ...item, isRead: true } : item
+          )))
+          setNotificationCount((prev) => Math.max(0, prev - 1))
+        }
+      }
+
+      closeNotifications()
+
+      if (notification.booking) {
+        navigate('/agency/bookings')
+        return
+      }
+
+      navigate('/agency/notifications')
+    } catch (err) {
+      helper.error(err)
+    }
+  }
 
   const onLanguageSelect = async (event: React.MouseEvent<HTMLElement>) => {
     setLangAnchorEl(null)
@@ -92,6 +169,8 @@ const AgencyTopbar = () => {
   if (!agency) {
     return null
   }
+
+  const notifOpen = Boolean(notifAnchorEl)
 
   return (
     <header className="agency-topbar">
@@ -134,13 +213,83 @@ const AgencyTopbar = () => {
         <IconButton
           className="agency-notif-btn"
           aria-label={strings.NOTIFICATIONS}
-          onClick={() => navigate('/agency/notifications')}
+          aria-haspopup="true"
+          aria-expanded={notifOpen}
+          onClick={openNotifications}
         >
           <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
             <NotificationsOutlined />
           </Badge>
         </IconButton>
       </div>
+
+      <Popover
+        open={notifOpen}
+        anchorEl={notifAnchorEl}
+        onClose={closeNotifications}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: { className: 'agency-notif-popover' },
+        }}
+      >
+        <div className="agency-notif-popover-header">
+          <h3>{strings.NOTIFICATIONS}</h3>
+          {notificationCount > 0 && (
+            <span className="agency-notif-popover-count">{notificationCount}</span>
+          )}
+        </div>
+
+        <div className="agency-notif-popover-list">
+          {notifLoading && (
+            <div className="agency-notif-popover-state">
+              <CircularProgress size={22} />
+            </div>
+          )}
+
+          {!notifLoading && notifications.length === 0 && (
+            <div className="agency-notif-popover-state agency-notif-popover-empty">
+              {strings.NOTIFICATIONS_EMPTY}
+            </div>
+          )}
+
+          {!notifLoading && notifications.map((notification) => {
+            const unread = !notification.isRead
+            const createdAt = notification.createdAt
+              ? formatDistanceToNow(new Date(notification.createdAt), {
+                addSuffix: true,
+                locale: dateLocale,
+              })
+              : ''
+
+            return (
+              <button
+                key={notification._id}
+                type="button"
+                className={`agency-notif-item${unread ? ' is-unread' : ''}`}
+                onClick={() => handleNotificationClick(notification)}
+              >
+                <span className="agency-notif-item-dot" aria-hidden />
+                <span className="agency-notif-item-body">
+                  <span className="agency-notif-item-message">{notification.message}</span>
+                  <span className="agency-notif-item-meta">
+                    <span className={`agency-notif-status ${unread ? 'is-unread' : 'is-read'}`}>
+                      {unread ? strings.NOTIFICATIONS_UNREAD : strings.NOTIFICATIONS_READ}
+                    </span>
+                    {createdAt && <span className="agency-notif-item-date">{createdAt}</span>}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="agency-notif-popover-footer">
+          <Button fullWidth disableElevation onClick={handleViewAll}>
+            {strings.NOTIFICATIONS_VIEW_ALL}
+          </Button>
+        </div>
+      </Popover>
 
       <Menu
         anchorEl={langAnchorEl}
@@ -153,11 +302,11 @@ const AgencyTopbar = () => {
           paper: { className: 'agency-lang-menu-paper' },
         }}
       >
-        {env._LANGUAGES.map((language) => (
-          <MenuItem onClick={onLanguageSelect} data-code={language.code} key={language.code}>
+        {env._LANGUAGES.map((languageOption) => (
+          <MenuItem onClick={onLanguageSelect} data-code={languageOption.code} key={languageOption.code}>
             <div className="language">
-              <CircleFlag countryCode={language.countryCode} height={FLAG_SIZE} className="flag" title={language.label} />
-              <span>{language.label}</span>
+              <CircleFlag countryCode={languageOption.countryCode} height={FLAG_SIZE} className="flag" title={languageOption.label} />
+              <span>{languageOption.label}</span>
             </div>
           </MenuItem>
         ))}

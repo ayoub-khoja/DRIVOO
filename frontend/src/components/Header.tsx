@@ -34,6 +34,7 @@ import {
   PersonOutline as SignUpIcon,
   Cookie as CookiePolicyIcon,
   StorefrontOutlined as AgencyHubIcon,
+  WhatsApp as WhatsAppIcon,
 } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { CircleFlag } from 'react-circle-flags'
@@ -487,6 +488,18 @@ const Header = ({
             {(env.isMobile || !headerTitle) && <div style={classes.grow} />}
             <div className="header-desktop">
               {isLoaded && (
+                <a
+                  className="header-whatsapp-bubble"
+                  href={`https://wa.me/${env.WHATSAPP_NUMBER.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`WhatsApp ${env.WHATSAPP_DISPLAY}`}
+                  title={`WhatsApp ${env.WHATSAPP_DISPLAY}`}
+                >
+                  <WhatsAppIcon />
+                </a>
+              )}
+              {isLoaded && (
                 <Button
                   variant="contained"
                   startIcon={isAgencyHub ? <SignUpIcon /> : <AgencyHubIcon />}
@@ -533,6 +546,16 @@ const Header = ({
               )}
             </div>
             <div className="header-mobile">
+              <a
+                className="header-whatsapp-bubble"
+                href={`https://wa.me/${env.WHATSAPP_NUMBER.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`WhatsApp ${env.WHATSAPP_DISPLAY}`}
+                title={`WhatsApp ${env.WHATSAPP_DISPLAY}`}
+              >
+                <WhatsAppIcon />
+              </a>
               <IconButton className="btn" onClick={() => navigate(isAgencyHub ? '/' : '/espace-agence')} aria-label={isAgencyHub ? strings.CLIENT_HUB : strings.AGENCY_HUB}>
                 {isAgencyHub ? <SignUpIcon /> : <AgencyHubIcon />}
               </IconButton>

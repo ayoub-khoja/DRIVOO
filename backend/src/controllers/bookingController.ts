@@ -242,61 +242,107 @@ export const checkout = async (req: Request, res: Response) => {
       if (supplier.licenseRequired && !license) {
         throw new Error("Driver's license required")
       }
-      if (supplier.licenseRequired && !(await helper.pathExists(path.join(env.CDN_TEMP_LICENSES, license!)))) {
+      if (supplier.licenseRequired && license && !(await helper.pathExists(path.join(env.CDN_TEMP_LICENSES, license)))) {
         throw new Error("Driver's license file not found")
       }
-      driver.verified = false
-      driver.blacklisted = false
-      driver.type = bookcarsTypes.UserType.User
-      driver.license = null
 
-      user = new User(driver)
-      await user.save()
+      const existingUser = await User.findOne({
+        email: driver.email,
+        type: bookcarsTypes.UserType.User,
+      })
 
-      // create license
-      if (license) {
-        const safeLicense = path.basename(license)
-        const tempLicensePath = path.resolve(env.CDN_TEMP_LICENSES, safeLicense)
-        const filename = `${user._id.toString()}${path.extname(safeLicense)}`
-        const destPath = path.resolve(env.CDN_LICENSES, filename)
-
-        // security check: restrict allowed extensions
-        const ext = path.extname(safeLicense)
-        if (!env.allowedLicenseExtensions.includes(ext.toLowerCase())) {
-          throw new Error('Invalid license file type')
+      if (existingUser) {
+        // Allow multiple bookings with the same email by reusing the driver account
+        user = existingUser
+        if (driver.phone) {
+          user.phone = driver.phone
+        }
+        if (driver.fullName) {
+          user.fullName = driver.fullName
+        }
+        if (driver.birthDate) {
+          user.birthDate = driver.birthDate
+        }
+        if (driver.language) {
+          user.language = driver.language
         }
 
-        if (!destPath.startsWith(path.resolve(env.CDN_LICENSES) + path.sep)) {
-          throw new Error('Invalid destination path for license')
+        if (license && supplier.licenseRequired) {
+          const safeLicense = path.basename(license)
+          const tempLicensePath = path.resolve(env.CDN_TEMP_LICENSES, safeLicense)
+          const filename = `${user._id.toString()}${path.extname(safeLicense)}`
+          const destPath = path.resolve(env.CDN_LICENSES, filename)
+          const ext = path.extname(safeLicense)
+          if (!env.allowedLicenseExtensions.includes(ext.toLowerCase())) {
+            throw new Error('Invalid license file type')
+          }
+          if (!destPath.startsWith(path.resolve(env.CDN_LICENSES) + path.sep)) {
+            throw new Error('Invalid destination path for license')
+          }
+          await asyncFs.rename(tempLicensePath, destPath)
+          user.license = filename
         }
 
-        await asyncFs.rename(tempLicensePath, destPath)
-        user.license = filename
+        // Clear temporary expiry so returning customers keep their account
+        if (user.expireAt) {
+          user.expireAt = undefined
+        }
         await user.save()
+        body.booking.driver = user._id.toString()
+      } else {
+        driver.verified = false
+        driver.blacklisted = false
+        driver.type = bookcarsTypes.UserType.User
+        driver.license = null
+
+        user = new User(driver)
+        await user.save()
+
+        // create license
+        if (license) {
+          const safeLicense = path.basename(license)
+          const tempLicensePath = path.resolve(env.CDN_TEMP_LICENSES, safeLicense)
+          const filename = `${user._id.toString()}${path.extname(safeLicense)}`
+          const destPath = path.resolve(env.CDN_LICENSES, filename)
+
+          // security check: restrict allowed extensions
+          const ext = path.extname(safeLicense)
+          if (!env.allowedLicenseExtensions.includes(ext.toLowerCase())) {
+            throw new Error('Invalid license file type')
+          }
+
+          if (!destPath.startsWith(path.resolve(env.CDN_LICENSES) + path.sep)) {
+            throw new Error('Invalid destination path for license')
+          }
+
+          await asyncFs.rename(tempLicensePath, destPath)
+          user.license = filename
+          await user.save()
+        }
+
+        const token = new Token({ user: user._id, token: helper.generateToken() })
+        await token.save()
+
+        i18n.locale = user.language
+
+        const activationLink = `${helper.joinURL(env.FRONTEND_HOST, 'activate')}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}`
+
+        activationMailOptions = {
+          from: env.SMTP_FROM,
+          to: user.email,
+          subject: i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
+          html: emailTemplate.renderLinkEmail({
+            hello: i18n.t('HELLO'),
+            greeting: user.fullName,
+            introHtml: i18n.t('ACCOUNT_ACTIVATION_LINK'),
+            link: activationLink,
+            regardsHtml: i18n.t('REGARDS'),
+            audience: 'client',
+          }),
+        }
+
+        body.booking.driver = user._id.toString()
       }
-
-      const token = new Token({ user: user._id, token: helper.generateToken() })
-      await token.save()
-
-      i18n.locale = user.language
-
-      const activationLink = `${helper.joinURL(env.FRONTEND_HOST, 'activate')}/?u=${encodeURIComponent(user._id.toString())}&e=${encodeURIComponent(user.email)}&t=${encodeURIComponent(token.token)}`
-
-      activationMailOptions = {
-        from: env.SMTP_FROM,
-        to: user.email,
-        subject: i18n.t('ACCOUNT_ACTIVATION_SUBJECT'),
-        html: emailTemplate.renderLinkEmail({
-          hello: i18n.t('HELLO'),
-          greeting: user.fullName,
-          introHtml: i18n.t('ACCOUNT_ACTIVATION_LINK'),
-          link: activationLink,
-          regardsHtml: i18n.t('REGARDS'),
-          audience: 'client',
-        }),
-      }
-
-      body.booking.driver = user._id.toString()
     } else {
       user = await User.findById(body.booking.driver)
     }

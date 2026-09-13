@@ -1,52 +1,38 @@
 .search-car-card {
   background: #fff;
-  border: 1px solid #e7e7e7;
-  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 220px 1fr;
   margin-bottom: 16px;
   overflow: hidden;
-  width: 100%;
-}
-
-.search-car-card.recommended {
-  border-color: #006ce4;
-  box-shadow: 0 2px 8px rgb(0 108 228 / 12%);
-}
-
-.search-car-badge {
-  background: #006ce4;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px 12px;
-}
-
-.search-car-card-body {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 200px 1fr 180px;
   padding: 16px;
+  width: 100%;
 }
 
 .search-car-media {
   align-items: center;
+  background: #f4f5f7;
+  border-radius: 10px;
   display: flex;
   justify-content: center;
+  min-height: 180px;
+  overflow: hidden;
 }
 
 .search-car-image {
-  height: 120px;
-  max-width: 200px;
+  height: 100%;
+  max-height: 200px;
   object-fit: contain;
   width: 100%;
 }
 
 .search-car-image-placeholder {
   align-items: center;
-  background: #f5f5f5;
-  border-radius: 8px;
-  color: #bdbdbd;
+  color: #c0c0c0;
   display: flex;
-  height: 120px;
+  height: 180px;
   justify-content: center;
   width: 100%;
 }
@@ -55,26 +41,40 @@
   font-size: 48px;
 }
 
-.search-car-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0 0 12px;
+.search-car-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.search-car-similar {
-  color: #6b6b6b;
-  display: block;
-  font-size: 14px;
-  font-weight: 400;
-  margin-top: 4px;
+.search-car-title {
+  color: #1a1a1a;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.search-car-badge {
+  align-self: flex-start;
+  background: #e8f7ec;
+  border-radius: 999px;
+  color: #1b7a3d;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-top: 10px;
+  padding: 6px 12px;
+  text-transform: uppercase;
 }
 
 .search-car-specs {
-  display: grid;
-  gap: 8px 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
   list-style: none;
-  margin: 0;
+  margin: 16px 0 0;
   padding: 0;
 }
 
@@ -82,126 +82,125 @@
   align-items: center;
   color: #333;
   display: flex;
-  font-size: 14px;
+  flex-direction: column;
+  font-size: 12px;
   gap: 6px;
+  min-width: 64px;
+  text-align: center;
 }
 
-.search-car-specs svg {
-  color: #6b6b6b;
-  font-size: 18px;
+.search-car-specs svg,
+.search-car-doors-icon {
+  color: #444;
+  font-size: 22px;
+  height: 22px;
+  width: 22px;
 }
 
-.search-car-location {
+.search-car-bottom {
   align-items: center;
-  color: #006ce4;
-  display: flex;
-  font-size: 14px;
-  gap: 4px;
-  margin: 12px 0 0;
+  border-top: 1px solid #ececec;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: auto 1fr auto auto;
+  margin-top: auto;
+  padding-top: 16px;
 }
 
-.search-car-pricing {
-  align-items: flex-end;
+.search-car-day-price {
+  color: #111;
+  font-size: 18px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.search-car-terms {
+  color: #444;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 4px;
+}
+
+.search-car-terms strong {
+  font-weight: 700;
+}
+
+.search-car-terms .is-caution strong {
+  color: #ff6b1a;
+}
+
+.search-car-terms .is-driving strong {
+  color: #111;
+}
+
+.search-car-total {
   display: flex;
   flex-direction: column;
   text-align: right;
 }
 
-.search-car-price-label {
-  color: #333;
-  font-size: 14px;
+.search-car-total-price {
+  color: #ff6b1a;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
 }
 
-.search-car-price {
-  color: #333;
-  font-size: 24px;
-  font-weight: 700;
-  margin: 4px 0 8px;
-}
-
-.search-car-free-cancel {
-  color: #008009;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
+.search-car-total-label {
+  color: #888;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 .search-car-cta {
-  background: #006ce4 !important;
-  border-radius: 4px !important;
-  font-weight: 600 !important;
+  background: #ff6b1a !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  min-height: 48px !important;
   min-width: 140px !important;
+  padding: 10px 22px !important;
   text-transform: none !important;
 }
 
-.search-car-footer {
-  align-items: center;
-  border-top: 1px solid #e7e7e7;
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 16px;
+.search-car-cta:hover {
+  background: #e85f14 !important;
 }
 
-.search-car-supplier {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
+@media only screen and (width <= 1100px) {
+  .search-car-bottom {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .search-car-cta {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .search-car-total {
+    text-align: left;
+  }
 }
 
-.search-car-supplier-logo {
-  height: 28px;
-  object-fit: contain;
-  width: 28px;
-}
-
-.search-car-supplier-placeholder {
-  color: #bdbdbd;
-  font-size: 28px;
-}
-
-.search-car-rating {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-}
-
-.search-car-rating-score {
-  align-items: center;
-  background: #003580;
-  border-radius: 6px 6px 6px 0;
-  color: #fff;
-  display: flex;
-  font-size: 16px;
-  font-weight: 700;
-  height: 32px;
-  justify-content: center;
-  min-width: 32px;
-  padding: 0 6px;
-}
-
-.search-car-rating-text {
-  display: flex;
-  flex-direction: column;
-  font-size: 13px;
-}
-
-.search-car-rating-text strong {
-  color: #003580;
-}
-
-.search-car-rating-text span {
-  color: #6b6b6b;
-}
-
-@media only screen and (width <=960px) {
-  .search-car-card-body {
+@media only screen and (width <= 960px) {
+  .search-car-card {
     grid-template-columns: 1fr;
   }
 
-  .search-car-pricing {
-    align-items: flex-start;
-    text-align: left;
+  .search-car-media {
+    min-height: 160px;
+  }
+}
+
+@media only screen and (width <= 640px) {
+  .search-car-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .search-car-specs {
+    gap: 12px;
+    justify-content: space-between;
   }
 }

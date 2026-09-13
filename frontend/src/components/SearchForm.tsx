@@ -260,11 +260,15 @@ const SearchForm = ({
   }
 
   const handleSameLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { checked } = e.target
-    setValue('sameLocation', checked)
+    // Label = return to another location → checked means different drop-off
+    const differentLocation = e.target.checked
+    setValue('sameLocation', !differentLocation)
 
-    if (checked) {
+    if (!differentLocation) {
       setDropOffLocationId(pickupLocationId)
+      if (pickupLocation) {
+        setValue('dropOffLocation', pickupLocation)
+      }
     } else {
       setDropOffLocationId('')
     }
@@ -402,7 +406,7 @@ const SearchForm = ({
         </FormControl>
       )}
       <FormControl className="chk-same-location">
-        <FormControlLabel control={<Checkbox checked={sameLocation} onChange={handleSameLocationChange} />} label={strings.DROP_OFF} />
+        <FormControlLabel control={<Checkbox checked={!sameLocation} onChange={handleSameLocationChange} />} label={strings.DROP_OFF} />
       </FormControl>
     </form>
   )

@@ -273,18 +273,6 @@ const Search = () => {
                       </Map>
                     )}
 
-                  <div ref={carFilterRef} className="search-car-filter-anchor">
-                    <CarFilter
-                      className="filter"
-                      pickupLocation={pickupLocation}
-                      dropOffLocation={dropOffLocation}
-                      from={from}
-                      to={to}
-                      collapse
-                      onSubmit={handleCarFilterSubmit}
-                    />
-                  </div>
-
                   <SearchFiltersSidebar
                     facets={facets}
                     suppliers={suppliers}
@@ -324,6 +312,18 @@ const Search = () => {
               )}
             </div>
             <div className="col-2">
+              <div ref={carFilterRef} className="search-car-filter-anchor">
+                <CarFilter
+                  className="filter"
+                  pickupLocation={pickupLocation}
+                  dropOffLocation={dropOffLocation}
+                  from={from}
+                  to={to}
+                  variant="bar"
+                  onSubmit={handleCarFilterSubmit}
+                />
+              </div>
+
               <CarList
                 carSpecs={carSpecs}
                 suppliers={supplierIds}
