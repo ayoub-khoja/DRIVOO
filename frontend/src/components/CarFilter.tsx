@@ -26,6 +26,8 @@ interface CarFilterProps {
   dropOffLocation: bookcarsTypes.Location
   className?: string
   collapse?: boolean
+  /** Horizontal top bar instead of left accordion */
+  variant?: 'sidebar' | 'bar'
   onSubmit: bookcarsTypes.CarFilterSubmitEvent
 }
 
@@ -36,6 +38,7 @@ const CarFilter = ({
   dropOffLocation: filterDropOffLocation,
   className,
   collapse,
+  variant = 'sidebar',
   onSubmit
 }: CarFilterProps) => {
   const { settings } = useSetting()
@@ -69,6 +72,7 @@ const CarFilter = ({
     handleSubmit,
     control,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
     setError,
     clearErrors,
@@ -89,6 +93,17 @@ const CarFilter = ({
   const from = useWatch({ control, name: 'from' })
   const to = useWatch({ control, name: 'to' })
   const sameLocation = useWatch({ control, name: 'sameLocation' })
+
+  // Keep bar/form in sync when Search page updates location/dates
+  useEffect(() => {
+    reset({
+      from: filterFrom,
+      to: filterTo,
+      pickupLocation: filterPickupLocation as LocationField,
+      dropOffLocation: filterDropOffLocation as LocationField,
+      sameLocation: filterPickupLocation._id === filterDropOffLocation._id,
+    })
+  }, [filterFrom, filterTo, filterPickupLocation, filterDropOffLocation, reset])
 
   useEffect(() => {
     if (settings && filterFrom) {
@@ -195,9 +210,11 @@ const CarFilter = ({
   }
 
   const handleSameLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue('sameLocation', e.target.checked)
+    // Checkbox label = "return to another location" → checked means NOT same location
+    const differentLocation = e.target.checked
+    setValue('sameLocation', !differentLocation)
 
-    if (e.target.checked) {
+    if (!differentLocation) {
       setValue('dropOffLocation', pickupLocation)
     }
   }
@@ -250,14 +267,9 @@ const CarFilter = ({
     }
   }
 
-  return (
-    <Accordion
-      title={commonStrings.LOCATION_TERM}
-      collapse={collapse}
-      offsetHeight={offsetHeight}
-      className={`${className ? `${className} ` : ''}car-filter`}
-    >
-      <form onSubmit={handleSubmit(onSubmitForm)}>
+  const form = (
+    <form onSubmit={handleSubmit(onSubmitForm)}>
+      <div className="car-filter-fields">
         <FormControl fullWidth className="pickup-location">
           <LocationSelectList
             {...register('pickupLocation')}
@@ -333,22 +345,40 @@ const CarFilter = ({
           />
           <FormHelperText error={!!errors.to}>{errors.to?.message}</FormHelperText>
         </FormControl>
-        <FormControl fullWidth className="fc-search">
+        <FormControl className="fc-search">
           <Button type="submit" variant="contained" className="btn-primary btn-search" disabled={isSubmitting}>
             {commonStrings.SEARCH}
           </Button>
         </FormControl>
-        <FormControl fullWidth className="chk-same-location">
-          <FormControlLabel
-            control={<Checkbox
-              {...register('sameLocation')}
-              checked={sameLocation}
-              onChange={handleSameLocationChange}
-            />}
-            label={strings.DROP_OFF}
-          />
-        </FormControl>
-      </form>
+      </div>
+      <FormControl className="chk-same-location">
+        <FormControlLabel
+          control={<Checkbox
+            checked={!sameLocation}
+            onChange={handleSameLocationChange}
+          />}
+          label={strings.DROP_OFF}
+        />
+      </FormControl>
+    </form>
+  )
+
+  if (variant === 'bar') {
+    return (
+      <div className={`${className ? `${className} ` : ''}car-filter car-filter-bar`}>
+        {form}
+      </div>
+    )
+  }
+
+  return (
+    <Accordion
+      title={commonStrings.LOCATION_TERM}
+      collapse={collapse}
+      offsetHeight={offsetHeight}
+      className={`${className ? `${className} ` : ''}car-filter`}
+    >
+      {form}
     </Accordion>
   )
 }

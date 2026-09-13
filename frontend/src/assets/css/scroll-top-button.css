@@ -1,0 +1,30 @@
+.scroll-top-bubble {
+  position: fixed !important;
+  right: 20px;
+  bottom: 24px;
+  z-index: 1200;
+  width: 52px !important;
+  height: 52px !important;
+  background: #ff6b1a !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgb(255 107 26 / 40%) !important;
+  transition: transform 0.2s ease, background 0.2s ease !important;
+}
+
+.scroll-top-bubble:hover {
+  background: #e85f14 !important;
+  transform: translateY(-3px);
+}
+
+.scroll-top-bubble svg {
+  font-size: 28px !important;
+}
+
+@media only screen and (width <= 640px) {
+  .scroll-top-bubble {
+    right: 14px;
+    bottom: 18px;
+    width: 48px !important;
+    height: 48px !important;
+  }
+}

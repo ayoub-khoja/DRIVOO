@@ -10,7 +10,6 @@ import {
   Speed as MileageIcon,
   LocationOn as LocationIcon,
   DirectionsCar as CarPlaceholderIcon,
-  AccountCircle as SupplierPlaceholderIcon,
   AccessTime as TimeIcon,
   Badge as BadgeIcon,
   CreditCard as CardIcon,
@@ -152,7 +151,6 @@ const Offer = () => {
   const locale = getDateFnsLocale(language)
   const pickupTime = format(from, 'HH:mm', { locale })
   const carImageUrl = car.image ? bookcarsHelper.joinURL(env.CDN_CARS, car.image) : ''
-  const supplierAvatarUrl = car.supplier?.avatar ? bookcarsHelper.joinURL(env.CDN_USERS, car.supplier.avatar) : ''
   const bookingScore = formatBookingRating(car.rating)
   const ratingLabel = getRatingLabel(car.rating, language)
   const similarLabel = getSimilarCategoryLabel(car.range, language)
@@ -238,14 +236,6 @@ const Offer = () => {
                 </div>
               </div>
               <div className="offer-car-card-footer">
-                <div className="offer-supplier">
-                  {supplierAvatarUrl ? (
-                    <img src={supplierAvatarUrl} alt={car.supplier?.fullName} />
-                  ) : (
-                    <SupplierPlaceholderIcon />
-                  )}
-                  <span>{car.supplier?.fullName}</span>
-                </div>
                 {bookingScore && (
                   <div className="offer-rating">
                     <span className="offer-rating-score">{bookingScore}</span>
@@ -273,20 +263,6 @@ const Offer = () => {
                     <span>{item}</span>
                   </div>
                 ))}
-              </div>
-            </section>
-
-            <section className="offer-section">
-              <h3>
-                {strings.TRAVELERS_SAY}
-                {' '}
-                {car.supplier?.fullName}
-              </h3>
-              <p className="offer-muted">{strings.TRAVELERS_HINT}</p>
-              <div className="offer-tags">
-                <span className="offer-tag">{strings.TAG_VEHICLE}</span>
-                <span className="offer-tag">{strings.TAG_LOCATION}</span>
-                <span className="offer-tag">{strings.TAG_CLEANLINESS}</span>
               </div>
             </section>
 

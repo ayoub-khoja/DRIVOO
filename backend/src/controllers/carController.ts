@@ -1356,13 +1356,14 @@ export const getFrontendCars = async (req: Request, res: Response) => {
 }
 
 /**
- * Public home showcase: random available cars with images.
+ * Public home showcase: random available cars with images on disk.
+ * Ensures distinct models when possible.
  * Optional ?agency=<profileSlug> to pin the collage to one supplier.
  * Optional ?byRange=1 to return one car for mini / midi / maxi (fleet cards).
  */
 export const getShowcaseCars = async (req: Request, res: Response) => {
   try {
-    const limit = Math.min(6, Math.max(1, Number.parseInt(String(req.query.limit || '3'), 10) || 3))
+    const limit = Math.min(12, Math.max(1, Number.parseInt(String(req.query.limit || '3'), 10) || 3))
     const agencySlug = String(req.query.agency || '').trim().toLowerCase()
     const byRange = ['1', 'true', 'yes'].includes(String(req.query.byRange || '').trim().toLowerCase())
 
@@ -1376,7 +1377,7 @@ export const getShowcaseCars = async (req: Request, res: Response) => {
         profileSlug: agencySlug,
         type: bookcarsTypes.UserType.Supplier,
         blacklisted: { $ne: true },
-        expireAt: null,
+        $or: [{ expireAt: null }, { expireAt: { $exists: false } }],
         agencyApproved: { $ne: false },
       }).select('_id').lean()
 
@@ -1389,7 +1390,7 @@ export const getShowcaseCars = async (req: Request, res: Response) => {
       const suppliers = await User.find({
         type: bookcarsTypes.UserType.Supplier,
         blacklisted: { $ne: true },
-        expireAt: null,
+        $or: [{ expireAt: null }, { expireAt: { $exists: false } }],
         agencyApproved: { $ne: false },
       }).select('_id').lean()
       match.supplier = { $in: suppliers.map((supplier) => supplier._id) }
@@ -1413,6 +1414,75 @@ export const getShowcaseCars = async (req: Request, res: Response) => {
       range: car.range,
     })
 
+    const modelKey = (car: { brand?: string; model?: string; name?: string }) => {
+      const brand = (car.brand || '').trim().toLowerCase()
+      const model = (car.model || '').trim().toLowerCase()
+      if (brand && model) {
+        return `${brand}|${model}`
+      }
+      return (car.name || '').trim().toLowerCase()
+    }
+
+    const imageExists = async (image?: string) => {
+      if (!image) {
+        return false
+      }
+      const filename = path.basename(image)
+      return helper.pathExists(path.join(env.CDN_CARS, filename))
+    }
+
+    const resolveExistingImage = async (car: { _id: unknown; image?: string }) => {
+      if (car.image && await imageExists(car.image)) {
+        return path.basename(car.image)
+      }
+      // Recover when DB image name is stale but files exist for this car id
+      try {
+        const files = await asyncFs.readdir(env.CDN_CARS)
+        const prefix = `${String(car._id)}_`
+        const matchFile = files.find((file) => (
+          file.startsWith(prefix)
+          && !file.includes('carte_grise')
+          && /\.(jpe?g|png|webp)$/i.test(file)
+        ))
+        return matchFile || ''
+      } catch {
+        return ''
+      }
+    }
+
+    /** Sample many, keep files that exist, then pick distinct models only. */
+    const pickDistinctCars = async (poolSize: number, take: number) => {
+      const sampled = await Car.aggregate([
+        { $match: match },
+        { $sample: { size: Math.max(poolSize, take * 10) } },
+        { $project: project },
+      ])
+
+      const withFiles: Array<typeof sampled[number] & { image: string }> = []
+      for (const car of sampled) {
+        const image = await resolveExistingImage(car)
+        if (image) {
+          withFiles.push({ ...car, image })
+        }
+      }
+
+      const selected: typeof withFiles = []
+      const seen = new Set<string>()
+      for (const car of withFiles) {
+        const key = modelKey(car) || String(car._id)
+        if (seen.has(key)) {
+          continue
+        }
+        seen.add(key)
+        selected.push(car)
+        if (selected.length >= take) {
+          break
+        }
+      }
+
+      return selected
+    }
+
     if (byRange) {
       const ranges = [
         bookcarsTypes.CarRange.Mini,
@@ -1423,25 +1493,27 @@ export const getShowcaseCars = async (req: Request, res: Response) => {
         ranges.map(async (range) => {
           const cars = await Car.aggregate([
             { $match: { ...match, range } },
-            { $sample: { size: 1 } },
+            { $sample: { size: 12 } },
             { $project: project },
           ])
-          return cars[0] || null
+          for (const car of cars) {
+            const image = await resolveExistingImage(car)
+            if (image) {
+              return { ...car, image }
+            }
+          }
+          return null
         }),
       )
 
-      res.set('Cache-Control', 'public, max-age=120')
+      res.set('Cache-Control', 'public, max-age=60')
       res.status(200).json(sampled.filter(Boolean).map(toPayload))
       return
     }
 
-    const cars = await Car.aggregate([
-      { $match: match },
-      { $sample: { size: limit } },
-      { $project: project },
-    ])
+    const cars = await pickDistinctCars(40, limit)
 
-    res.set('Cache-Control', 'public, max-age=120')
+    res.set('Cache-Control', 'public, max-age=60')
     res.status(200).json(cars.map(toPayload))
   } catch (err) {
     logger.error(`[car.getShowcaseCars] ${i18n.t('ERROR')}`, err)

@@ -404,8 +404,16 @@ const CarList = ({
           )}
         {loading && <Progress />}
       </section>
-      {env.PAGINATION_MODE === Const.PAGINATION_MODE.CLASSIC && !env.isMobile && (
-        <Pager page={page} pageSize={env.CARS_PAGE_SIZE} rowCount={rowCount} totalRecords={totalRecords} onNext={() => setPage(page + 1)} onPrevious={() => setPage(page - 1)} />
+      {(searchLayout || (env.PAGINATION_MODE === Const.PAGINATION_MODE.CLASSIC && !env.isMobile)) && (
+        <Pager
+          page={page}
+          pageSize={env.CARS_PAGE_SIZE}
+          rowCount={rowCount}
+          totalRecords={totalRecords}
+          onNext={() => setPage(page + 1)}
+          onPrevious={() => setPage(page - 1)}
+          onPageChange={setPage}
+        />
       )}
     </>
   )

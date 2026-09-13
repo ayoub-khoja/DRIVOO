@@ -59,6 +59,31 @@
   display: none;
 }
 
+.header-whatsapp-bubble {
+  align-items: center;
+  background: #25d366;
+  border-radius: 50%;
+  box-shadow: 0 4px 14px rgb(37 211 102 / 45%);
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 40px;
+  justify-content: center;
+  margin-right: 6px;
+  transition: transform 0.2s ease, background 0.2s ease;
+  width: 40px;
+}
+
+.header-whatsapp-bubble:hover {
+  background: #1ebe57;
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.header-whatsapp-bubble svg {
+  font-size: 22px;
+}
+
 .header .btn {
   background-color: transparent !important;
   color: #ffffff !important;
@@ -148,6 +173,18 @@
   }
 
   .header-mobile {
+    align-items: center;
     display: flex;
+    gap: 4px;
+  }
+
+  .header-whatsapp-bubble {
+    height: 36px;
+    margin-right: 2px;
+    width: 36px;
+  }
+
+  .header-whatsapp-bubble svg {
+    font-size: 20px;
   }
 }

@@ -93,7 +93,7 @@ const env = {
   BASE_CURRENCY: String(import.meta.env.VITE_BC_BASE_CURRENCY || 'USD'),
   CURRENCIES,
   PAGE_SIZE: Number.parseInt(String(import.meta.env.VITE_BC_PAGE_SIZE), 10) || 30,
-  CARS_PAGE_SIZE: Number.parseInt(String(import.meta.env.VITE_BC_CARS_PAGE_SIZE), 10) || 15,
+  CARS_PAGE_SIZE: Number.parseInt(String(import.meta.env.VITE_BC_CARS_PAGE_SIZE), 10) || 20,
   BOOKINGS_PAGE_SIZE: Number.parseInt(String(import.meta.env.VITE_BC_BOOKINGS_PAGE_SIZE), 10) || 20,
   BOOKINGS_MOBILE_PAGE_SIZE: Number.parseInt(String(import.meta.env.VITE_BC_BOOKINGS_MOBILE_PAGE_SIZE), 10) || 10,
   CDN_USERS: String(import.meta.env.VITE_BC_CDN_USERS),
@@ -147,6 +147,9 @@ const env = {
    * Empty = random cars from all approved agencies.
    */
   HOME_ABOUT_AGENCY_SLUG: String(import.meta.env.VITE_BC_HOME_ABOUT_AGENCY_SLUG || '').trim(),
+  /** Public WhatsApp contact (digits for wa.me + display label). */
+  WHATSAPP_NUMBER: String(import.meta.env.VITE_BC_WHATSAPP_NUMBER || '+33605714867').replace(/\s+/g, ''),
+  WHATSAPP_DISPLAY: String(import.meta.env.VITE_BC_WHATSAPP_DISPLAY || '+33 6 05 71 48 67'),
   MAP_LATITUDE: Number(String(import.meta.env.VITE_BC_MAP_LATITUDE || '34.0268755')),
   MAP_LONGITUDE: Number(String(import.meta.env.VITE_BC_MAP_LONGITUDE || '1.6528399999999976')),
   MAP_ZOOM: Number(String(import.meta.env.VITE_BC_MAP_ZOOM || '5')),

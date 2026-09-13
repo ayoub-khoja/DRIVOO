@@ -1,31 +1,83 @@
 div.pager-container {
-  height: 54px;
-  width: 100%;
-  padding: 5px 10px 5px 0;
-  margin-bottom: 15px;
   background-color: #fff;
-  border-radius: 5px;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  margin: 8px 0 20px;
+  min-height: 54px;
+  padding: 10px 14px;
+  width: 100%;
 }
 
 div.pager {
+  align-items: center;
   display: flex;
   flex-direction: row;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  width: 100%;
 }
 
 div.pager div.row-count {
-  font-size: 14px;
+  align-items: center;
+  color: #555;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  margin-right: 7px;
+  font-size: 14px;
+  margin-right: auto;
 }
 
 div.pager div.actions {
+  align-items: center;
   display: flex;
   flex-direction: row;
+  gap: 4px;
+}
+
+div.pager .page-numbers {
   align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+div.pager .page-number {
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  color: #333 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  min-height: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  text-transform: none !important;
+}
+
+div.pager .page-number.active {
+  background: #ff6b1a !important;
+  border-color: #ff6b1a !important;
+  color: #fff !important;
+}
+
+div.pager .page-ellipsis {
+  color: #888;
+  padding: 0 2px;
+}
+
+@media only screen and (width <= 640px) {
+  div.pager-container {
+    justify-content: center;
+  }
+
+  div.pager {
+    justify-content: center;
+  }
+
+  div.pager div.row-count {
+    margin-right: 0;
+    width: 100%;
+    justify-content: center;
+  }
 }
