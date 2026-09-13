@@ -143,9 +143,77 @@
 }
 
 .admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   padding: 22px 28px;
   border-bottom: 1px solid rgb(255 255 255 / 12%);
   background: linear-gradient(180deg, #1a2d45 0%, var(--drivoo-black) 100%);
+}
+
+.admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.admin-lang-btn {
+  min-width: 48px !important;
+  width: 48px;
+  height: 44px;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  background: rgb(255 255 255 / 10%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgb(255 255 255 / 18%) !important;
+  box-shadow: none !important;
+}
+
+.admin-lang-btn:hover {
+  background: rgb(255 107 26 / 18%) !important;
+  border-color: rgb(255 107 26 / 55%) !important;
+}
+
+.admin-lang-btn .language,
+.admin-lang-btn .flag {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-lang-menu-paper {
+  min-width: 0 !important;
+  width: max-content !important;
+  max-width: max-content !important;
+  background: #1f334d !important;
+  border: 1px solid rgb(255 255 255 / 14%);
+  color: #fff !important;
+}
+
+.admin-lang-menu .MuiMenuItem-root {
+  min-height: 36px;
+  padding: 6px 12px !important;
+  color: #fff !important;
+}
+
+.admin-lang-menu .MuiMenuItem-root:hover {
+  background: rgb(255 107 26 / 18%) !important;
+}
+
+.admin-lang-menu div.language {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.admin-lang-menu .flag {
+  width: 20px;
+  margin-right: 0;
+  flex-shrink: 0;
 }
 
 .admin-topbar-label {

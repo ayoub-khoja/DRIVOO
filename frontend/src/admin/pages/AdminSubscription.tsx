@@ -34,7 +34,15 @@ const AdminSubscription = () => {
         AdminSubscriptionService.getPlans(),
         AdminSubscriptionService.getDiscounts(),
       ])
-      setPlans(nextPlans || [])
+      setPlans(
+        [...(nextPlans || [])].sort((a, b) => {
+          const priceDiff = (a.priceHt || 0) - (b.priceHt || 0)
+          if (priceDiff !== 0) {
+            return priceDiff
+          }
+          return (a.carLimitMin || 0) - (b.carLimitMin || 0)
+        }),
+      )
       setDiscounts(nextDiscounts || [])
     } catch (err) {
       console.error(err)
@@ -147,7 +155,6 @@ const AdminSubscription = () => {
       <PlanFormDialog
         open={formOpen}
         plan={editing}
-        discounts={discounts}
         onClose={() => setFormOpen(false)}
         onSaved={() => {
           setFormOpen(false)

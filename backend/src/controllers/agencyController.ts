@@ -905,7 +905,7 @@ export const selectSubscriptionPlan = async (req: Request, res: Response) => {
       _id: planId,
       active: true,
       visible: true,
-    }).select('_id').lean()
+    }).select('_id carLimitMax carLimit').lean()
 
     if (!plan) {
       res.status(404).send('Plan not found')
@@ -913,6 +913,12 @@ export const selectSubscriptionPlan = async (req: Request, res: Response) => {
     }
 
     sessionUser.subscriptionPlan = plan._id
+    const maxCars = (typeof plan.carLimitMax === 'number' && plan.carLimitMax > 0)
+      ? plan.carLimitMax
+      : (typeof plan.carLimit === 'number' && plan.carLimit > 0 ? plan.carLimit : 0)
+    if (maxCars > 0) {
+      sessionUser.supplierCarLimit = maxCars
+    }
     await sessionUser.save()
 
     res.status(200).json({ subscriptionPlan: String(plan._id) })

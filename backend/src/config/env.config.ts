@@ -1292,6 +1292,9 @@ export interface LocalizedText {
   fr: string
   en: string
   ar: string
+  es: string
+  it: string
+  de: string
 }
 
 export interface SubscriptionPlanPricing {
@@ -1314,6 +1317,11 @@ export interface SubscriptionPlan extends Document {
   tokens: number
   freeTokens: number
   trialMonths: number
+  carLimitMin: number
+  carLimitMax: number
+  /** @deprecated Use carLimitMax */
+  carLimit?: number
+  priceHt: number
   pricing: SubscriptionPlanPricing[]
   freePlan: boolean
   mostPopular: boolean

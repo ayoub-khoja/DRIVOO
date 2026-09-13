@@ -1219,6 +1219,9 @@ export interface LocalizedText {
   fr: string
   en: string
   ar: string
+  es: string
+  it: string
+  de: string
 }
 
 export interface SubscriptionPlanPricing {
@@ -1242,6 +1245,14 @@ export interface SubscriptionPlan {
   tokens: number
   freeTokens: number
   trialMonths: number
+  /** Min cars allowed in agency fleet (parc auto). */
+  carLimitMin: number
+  /** Max cars allowed in agency fleet (parc auto). */
+  carLimitMax: number
+  /** @deprecated Use carLimitMax. Kept for older plan documents. */
+  carLimit?: number
+  /** Monthly price excluding tax (HT), in DT. */
+  priceHt: number
   pricing: SubscriptionPlanPricing[]
   freePlan: boolean
   mostPopular: boolean

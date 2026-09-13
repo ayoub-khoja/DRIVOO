@@ -6,7 +6,7 @@ import * as logger from '../utils/logger'
 import SubscriptionPlan from '../models/SubscriptionPlan'
 import SubscriptionDiscount from '../models/SubscriptionDiscount'
 
-type LocalizedText = { fr: string, en: string, ar: string }
+type LocalizedText = { fr: string, en: string, ar: string, es: string, it: string, de: string }
 type PlanPricing = { months: number, monthlyPrice: number, totalPrice: number, discountPercent: number }
 type PlanFeature = { id: string, label: LocalizedText, included: boolean }
 type PlanPayload = {
@@ -16,6 +16,10 @@ type PlanPayload = {
   tokens?: number
   freeTokens?: number
   trialMonths?: number
+  carLimitMin?: number
+  carLimitMax?: number
+  carLimit?: number
+  priceHt?: number
   pricing?: PlanPricing[]
   freePlan?: boolean
   mostPopular?: boolean
@@ -44,6 +48,9 @@ const toLocalized = (value: unknown, max = 120): LocalizedText => {
     fr: clip(source.fr, max),
     en: clip(source.en, max),
     ar: clip(source.ar, max),
+    es: clip(source.es, max),
+    it: clip(source.it, max),
+    de: clip(source.de, max),
   }
 }
 
@@ -93,13 +100,28 @@ const sanitizeServices = (value: unknown) => {
 
 const sanitizePlan = (body: PlanPayload) => {
   const name = toLocalized(body.name)
-  if (name.fr.length < 2 && name.en.length < 2 && name.ar.length < 2) {
+  if (
+    name.fr.length < 2
+    && name.en.length < 2
+    && name.ar.length < 2
+    && name.es.length < 2
+    && name.it.length < 2
+    && name.de.length < 2
+  ) {
     return null
   }
 
   const discountId = body.discountId && helper.isValidObjectId(String(body.discountId))
     ? String(body.discountId)
     : null
+
+  let carLimitMin = toNumber(body.carLimitMin, 0, 1_000_000)
+  let carLimitMax = toNumber(body.carLimitMax ?? body.carLimit, 0, 1_000_000)
+  if (carLimitMin > carLimitMax && carLimitMax > 0) {
+    const swap = carLimitMin
+    carLimitMin = carLimitMax
+    carLimitMax = swap
+  }
 
   return {
     visible: body.visible !== false,
@@ -108,6 +130,10 @@ const sanitizePlan = (body: PlanPayload) => {
     tokens: toNumber(body.tokens, 0, 1_000_000),
     freeTokens: toNumber(body.freeTokens, 0, 1_000_000),
     trialMonths: toNumber(body.trialMonths, 0, 36),
+    carLimitMin,
+    carLimitMax,
+    carLimit: carLimitMax,
+    priceHt: toNumber(body.priceHt, 0, 1_000_000),
     pricing: sanitizePricing(body.pricing),
     freePlan: toBool(body.freePlan),
     mostPopular: toBool(body.mostPopular),
@@ -134,6 +160,10 @@ export const getPublicPlans = async (_req: Request, res: Response) => {
         tokens: 1,
         freeTokens: 1,
         trialMonths: 1,
+        carLimitMin: 1,
+        carLimitMax: 1,
+        carLimit: 1,
+        priceHt: 1,
         pricing: 1,
         freePlan: 1,
         mostPopular: 1,
@@ -144,7 +174,7 @@ export const getPublicPlans = async (_req: Request, res: Response) => {
         showPaymentButton: 1,
       },
     )
-      .sort({ mostPopular: -1, createdAt: -1 })
+      .sort({ priceHt: 1, carLimitMin: 1, carLimitMax: 1, createdAt: 1 })
       .lean()
     res.json(plans)
   } catch (err) {
@@ -155,7 +185,7 @@ export const getPublicPlans = async (_req: Request, res: Response) => {
 
 export const getPlans = async (_req: Request, res: Response) => {
   try {
-    const plans = await SubscriptionPlan.find().sort({ createdAt: -1 }).lean()
+    const plans = await SubscriptionPlan.find().sort({ priceHt: 1, carLimitMin: 1, carLimitMax: 1, createdAt: 1 }).lean()
     res.json(plans)
   } catch (err) {
     logger.error(`[subscription.getPlans] ${i18n.t('ERROR')}`, err)

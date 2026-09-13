@@ -2,8 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, CircularProgress } from '@mui/material'
 import {
   CheckCircle,
-  CardGiftcardOutlined,
-  SettingsOutlined,
+  DirectionsCarOutlined,
   WorkspacePremiumOutlined,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
@@ -30,12 +29,14 @@ const PlanCard = React.memo(({ plan, lang, current, busy, submitting, onSelect }
   const name = pickLabel(plan.name, lang) || '—'
   const subtitle = pickLabel(plan.subtitle, lang)
   const price = formatPlanPrice(plan, lang)
-  const features = plan.features.filter((f) => f.included).slice(0, 4)
+  const features = plan.features.filter((f) => f.included).slice(0, 6)
   const services = useMemo(
-    () => SERVICE_CATALOG.filter((item) => plan.services.includes(item.key)).slice(0, 4),
+    () => {
+      const matched = SERVICE_CATALOG.filter((item) => plan.services.includes(item.key))
+      return (matched.length > 0 ? matched : SERVICE_CATALOG).slice(0, 6)
+    },
     [plan.services],
   )
-  const pricedRows = plan.pricing.filter((row) => row.monthlyPrice > 0 || row.totalPrice > 0)
   const isFreeLabel = price === 'Gratuit' || price === 'Free' || price === 'مجاني'
 
   return (
@@ -60,14 +61,12 @@ const PlanCard = React.memo(({ plan, lang, current, busy, submitting, onSelect }
       </div>
 
       <div className="agency-sub-meta">
-        <span>
-          <SettingsOutlined fontSize="inherit" />
-          {strings.PLAN_TOKENS.replace('{0}', String(plan.tokens))}
-        </span>
-        {plan.freeTokens > 0 ? (
+        {(plan.carLimitMax || plan.carLimit || 0) > 0 ? (
           <span>
-            <CardGiftcardOutlined fontSize="inherit" />
-            {strings.PLAN_FREE_TOKENS.replace('{0}', String(plan.freeTokens))}
+            <DirectionsCarOutlined fontSize="inherit" />
+            {strings.PLAN_CARS
+              .replace('{0}', String(plan.carLimitMin || 0))
+              .replace('{1}', String(plan.carLimitMax || plan.carLimit || 0))}
           </span>
         ) : null}
         {plan.trialMonths > 0 ? (
@@ -77,22 +76,6 @@ const PlanCard = React.memo(({ plan, lang, current, busy, submitting, onSelect }
         ) : null}
         {plan.firstTrialFree ? <span className="agency-sub-trial">{strings.PLAN_FIRST_TRIAL_FREE}</span> : null}
       </div>
-
-      {pricedRows.length > 0 && !plan.freePlan ? (
-        <ul className="agency-sub-durations">
-          {pricedRows.map((row) => (
-            <li key={row.months}>
-              <span>{strings.PLAN_DURATION.replace('{0}', String(row.months))}</span>
-              <strong>
-                {row.totalPrice > 0
-                  ? `${row.totalPrice.toFixed(2)} DT`
-                  : `${(row.monthlyPrice * row.months).toFixed(2)} DT`}
-              </strong>
-              {row.discountPercent > 0 ? <em>-{row.discountPercent}%</em> : null}
-            </li>
-          ))}
-        </ul>
-      ) : null}
 
       <ul className="agency-sub-features">
         {features.map((feature) => (
