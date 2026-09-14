@@ -1,15 +1,13 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '@mui/material'
 import { strings } from '@/lang/about'
 import Layout from '@/components/Layout'
 import Footer from '@/components/Footer'
+import { appNavigate } from '@/utils/appNavigate'
 
 import '@/assets/css/about.css'
 
 const About = () => {
-  const navigate = useNavigate()
-
   const onLoad = () => { }
 
   return (
@@ -27,7 +25,7 @@ const About = () => {
           variant="contained"
           className="btn-primary"
           aria-label="Find deal"
-          onClick={() => navigate('/')}
+          onClick={() => appNavigate('/')}
         >
           {strings.FIND_DEAL}
         </Button>

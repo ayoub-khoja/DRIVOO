@@ -550,7 +550,26 @@ const SupplierSignupWizard = ({
               </FormControl>
               <FormControl fullWidth margin="dense" error={!!fieldError('legalRepCin')}>
                 <InputLabel className="required">{strings.LEGAL_CIN}</InputLabel>
-                <OutlinedInput type="text" {...register('legalRepCin')} label={strings.LEGAL_CIN} />
+                <OutlinedInput
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  {...register('legalRepCin')}
+                  label={strings.LEGAL_CIN}
+                  inputProps={{ maxLength: 8, inputMode: 'numeric', pattern: '[0-9]*' }}
+                  onChange={(event) => {
+                    const digits = event.target.value.replace(/\D/g, '').slice(0, 8)
+                    setValue('legalRepCin', digits, { shouldDirty: true })
+                    if (digits.length === 8) {
+                      clearErrors('legalRepCin')
+                    } else if (digits.length > 0) {
+                      setShowErrors(true)
+                      setError('legalRepCin', { message: strings.CIN_INVALID })
+                    } else {
+                      clearErrors('legalRepCin')
+                    }
+                  }}
+                />
                 <FormHelperText error={!!fieldError('legalRepCin')}>{fieldError('legalRepCin')?.message || ''}</FormHelperText>
               </FormControl>
             </div>

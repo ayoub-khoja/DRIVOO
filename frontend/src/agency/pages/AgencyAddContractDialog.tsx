@@ -1,15 +1,21 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
+  Autocomplete,
   Button,
   Checkbox,
   CircularProgress,
   Dialog,
   DialogContent,
+  FormControl,
   FormControlLabel,
+  FormHelperText,
   IconButton,
+  InputLabel,
   MenuItem,
+  Select,
   TextField,
   Tooltip,
+  createFilterOptions,
 } from '@mui/material'
 import { AddRounded, DeleteOutlineRounded } from '@mui/icons-material'
 import { Controller, useFieldArray, useForm, useWatch, type Resolver } from 'react-hook-form'
@@ -21,6 +27,7 @@ import {
   type AgencyContractFormFields,
 } from '@/agency/models/AgencyContractForm'
 import * as AgencyContractService from '@/agency/services/AgencyContractService'
+import * as AgencyInvoiceService from '@/agency/services/AgencyInvoiceService'
 import PhoneInputField from '@/components/PhoneInputField'
 import {
   CONTRACT_CHECKLIST,
@@ -29,15 +36,49 @@ import {
   CONTRACT_PAYMENT_STATUSES,
   type AgencyContract,
 } from '@/agency/types/contract'
+import {
+  CAR_MAKES,
+  getModelsForMake,
+  resolveMakeKey,
+} from '@/agency/data/carMakesModels'
 import { computeContractTotals, CONTRACT_DAILY_LEVY_RATE } from '@/agency/utils/contractMath'
+import { buildInvoicePayloadFromContract } from '@/agency/utils/contractToInvoice'
 import { formatMoney } from '@/agency/utils/invoiceMath'
 import env from '@/config/env.config'
+
+const filterCarOption = createFilterOptions<string>({
+  stringify: (option) => option,
+  ignoreCase: true,
+  ignoreAccents: true,
+  matchFrom: 'any',
+})
+
+const categoryLabel = (range?: string) => {
+  switch (range) {
+    case bookcarsTypes.CarRange.Mini:
+      return strings.CAR_CAT_MINI
+    case bookcarsTypes.CarRange.Midi:
+      return strings.CAR_CAT_MIDI
+    case bookcarsTypes.CarRange.Maxi:
+      return strings.CAR_CAT_MAXI
+    case bookcarsTypes.CarRange.Scooter:
+      return strings.CAR_CAT_SCOOTER
+    case bookcarsTypes.CarRange.Bus:
+      return strings.CAR_CAT_BUS
+    case bookcarsTypes.CarRange.Truck:
+      return strings.CAR_CAT_TRUCK
+    case bookcarsTypes.CarRange.Caravan:
+      return strings.CAR_CAT_CARAVAN
+    default:
+      return range?.trim() || undefined
+  }
+}
 
 interface AgencyAddContractDialogProps {
   open: boolean
   agency: bookcarsTypes.User
   onClose: () => void
-  onCreated: (contract: AgencyContract) => void
+  onCreated: (contract: AgencyContract, invoice?: bookcarsTypes.AgencyInvoice) => void
 }
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -72,9 +113,10 @@ const AgencyAddContractDialog = ({
   const defaults = React.useCallback((): AgencyContractFormFields => ({
     issueCity: agency.city || '',
     issueDate: today(),
+    vehicleBrand: '',
     vehicleModel: '',
     vehiclePlate: '',
-    vehicleCategory: '',
+    vehicleCategory: bookcarsTypes.CarRange.Midi,
     vehicleFuel: '',
     driver: { ...emptyParty, nationality: 'Tunisienne' },
     secondDriver: { ...emptyParty },
@@ -106,6 +148,7 @@ const AgencyAddContractDialog = ({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<AgencyContractFormFields>({
     resolver: zodResolver(agencyContractSchema) as Resolver<AgencyContractFormFields>,
@@ -124,6 +167,9 @@ const AgencyAddContractDialog = ({
       setSubmitError('')
     }
   }, [open, reset, defaults])
+
+  const vehicleBrand = useWatch({ control, name: 'vehicleBrand' })
+  const modelOptions = useMemo(() => getModelsForMake(vehicleBrand || ''), [vehicleBrand])
 
   // Live totals, mirroring what the server recomputes on save
   const watched = useWatch({ control })
@@ -152,9 +198,9 @@ const AgencyAddContractDialog = ({
       const created = await AgencyContractService.createContract({
         issueCity: values.issueCity?.trim() || '',
         issueDate: values.issueDate,
-        vehicleModel: values.vehicleModel.trim(),
+        vehicleModel: `${values.vehicleBrand.trim()} ${values.vehicleModel.trim()}`.trim(),
         vehiclePlate: values.vehiclePlate.trim(),
-        vehicleCategory: values.vehicleCategory?.trim() || undefined,
+        vehicleCategory: categoryLabel(values.vehicleCategory),
         vehicleFuel: values.vehicleFuel?.trim() || undefined,
         driver: values.driver,
         secondDriver,
@@ -191,7 +237,18 @@ const AgencyAddContractDialog = ({
         currency,
         notes: values.notes?.trim() || undefined,
       })
-      onCreated(created)
+
+      let createdInvoice: bookcarsTypes.AgencyInvoice | undefined
+      try {
+        createdInvoice = await AgencyInvoiceService.createInvoice(
+          buildInvoicePayloadFromContract(created, values.rentalHT, agency),
+        )
+      } catch {
+        // Contract is already saved — keep going and surface a soft warning via onCreated.
+        createdInvoice = undefined
+      }
+
+      onCreated(created, createdInvoice)
     } catch {
       setSubmitError(strings.CONTRACT_SAVE_ERROR)
     } finally {
@@ -265,11 +322,73 @@ const AgencyAddContractDialog = ({
           {/* Vehicle */}
           <h4 className="agency-invoice-section-title">{strings.CONTRACT_VEHICLE}</h4>
           <div className="agency-car-grid">
-            <TextField
-              label={strings.CONTRACT_VEHICLE_MODEL}
-              {...register('vehicleModel')}
-              error={!!errors.vehicleModel}
-              helperText={errors.vehicleModel?.message}
+            <Controller
+              name="vehicleBrand"
+              control={control}
+              render={({ field }) => (
+                <Autocomplete
+                  freeSolo
+                  options={CAR_MAKES}
+                  filterOptions={filterCarOption}
+                  value={field.value || ''}
+                  onChange={(_event, next) => {
+                    const nextBrand = typeof next === 'string' ? next : next || ''
+                    const catalogMake = resolveMakeKey(nextBrand)
+                    field.onChange(catalogMake || nextBrand)
+                    setValue('vehicleModel', '', { shouldValidate: true, shouldDirty: true })
+                  }}
+                  onInputChange={(_event, next, reason) => {
+                    if (reason === 'input' || reason === 'clear') {
+                      const previousMake = resolveMakeKey(field.value || '')
+                      const nextMake = resolveMakeKey(next)
+                      field.onChange(next)
+                      if (reason === 'clear' || previousMake !== nextMake) {
+                        setValue('vehicleModel', '', { shouldValidate: true, shouldDirty: true })
+                      }
+                    }
+                  }}
+                  onBlur={field.onBlur}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={strings.CAR_BRAND}
+                      error={!!errors.vehicleBrand}
+                      helperText={errors.vehicleBrand?.message}
+                      fullWidth
+                    />
+                  )}
+                />
+              )}
+            />
+            <Controller
+              name="vehicleModel"
+              control={control}
+              render={({ field }) => (
+                <Autocomplete
+                  freeSolo
+                  options={modelOptions}
+                  filterOptions={filterCarOption}
+                  value={field.value || ''}
+                  onChange={(_event, next) => {
+                    field.onChange(typeof next === 'string' ? next : next || '')
+                  }}
+                  onInputChange={(_event, next, reason) => {
+                    if (reason === 'input' || reason === 'clear') {
+                      field.onChange(next)
+                    }
+                  }}
+                  onBlur={field.onBlur}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={strings.CAR_MODEL}
+                      error={!!errors.vehicleModel}
+                      helperText={errors.vehicleModel?.message}
+                      fullWidth
+                    />
+                  )}
+                />
+              )}
             />
             <TextField
               label={strings.CONTRACT_VEHICLE_PLATE}
@@ -277,7 +396,25 @@ const AgencyAddContractDialog = ({
               error={!!errors.vehiclePlate}
               helperText={errors.vehiclePlate?.message}
             />
-            <TextField label={strings.CONTRACT_VEHICLE_CATEGORY} {...register('vehicleCategory')} />
+            <FormControl fullWidth error={!!errors.vehicleCategory}>
+              <InputLabel>{strings.CONTRACT_VEHICLE_CATEGORY}</InputLabel>
+              <Controller
+                name="vehicleCategory"
+                control={control}
+                render={({ field }) => (
+                  <Select {...field} label={strings.CONTRACT_VEHICLE_CATEGORY}>
+                    <MenuItem value={bookcarsTypes.CarRange.Mini}>{strings.CAR_CAT_MINI}</MenuItem>
+                    <MenuItem value={bookcarsTypes.CarRange.Midi}>{strings.CAR_CAT_MIDI}</MenuItem>
+                    <MenuItem value={bookcarsTypes.CarRange.Maxi}>{strings.CAR_CAT_MAXI}</MenuItem>
+                    <MenuItem value={bookcarsTypes.CarRange.Scooter}>{strings.CAR_CAT_SCOOTER}</MenuItem>
+                    <MenuItem value={bookcarsTypes.CarRange.Bus}>{strings.CAR_CAT_BUS}</MenuItem>
+                    <MenuItem value={bookcarsTypes.CarRange.Truck}>{strings.CAR_CAT_TRUCK}</MenuItem>
+                    <MenuItem value={bookcarsTypes.CarRange.Caravan}>{strings.CAR_CAT_CARAVAN}</MenuItem>
+                  </Select>
+                )}
+              />
+              {errors.vehicleCategory && <FormHelperText>{errors.vehicleCategory.message}</FormHelperText>}
+            </FormControl>
             <TextField label={strings.CONTRACT_VEHICLE_FUEL} {...register('vehicleFuel')} />
             <TextField label={strings.CONTRACT_ISSUE_CITY} {...register('issueCity')} />
             <TextField

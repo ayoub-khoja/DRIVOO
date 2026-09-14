@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { appNavigate } from '@/utils/appNavigate'
 import {
   Button,
   Paper,
@@ -191,7 +192,7 @@ const ResetPassword = () => {
                   variant="outlined"
                   className="btn-reset-secondary"
                   startIcon={<ArrowBack />}
-                  onClick={() => navigate('/sign-in')}
+                  onClick={() => appNavigate('/sign-in')}
                   disabled={isSubmitting}
                 >
                   {rpStrings.BACK_TO_SIGN_IN}

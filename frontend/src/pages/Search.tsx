@@ -350,6 +350,10 @@ const Search = () => {
                 deliveryTypes={deliveryTypes}
                 requireAdditionalDriver={requireAdditionalDriver}
                 onClearFilters={handleClearAllFilters}
+                onBaselineCarsLoaded={(cars) => {
+                  // Prefer the unfiltered baseline; fall back to list payload on first paint
+                  setBaselineCars((prev) => (prev.length > 0 ? prev : cars))
+                }}
                 onModifySearch={() => {
                   carFilterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                   const input = carFilterRef.current?.querySelector('input')

@@ -127,8 +127,7 @@ export const CONTRACT_TERMS_INTRO_AR = 'عملية تسويغ السيارة ا�
 
 /**
  * Arabic clauses, transcribed from the agency's own terms document.
- * Rendered by `arabicText.ts`, which handles the contextual shaping and the bidi
- * reordering PDFKit cannot do on its own.
+ * PDF uses Amiri shaping as-is; list dashes are drawn on the right at render time.
  */
 export const CONTRACT_TERMS_AR: ContractTermsArticle[] = [
   {

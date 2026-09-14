@@ -76,3 +76,8 @@ export const deleteAgency = (id: string): Promise<number> =>
   adminAxiosInstance
     .delete(`/api/delete-supplier/${encodeURIComponent(id)}`)
     .then((res) => res.status)
+
+export const deleteUser = (id: string): Promise<number> =>
+  adminAxiosInstance
+    .post('/api/delete-users', [id])
+    .then((res) => res.status)

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Autocomplete,
@@ -110,7 +110,12 @@ const OfferExtras = () => {
     return () => { cancelled = true }
   }, [])
 
+  const loadStarted = useRef(false)
   const onLoad = async () => {
+    if (loadStarted.current) {
+      return
+    }
+    loadStarted.current = true
     setLanguage(UserService.getLanguage())
     const { state } = location
     if (!state) {

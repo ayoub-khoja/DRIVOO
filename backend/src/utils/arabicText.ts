@@ -5,14 +5,8 @@ import * as logger from './logger'
 /**
  * Arabic font support for PDFKit.
  *
- * PDFKit lays text out through fontkit, which already applies the OpenType Arabic
- * features (init / medi / fina / rlig) and returns right-to-left runs in visual
- * order. No reshaping or bidi pass is needed here - the only missing piece is a
- * font, since the 14 built-in PDF fonts are Latin only.
- *
- * Amiri (SIL Open Font License) is used: the full TTF from `@expo-google-fonts/amiri`
- * covers Arabic, Latin, digits and punctuation in one file, so a mixed line such as
- * "110 km/h" inside Arabic text renders without any glyph gap.
+ * Amiri + fontkit shape Arabic and resolve RTL. Avoid Unicode bidi control
+ * characters (no glyphs in Amiri → ▯, and they scramble word order).
  */
 
 const FONT_DIR = 'node_modules/@expo-google-fonts/amiri'
@@ -51,3 +45,9 @@ export const loadArabicFonts = (): Record<string, Buffer> | null => {
 
   return cachedFonts
 }
+
+/** True when the clause is a "- …" list item (logical source form). */
+export const isArabicBullet = (text: string): boolean => /^-\s+/.test(text || '')
+
+/** Body of a list item without the leading ASCII dash. */
+export const arabicBulletBody = (text: string): string => (text || '').replace(/^-\s+/, '')

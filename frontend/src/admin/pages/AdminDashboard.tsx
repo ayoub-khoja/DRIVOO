@@ -19,7 +19,7 @@ const AdminDashboard = () => {
       try {
         const [requests, suppliers, users] = await Promise.all([
           AdminApiService.getAccountRequests(1, 1),
-          AdminApiService.getUsers(1, 1, [bookcarsTypes.UserType.Supplier], '', true, true),
+          AdminApiService.getUsers(1, 1, [bookcarsTypes.UserType.Supplier], '', undefined, true),
           AdminApiService.getUsers(1, 1, [bookcarsTypes.UserType.User]),
         ])
 

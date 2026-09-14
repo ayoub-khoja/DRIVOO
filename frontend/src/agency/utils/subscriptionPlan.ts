@@ -119,9 +119,9 @@ export const formatPlanPrice = (plan: bookcarsTypes.SubscriptionPlan, lang: stri
   if (plan.freePlan) {
     return lang === 'ar' ? 'مجاني' : lang === 'en' ? 'Free' : 'Gratuit'
   }
-  const total = computePlanTotalTtc(plan.priceHt || 0)
-  if (total > 0) {
-    return `${total.toFixed(2)} DT`
+  const ht = Number.isFinite(plan.priceHt) && plan.priceHt > 0 ? plan.priceHt : 0
+  if (ht > 0) {
+    return `${ht.toFixed(2)} DT`
   }
   const monthly = plan.pricing.find((row) => row.months === 12)?.monthlyPrice
     ?? plan.pricing.find((row) => row.monthlyPrice > 0)?.monthlyPrice

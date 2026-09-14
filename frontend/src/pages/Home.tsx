@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { appNavigate } from '@/utils/appNavigate'
 import {
   Button,
   Dialog,
@@ -65,7 +65,6 @@ const carImageUrl = (image?: string) => {
 }
 
 const Home = () => {
-  const navigate = useNavigate()
   const homeRef = useRef<HTMLDivElement>(null)
 
   const [suppliers, setSuppliers] = useState<bookcarsTypes.User[]>([])
@@ -493,7 +492,7 @@ const Home = () => {
               <Button
                 variant="contained"
                 className="btn-primary btn-home"
-                onClick={() => navigate('/contact')}
+                onClick={() => appNavigate('/contact')}
               >
                 {strings.CONTACT_US}
               </Button>

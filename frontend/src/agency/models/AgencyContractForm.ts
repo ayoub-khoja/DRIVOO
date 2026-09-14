@@ -33,7 +33,8 @@ export const agencyContractSchema = z.object({
   issueDate: z.string().trim().min(1, required),
 
   // Vehicle
-  vehicleModel: z.string().trim().min(2, required).max(120),
+  vehicleBrand: z.string().trim().min(1, required).max(60),
+  vehicleModel: z.string().trim().min(1, required).max(80),
   vehiclePlate: z.string().trim().min(1, required).max(40),
   vehicleCategory: z.string().trim().max(60).optional(),
   vehicleFuel: z.string().trim().max(40).optional(),

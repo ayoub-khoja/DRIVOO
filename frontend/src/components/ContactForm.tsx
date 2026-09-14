@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { appNavigate } from '@/utils/appNavigate'
 import {
   OutlinedInput,
   InputLabel,
@@ -28,7 +28,6 @@ interface ContactFormProps {
 }
 
 const ContactForm = ({ user, className }: ContactFormProps) => {
-  const navigate = useNavigate()
   const { reCaptchaLoaded, generateReCaptchaToken } = useRecaptchaContext() as RecaptchaContextType
 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -143,7 +142,7 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
             className="btn-margin-bottom btn"
             aria-label="Cancel"
             onClick={() => {
-              navigate('/')
+              appNavigate('/')
             }}
           >
             {commonStrings.CANCEL}

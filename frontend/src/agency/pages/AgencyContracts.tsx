@@ -623,12 +623,21 @@ const AgencyContracts = () => {
         open={openForm}
         agency={agency}
         onClose={() => setOpenForm(false)}
-        onCreated={(contract) => {
+        onCreated={(contract, invoice) => {
           setOpenForm(false)
           setQuery('')
           setKeyword('')
           void load('', 1)
-          helper.info(strings.CONTRACT_CREATED)
+          if (invoice?.number) {
+            helper.info(
+              strings.CONTRACT_WITH_INVOICE_CREATED
+                .replace('{0}', contract.number)
+                .replace('{1}', invoice.number),
+            )
+          } else {
+            helper.info(strings.CONTRACT_CREATED)
+            helper.error(undefined, strings.CONTRACT_INVOICE_AUTO_ERROR)
+          }
           setPreview(contract)
         }}
       />
