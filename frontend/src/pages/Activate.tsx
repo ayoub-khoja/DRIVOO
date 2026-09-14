@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { appNavigate } from '@/utils/appNavigate'
 import {
   Button,
   Paper,
@@ -141,7 +142,7 @@ const Activate = () => {
                 {mStrings.RESEND}
               </Button>
               <p className="go-to-home">
-                <Button variant="text" onClick={() => navigate('/')} className="btn-lnk">{commonStrings.GO_TO_HOME}</Button>
+                <Button variant="text" onClick={() => appNavigate('/')} className="btn-lnk">{commonStrings.GO_TO_HOME}</Button>
               </p>
             </div>
           </Paper>
@@ -194,7 +195,7 @@ const Activate = () => {
                 <Button type="submit" className="btn-primary btn-margin btn-margin-bottom" variant="contained" disabled={isSubmitting}>
                   {reset ? commonStrings.UPDATE : strings.ACTIVATE}
                 </Button>
-                <Button variant="outlined" color="primary" className="btn-margin-bottom" onClick={() => navigate('/')}>
+                <Button variant="outlined" color="primary" className="btn-margin-bottom" onClick={() => appNavigate('/')}>
                   {commonStrings.CANCEL}
                 </Button>
               </div>

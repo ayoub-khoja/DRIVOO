@@ -1,25 +1,36 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, CircularProgress } from '@mui/material'
+import { Button, CircularProgress, Menu, MenuItem } from '@mui/material'
 import {
   CheckCircle,
-  DirectionsCarOutlined,
+  DirectionsCarFilledOutlined,
+  HourglassEmptyOutlined,
+  LocalOfferOutlined,
+  StarOutline,
+  WhatsApp as WhatsAppIcon,
   WorkspacePremiumOutlined,
 } from '@mui/icons-material'
+import { CircleFlag } from 'react-circle-flags'
 import * as bookcarsTypes from ':bookcars-types'
+import env from '@/config/env.config'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
 import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
 import * as AgencySubscriptionService from '@/agency/services/AgencySubscriptionService'
+import * as UserService from '@/services/UserService'
 import {
   SERVICE_CATALOG,
   formatPlanPrice,
   needsAgencyPlan,
   pickLabel,
 } from '@/agency/utils/subscriptionPlan'
+import * as helper from '@/utils/helper'
+import * as langHelper from '@/utils/langHelper'
 import logo from '@/assets/img/logoWhite.png'
-import carImg from '@/assets/img/car.png'
-import magazineImg from '@/assets/img/magazine.png'
+// import carImg from '@/assets/img/car.png'
+// import magazineImg from '@/assets/img/magazine.png'
+
+const FLAG_SIZE = 22
 
 const persistAgencySession = (user: bookcarsTypes.User) => {
   AgencyAuthService.setCurrentUser({
@@ -36,6 +47,15 @@ const persistAgencySession = (user: bookcarsTypes.User) => {
   })
 }
 
+type AccessItem = { key: string, label: bookcarsTypes.LocalizedText }
+
+type PlanTag = {
+  key: string
+  label: string
+  tone: 'popular' | 'trial' | 'free' | 'starter' | 'value' | 'premium'
+  icon?: 'star' | 'premium' | 'offer' | 'hourglass'
+}
+
 type PlanCardProps = {
   plan: bookcarsTypes.SubscriptionPlan
   lang: string
@@ -44,27 +64,83 @@ type PlanCardProps = {
   onSelect: (planId: string) => void
 }
 
+const buildPlanTags = (plan: bookcarsTypes.SubscriptionPlan): PlanTag[] => {
+  const tags: PlanTag[] = []
+  const carMax = plan.carLimitMax || plan.carLimit || 0
+
+  if (plan.mostPopular) {
+    tags.push({ key: 'popular', label: strings.PLAN_POPULAR, tone: 'popular', icon: 'premium' })
+  }
+  if (plan.freePlan) {
+    tags.push({ key: 'free', label: strings.PLAN_TAG_FREE, tone: 'free', icon: 'offer' })
+  }
+  if (plan.firstTrialFree) {
+    tags.push({ key: 'first-trial', label: strings.PLAN_FIRST_TRIAL_FREE, tone: 'trial', icon: 'offer' })
+  }
+  if (plan.trialMonths > 0) {
+    tags.push({
+      key: 'trial',
+      label: strings.PLAN_TRIAL.replace('{0}', String(plan.trialMonths)),
+      tone: 'trial',
+      icon: 'hourglass',
+    })
+  }
+  if (!plan.mostPopular && carMax > 0 && carMax <= 20) {
+    tags.push({ key: 'starter', label: strings.PLAN_TAG_STARTER, tone: 'starter', icon: 'star' })
+  }
+  if (!plan.mostPopular && carMax >= 41) {
+    tags.push({ key: 'premium', label: strings.PLAN_TAG_PREMIUM, tone: 'premium', icon: 'premium' })
+  }
+  if (!plan.mostPopular && carMax > 20 && carMax < 41) {
+    tags.push({ key: 'value', label: strings.PLAN_TAG_VALUE, tone: 'value', icon: 'star' })
+  }
+
+  return tags
+}
+
+const TagIcon = ({ icon }: { icon?: PlanTag['icon'] }) => {
+  if (icon === 'hourglass') {
+    return <HourglassEmptyOutlined fontSize="inherit" />
+  }
+  if (icon === 'offer') {
+    return <LocalOfferOutlined fontSize="inherit" />
+  }
+  if (icon === 'premium') {
+    return <WorkspacePremiumOutlined fontSize="inherit" />
+  }
+  return <StarOutline fontSize="inherit" />
+}
+
 const PlanCard = React.memo(({ plan, lang, selected, busy, onSelect }: PlanCardProps) => {
   const name = pickLabel(plan.name, lang) || '—'
   const subtitle = pickLabel(plan.subtitle, lang)
   const price = formatPlanPrice(plan, lang)
-  const features = plan.features.filter((f) => f.included).slice(0, 6)
-  const services = useMemo(
-    () => {
-      const matched = SERVICE_CATALOG.filter((item) => plan.services.includes(item.key))
-      return (matched.length > 0 ? matched : SERVICE_CATALOG).slice(0, 6)
-    },
-    [plan.services],
-  )
+  const carMin = plan.carLimitMin || 0
+  const carMax = plan.carLimitMax || plan.carLimit || 0
+  const tags = useMemo(() => buildPlanTags(plan), [plan])
+  const accessItems = useMemo((): AccessItem[] => {
+    const fromServices = SERVICE_CATALOG.filter((item) => plan.services?.includes(item.key))
+    if (fromServices.length > 0) {
+      return fromServices.slice(0, 8)
+    }
+    return plan.features
+      .filter((feature) => feature.included)
+      .slice(0, 8)
+      .map((feature) => ({ key: feature.id, label: feature.label }))
+  }, [plan.features, plan.services])
   const isFreeLabel = price === 'Gratuit' || price === 'Free' || price === 'مجاني'
 
   return (
     <article className={`agency-plan-card${plan.mostPopular ? ' is-popular' : ''}${selected ? ' is-selected' : ''}`}>
-      {plan.mostPopular ? (
-        <span className="agency-plan-ribbon">
-          <WorkspacePremiumOutlined fontSize="inherit" />
-          {strings.PLAN_POPULAR}
-        </span>
+      {tags.length > 0 ? (
+        <div className="agency-plan-tags">
+          {tags.map((tag) => (
+            <span key={tag.key} className={`agency-plan-tag is-${tag.tone}`}>
+              <TagIcon icon={tag.icon} />
+              {tag.label}
+            </span>
+          ))}
+        </div>
       ) : null}
 
       <header className="agency-plan-card-head">
@@ -74,37 +150,36 @@ const PlanCard = React.memo(({ plan, lang, selected, busy, onSelect }: PlanCardP
 
       <div className="agency-plan-price-block">
         <strong>{price}</strong>
-        {!plan.freePlan && !isFreeLabel ? <span>{strings.PLAN_PER_MONTH}</span> : null}
+        {!plan.freePlan && !isFreeLabel ? (
+          <>
+            <span>{strings.PLAN_PER_MONTH}</span>
+            <span className="agency-plan-price-ht">{strings.PLAN_PRICE_HT}</span>
+          </>
+        ) : null}
       </div>
 
-      <div className="agency-plan-meta">
-        {(plan.carLimitMax || plan.carLimit || 0) > 0 ? (
-          <span>
-            <DirectionsCarOutlined fontSize="inherit" />
-            {strings.PLAN_CARS
-              .replace('{0}', String(plan.carLimitMin || 0))
-              .replace('{1}', String(plan.carLimitMax || plan.carLimit || 0))}
-          </span>
-        ) : null}
-        {plan.trialMonths > 0 ? (
-          <span className="agency-plan-trial">
-            {strings.PLAN_TRIAL.replace('{0}', String(plan.trialMonths))}
-          </span>
-        ) : null}
-        {plan.firstTrialFree ? <span className="agency-plan-trial">{strings.PLAN_FIRST_TRIAL_FREE}</span> : null}
-      </div>
+      {carMax > 0 ? (
+        <div className="agency-plan-fleet" aria-label={strings.PLAN_FLEET_LABEL}>
+          <div className="agency-plan-fleet-icon">
+            <DirectionsCarFilledOutlined />
+          </div>
+          <div className="agency-plan-fleet-body">
+            <span className="agency-plan-fleet-label">{strings.PLAN_FLEET_LABEL}</span>
+            <strong className="agency-plan-fleet-range">
+              <span>{carMin}</span>
+              <em>—</em>
+              <span>{carMax}</span>
+            </strong>
+            <span className="agency-plan-fleet-unit">{strings.PLAN_FLEET_UNIT}</span>
+          </div>
+        </div>
+      ) : null}
 
       <ul className="agency-plan-features">
-        {features.map((feature) => (
-          <li key={feature.id}>
+        {accessItems.map((item) => (
+          <li key={item.key}>
             <CheckCircle className="is-on" />
-            <span>{pickLabel(feature.label, lang) || '—'}</span>
-          </li>
-        ))}
-        {services.map((service) => (
-          <li key={service.key}>
-            <CheckCircle className="is-on" />
-            <span>{pickLabel(service.label, lang)}</span>
+            <span>{pickLabel(item.label, lang) || '—'}</span>
           </li>
         ))}
       </ul>
@@ -132,7 +207,14 @@ const AgencyChoosePlan = () => {
   const [loadError, setLoadError] = useState(false)
   const [submittingId, setSubmittingId] = useState('')
   const [submitError, setSubmitError] = useState('')
-  const lang = agency?.language || strings.getLanguage() || 'fr'
+  const [lang, setLang] = useState(helper.getLanguage(langHelper.getLanguage()))
+  const [langAnchorEl, setLangAnchorEl] = useState<HTMLElement | null>(null)
+  const uiLang = agency?.language || lang?.code || strings.getLanguage() || 'fr'
+  const whatsappHref = `https://wa.me/${env.WHATSAPP_NUMBER.replace(/\D/g, '')}`
+
+  useEffect(() => {
+    langHelper.setLanguage(strings)
+  }, [])
 
   useEffect(() => {
     if (!agencyLoaded) {
@@ -229,6 +311,21 @@ const AgencyChoosePlan = () => {
     }
   }, [ensureSession, navigate, setAgency])
 
+  const onLanguageSelect = (event: React.MouseEvent<HTMLElement>) => {
+    setLangAnchorEl(null)
+    const { code } = event.currentTarget.dataset
+    if (!code) {
+      return
+    }
+
+    const currentLang = UserService.getLanguage()
+    setLang(helper.getLanguage(code))
+    UserService.setLanguage(code)
+    if (code !== currentLang) {
+      navigate(0)
+    }
+  }
+
   if (!agencyLoaded) {
     return (
       <div className="agency-plans-page">
@@ -265,12 +362,12 @@ const AgencyChoosePlan = () => {
       </Button>
     </div>
   ) : (
-    <div className="agency-plans-grid">
+    <div className={`agency-plans-grid agency-plans-grid--${Math.min(plans.length, 4)}`}>
       {plans.map((plan) => (
         <PlanCard
           key={plan._id}
           plan={plan}
-          lang={lang}
+          lang={uiLang}
           selected={submittingId === plan._id}
           busy={!!submittingId}
           onSelect={onSelect}
@@ -282,6 +379,25 @@ const AgencyChoosePlan = () => {
   return (
     <div className="agency-plans-page">
       <div className="agency-signin-ambient" aria-hidden />
+
+      <div className="agency-plans-toolbar">
+        <Button
+          variant="contained"
+          onClick={(event) => setLangAnchorEl(event.currentTarget)}
+          disableElevation
+          className="agency-lang-btn"
+          aria-label={strings.LANGUAGE}
+        >
+          <span className="language">
+            <CircleFlag
+              countryCode={lang?.countryCode || 'fr'}
+              height={FLAG_SIZE}
+              className="flag"
+              title={lang?.label}
+            />
+          </span>
+        </Button>
+      </div>
 
       <div className="agency-plans-shell">
         <aside className="agency-plans-hero">
@@ -297,10 +413,44 @@ const AgencyChoosePlan = () => {
         </section>
       </div>
 
+      {/*
       <div className="agency-plans-car-track" aria-hidden>
         <img className="agency-plans-magazine" src={magazineImg} alt="" />
         <img className="agency-plans-car" src={carImg} alt="" />
       </div>
+      */}
+
+      <a
+        className="agency-plans-whatsapp"
+        href={whatsappHref}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`WhatsApp ${env.WHATSAPP_DISPLAY}`}
+        title={`WhatsApp ${env.WHATSAPP_DISPLAY}`}
+      >
+        <WhatsAppIcon />
+      </a>
+
+      <Menu
+        anchorEl={langAnchorEl}
+        open={Boolean(langAnchorEl)}
+        onClose={() => setLangAnchorEl(null)}
+        className="menu agency-lang-menu"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: { className: 'agency-lang-menu-paper' },
+        }}
+      >
+        {env._LANGUAGES.map((languageOption) => (
+          <MenuItem onClick={onLanguageSelect} data-code={languageOption.code} key={languageOption.code}>
+            <div className="language">
+              <CircleFlag countryCode={languageOption.countryCode} height={FLAG_SIZE} className="flag" title={languageOption.label} />
+              <span>{languageOption.label}</span>
+            </div>
+          </MenuItem>
+        ))}
+      </Menu>
     </div>
   )
 }

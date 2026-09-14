@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Paper,
   FormControl,
@@ -10,6 +10,7 @@ import {
 } from '@mui/material'
 import { EmailOutlined } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
+import { appNavigate } from '@/utils/appNavigate'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
@@ -30,8 +31,8 @@ import '@/assets/css/signin.css'
 
 const SignIn = () => {
   const navigate = useNavigate()
-  const { setUser, setUserLoaded } = useUserContext() as UserContextType
-  const [visible, setVisible] = useState(false)
+  const { user, userLoaded, setUser, setUserLoaded } = useUserContext() as UserContextType
+  const [visible, setVisible] = useState(true)
 
   const {
     register,
@@ -44,6 +45,51 @@ const SignIn = () => {
     resolver: zodResolver(schema),
     mode: 'onSubmit',
   })
+
+  useEffect(() => {
+    if (!userLoaded) {
+      return
+    }
+
+    const init = async () => {
+      UserService.setStayConnected(false)
+
+      const agencySession = AgencyAuthService.getCurrentUser()
+      if (agencySession?._id) {
+        try {
+          const status = await AgencyAuthService.validateAccessToken()
+          if (status === 200) {
+            const agencyUser = await AgencyAuthService.getUser(agencySession._id)
+            if (agencyUser && agencyUser.type === bookcarsTypes.UserType.Supplier && !agencyUser.blacklisted) {
+              await completeAgencyLogin(agencyUser)
+              return
+            }
+          }
+        } catch {
+          // Fall through
+        }
+      }
+
+      if (user) {
+        const params = new URLSearchParams(window.location.search)
+        if (params.get('from') === 'checkout') {
+          navigate('/checkout', {
+            state: {
+              carId: params.get('c'),
+              pickupLocationId: params.get('p'),
+              dropOffLocationId: params.get('d'),
+              from: new Date(Number(params.get('f'))),
+              to: new Date(Number(params.get('t'))),
+            },
+          })
+        } else {
+          navigate('/', { replace: true })
+        }
+      }
+    }
+
+    void init()
+  }, [userLoaded, user, navigate])
 
   const signinError = (message?: string) => {
     setError('root', { message: message || strings.ERROR_IN_SIGN_IN })
@@ -181,46 +227,8 @@ const SignIn = () => {
     }
   }
 
-  const onLoad = async (user?: bookcarsTypes.User) => {
-    UserService.setStayConnected(false)
-
-    // Already signed in as agency?
-    const agencySession = AgencyAuthService.getCurrentUser()
-    if (agencySession?._id) {
-      try {
-        const status = await AgencyAuthService.validateAccessToken()
-        if (status === 200) {
-          const agencyUser = await AgencyAuthService.getUser(agencySession._id)
-          if (agencyUser && agencyUser.type === bookcarsTypes.UserType.Supplier && !agencyUser.blacklisted) {
-            await completeAgencyLogin(agencyUser)
-            return
-          }
-        }
-      } catch {
-        // Fall through
-      }
-    }
-
-    // Already signed in as client?
-    if (user) {
-      const params = new URLSearchParams(window.location.search)
-      if (params.get('from') === 'checkout') {
-        navigate('/checkout', {
-          state: {
-            carId: params.get('c'),
-            pickupLocationId: params.get('p'),
-            dropOffLocationId: params.get('d'),
-            from: new Date(Number(params.get('f'))),
-            to: new Date(Number(params.get('t'))),
-          },
-        })
-      } else {
-        navigate('/')
-      }
-      return
-    }
-
-    setVisible(true)
+  const onLoad = async (_user?: bookcarsTypes.User) => {
+    // Session redirect / visibility handled in useEffect for reliable SPA navigation
   }
 
   const emailField = register('email')
@@ -289,7 +297,7 @@ const SignIn = () => {
             </div>
 
             <div className="forgot-password-wrapper">
-              <Button variant="text" onClick={() => navigate('/forgot-password')} className="btn-lnk">
+              <Button variant="text" onClick={() => appNavigate('/forgot-password')} className="btn-lnk">
                 {strings.RESET_PASSWORD}
               </Button>
             </div>
@@ -297,7 +305,7 @@ const SignIn = () => {
             <SocialLogin />
 
             <div className="signin-buttons">
-              <Button variant="outlined" onClick={() => navigate('/sign-up')} className="btn-signin-secondary">
+              <Button variant="outlined" onClick={() => appNavigate('/sign-up')} className="btn-signin-secondary">
                 {suStrings.SIGN_UP}
               </Button>
               <Button type="submit" variant="contained" className="btn-primary" disabled={isSubmitting}>

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import * as bookcarsTypes from ':bookcars-types'
 import * as UserService from '@/services/UserService'
 
@@ -34,8 +34,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, refreshKey
   }, [])
 
   const checkUser = useCallback(async () => {
-    setUserLoaded(false)
-
     const currentUser = UserService.getCurrentUser()
     if (!currentUser) {
       // No local session — do not call sign-out (that would wipe a valid httpOnly cookie)
@@ -45,6 +43,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, refreshKey
       return
     }
 
+    // Keep existing UI visible while validating in the background
     try {
       const status = await UserService.validateAccessToken()
 
@@ -71,22 +70,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, refreshKey
     }
   }, [exit])
 
-  // Ref to track the previous refreshKey
-  const prevRefreshKey = useRef(refreshKey)
-
   useEffect(() => {
-    // Check if refreshKey has actually changed
-    if (prevRefreshKey.current !== refreshKey) {
-      checkUser()
-      prevRefreshKey.current = refreshKey // Update the ref to the current refreshKey
-    }
-  }, [refreshKey, checkUser])
-
-  useEffect(() => {
-    if (refreshKey === undefined) {
-      checkUser()
-    }
-  }, [refreshKey, checkUser])
+    checkUser()
+  }, [checkUser, refreshKey])
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }

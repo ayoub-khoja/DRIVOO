@@ -137,7 +137,7 @@ const AdminAgencies = () => {
         PAGE_SIZE,
         [bookcarsTypes.UserType.Supplier],
         search,
-        true,
+        undefined,
         true,
       )
       const result = data[0]
@@ -306,7 +306,7 @@ const AdminAgencies = () => {
                 <TableCell>{strings.COL_AGENCY}</TableCell>
                 <TableCell>{strings.COL_EMAIL}</TableCell>
                 <TableCell>{strings.COL_PHONE}</TableCell>
-                <TableCell>{strings.COL_STATUS}</TableCell>
+                <TableCell>{strings.COL_FIRST_LOGIN}</TableCell>
                 <TableCell>{strings.COL_DATE}</TableCell>
                 <TableCell align="right">{strings.COL_ACTIONS}</TableCell>
               </TableRow>
@@ -318,7 +318,9 @@ const AdminAgencies = () => {
                   <TableCell>{row.email}</TableCell>
                   <TableCell>{row.phone || '—'}</TableCell>
                   <TableCell>
-                    <span className="admin-status-pill is-active">{strings.STATUS_ACTIVE}</span>
+                    <span className={`admin-status-pill ${row.active ? 'is-active' : 'is-inactive'}`}>
+                      {row.active ? strings.STATUS_FIRST_LOGIN_DONE : strings.STATUS_FIRST_LOGIN_PENDING}
+                    </span>
                   </TableCell>
                   <TableCell>{formatDate(row.createdAt)}</TableCell>
                   <TableCell align="right">
@@ -383,7 +385,9 @@ const AdminAgencies = () => {
                 <span className="admin-request-badge">{strings.DETAILS}</span>
                 <h2>{selected.fullName}</h2>
                 <p>
-                  <span className="admin-status-pill is-active">{strings.STATUS_ACTIVE}</span>
+                  <span className={`admin-status-pill ${selected.active ? 'is-active' : 'is-inactive'}`}>
+                    {selected.active ? strings.STATUS_FIRST_LOGIN_DONE : strings.STATUS_FIRST_LOGIN_PENDING}
+                  </span>
                 </p>
               </div>
               <IconButton aria-label={strings.CLOSE} onClick={() => setSelected(null)} className="admin-request-close">

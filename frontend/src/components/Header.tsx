@@ -1,5 +1,6 @@
-import React, { useState, useEffect, memo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { appNavigate } from '@/utils/appNavigate'
 import {
   AppBar,
   Toolbar,
@@ -71,19 +72,19 @@ const Header = ({
   const location = useLocation()
   const isAgencyHub = location.pathname.startsWith('/espace-agence')
 
-  const { user } = useUserContext() as UserContextType
+  const { user, userLoaded } = useUserContext() as UserContextType
   const { notificationCount } = useNotificationContext() as NotificationContextType
 
   const [currentUser, setCurrentUser] = useState<bookcarsTypes.User>()
 
   const [lang, setLang] = useState(helper.getLanguage(env.DEFAULT_LANGUAGE))
+  const [isSignedIn, setIsSignedIn] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [langAnchorEl, setLangAnchorEl] = useState<HTMLElement | null>(null)
   const [currencyAnchorEl, setCurrencyAnchorEl] = useState<HTMLElement | null>(null)
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState<HTMLElement | null>(null)
   const [sideAnchorEl, setSideAnchorEl] = useState<HTMLElement | null>(null)
-  const [isSignedIn, setIsSignedIn] = useState(false)
-  const [isLoaded, setIsLoaded] = useState(false)
 
   const isMenuOpen = Boolean(anchorEl)
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl)
@@ -118,6 +119,12 @@ const Header = ({
   }, [])
 
   useEffect(() => {
+    // Wait for session check — otherwise guests briefly see auth buttons, click,
+    // then get bounced home when the logged-in user finally resolves.
+    if (!userLoaded) {
+      setIsLoaded(false)
+      return
+    }
     if (user) {
       setCurrentUser(user)
       setIsSignedIn(true)
@@ -126,7 +133,7 @@ const Header = ({
       setIsSignedIn(false)
     }
     setIsLoaded(true)
-  }, [user])
+  }, [user, userLoaded])
 
   const handleAccountMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -142,6 +149,10 @@ const Header = ({
 
   const handleCurrencyMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setCurrencyAnchorEl(event.currentTarget)
+  }
+
+  const goTo = (path: string) => {
+    appNavigate(path)
   }
 
   const refreshPage = () => {
@@ -213,7 +224,7 @@ const Header = ({
 
   const handleSettingsClick = () => {
     handleMenuClose()
-    navigate('/settings')
+    goTo('/settings')
   }
 
   const handleSignout = async () => {
@@ -234,7 +245,7 @@ const Header = ({
   }
 
   const handleNotificationsClick = () => {
-    navigate('/notifications')
+    goTo('/notifications')
   }
 
   const menuId = 'primary-account-menu'
@@ -347,7 +358,7 @@ const Header = ({
                   <MenuIcon />
                 </IconButton>
 
-                <Button onClick={() => navigate('/')} className="logo" aria-label={env.WEBSITE_NAME}>
+                <Button onClick={() => goTo('/')} className="logo" aria-label={env.WEBSITE_NAME}>
                   <img src={Logo} alt={env.WEBSITE_NAME} className="logo-img" />
                 </Button>
 
@@ -359,7 +370,7 @@ const Header = ({
               <List sx={classes.list}>
                 <ListItem
                   onClick={() => {
-                    navigate('/')
+                    goTo('/')
                     handleSideMenuClose()
                   }}
                 >
@@ -368,7 +379,7 @@ const Header = ({
                 </ListItem>
                 <ListItem
                   onClick={() => {
-                    navigate(isAgencyHub ? '/' : '/espace-agence')
+                    goTo(isAgencyHub ? '/' : '/espace-agence')
                     handleSideMenuClose()
                   }}
                 >
@@ -378,7 +389,7 @@ const Header = ({
                 {isSignedIn && (
                   <ListItem
                     onClick={() => {
-                      navigate('/bookings')
+                      goTo('/bookings')
                       handleSideMenuClose()
                     }}
                   >
@@ -389,7 +400,7 @@ const Header = ({
                 {!env.HIDE_SUPPLIERS && (
                   <ListItem
                     onClick={() => {
-                      navigate('/suppliers')
+                      goTo('/suppliers')
                       handleSideMenuClose()
                     }}
                   >
@@ -399,7 +410,7 @@ const Header = ({
                 )}
                 <ListItem
                   onClick={() => {
-                    navigate('/locations')
+                    goTo('/locations')
                     handleSideMenuClose()
                   }}
                 >
@@ -408,7 +419,7 @@ const Header = ({
                 </ListItem>
                 <ListItem
                   onClick={() => {
-                    navigate('/about')
+                    goTo('/about')
                     handleSideMenuClose()
                   }}
                 >
@@ -417,7 +428,7 @@ const Header = ({
                 </ListItem>
                 <ListItem
                   onClick={() => {
-                    navigate('/cookie-policy')
+                    goTo('/cookie-policy')
                     handleSideMenuClose()
                   }}
                 >
@@ -426,7 +437,7 @@ const Header = ({
                 </ListItem>
                 <ListItem
                   onClick={() => {
-                    navigate('/privacy')
+                    goTo('/privacy')
                     handleSideMenuClose()
                   }}
                 >
@@ -435,7 +446,7 @@ const Header = ({
                 </ListItem>
                 <ListItem
                   onClick={() => {
-                    navigate('/tos')
+                    goTo('/tos')
                     handleSideMenuClose()
                   }}
                 >
@@ -444,7 +455,7 @@ const Header = ({
                 </ListItem>
                 <ListItem
                   onClick={() => {
-                    navigate('/faq')
+                    goTo('/faq')
                     handleSideMenuClose()
                   }}
                 >
@@ -453,7 +464,7 @@ const Header = ({
                 </ListItem>
                 <ListItem
                   onClick={() => {
-                    navigate('/contact')
+                    goTo('/contact')
                     handleSideMenuClose()
                   }}
                 >
@@ -464,8 +475,8 @@ const Header = ({
                   <>
                     <ListItem
                       onClick={() => {
-                        navigate('/sign-in')
                         handleSideMenuClose()
+                        goTo('/sign-in')
                       }}
                     >
                       <ListItemIcon><LoginIcon /></ListItemIcon>
@@ -473,8 +484,8 @@ const Header = ({
                     </ListItem>
                     <ListItem
                       onClick={() => {
-                        navigate('/sign-up')
                         handleSideMenuClose()
+                        goTo('/sign-up')
                       }}
                     >
                       <ListItemIcon><SignUpIcon /></ListItemIcon>
@@ -503,7 +514,7 @@ const Header = ({
                 <Button
                   variant="contained"
                   startIcon={isAgencyHub ? <SignUpIcon /> : <AgencyHubIcon />}
-                  onClick={() => navigate(isAgencyHub ? '/' : '/espace-agence')}
+                  onClick={() => goTo(isAgencyHub ? '/' : '/espace-agence')}
                   disableElevation
                   className={`btn btn-auth header-agency-btn${isAgencyHub ? ' is-client' : ''}`}
                 >
@@ -523,12 +534,28 @@ const Header = ({
                 </Button>
               )}
               {!hideSignin && !isSignedIn && isLoaded && (
-                <Button variant="contained" size="medium" startIcon={<SignUpIcon />} onClick={() => navigate('/sign-up')} disableElevation className="btn btn-auth" aria-label="Sign in">
+                <Button
+                  variant="contained"
+                  size="medium"
+                  startIcon={<SignUpIcon />}
+                  onClick={() => goTo('/sign-up')}
+                  disableElevation
+                  className="btn btn-auth"
+                  aria-label="Sign up"
+                >
                   <span className="btn-auth-txt">{suStrings.SIGN_UP}</span>
                 </Button>
               )}
               {!hideSignin && !isSignedIn && isLoaded && (
-                <Button variant="contained" size="medium" startIcon={<LoginIcon />} onClick={() => navigate('/sign-in')} disableElevation className="btn btn-auth" aria-label="Sign up">
+                <Button
+                  variant="contained"
+                  size="medium"
+                  startIcon={<LoginIcon />}
+                  onClick={() => goTo('/sign-in')}
+                  disableElevation
+                  className="btn btn-auth"
+                  aria-label="Sign in"
+                >
                   <span className="btn-auth-txt">{strings.SIGN_IN}</span>
                 </Button>
               )}
@@ -556,7 +583,7 @@ const Header = ({
               >
                 <WhatsAppIcon />
               </a>
-              <IconButton className="btn" onClick={() => navigate(isAgencyHub ? '/' : '/espace-agence')} aria-label={isAgencyHub ? strings.CLIENT_HUB : strings.AGENCY_HUB}>
+              <IconButton className="btn" onClick={() => goTo(isAgencyHub ? '/' : '/espace-agence')} aria-label={isAgencyHub ? strings.CLIENT_HUB : strings.AGENCY_HUB}>
                 {isAgencyHub ? <SignUpIcon /> : <AgencyHubIcon />}
               </IconButton>
               <Button variant="contained" onClick={handleCurrencyMenuOpen} disableElevation fullWidth className="btn bold">
@@ -593,4 +620,4 @@ const Header = ({
   )
 }
 
-export default memo(Header)
+export default Header

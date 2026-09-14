@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, CircularProgress, Paper } from '@mui/material'
+import { Button, CircularProgress, Menu, MenuItem, Paper } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { CircleFlag } from 'react-circle-flags'
 import * as bookcarsTypes from ':bookcars-types'
+import env from '@/config/env.config'
 import * as UserService from '@/services/UserService'
 import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
@@ -13,8 +15,12 @@ import Error from '@/components/Error'
 import { schema, FormFields } from '@/models/ActivateForm'
 import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/agency/lang/agency'
+import * as helper from '@/utils/helper'
+import * as langHelper from '@/utils/langHelper'
 import logo from '@/assets/img/logoWhite.png'
 import activateHero from '@/assets/img/first-login-agence.png'
+
+const FLAG_SIZE = 22
 
 const AgencyActivate = () => {
   const navigate = useNavigate()
@@ -25,11 +31,18 @@ const AgencyActivate = () => {
   const [loading, setLoading] = useState(true)
   const [invalid, setInvalid] = useState(false)
   const [submitError, setSubmitError] = useState(false)
+  const [lang, setLang] = useState(helper.getLanguage(langHelper.getLanguage()))
+  const [langAnchorEl, setLangAnchorEl] = useState<HTMLElement | null>(null)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormFields>({
     resolver: zodResolver(schema),
     mode: 'onSubmit',
   })
+
+  useEffect(() => {
+    langHelper.setLanguage(strings)
+    langHelper.setLanguage(commonStrings)
+  }, [])
 
   useEffect(() => {
     const load = async () => {
@@ -67,6 +80,21 @@ const AgencyActivate = () => {
 
     void load()
   }, [])
+
+  const onLanguageSelect = (event: React.MouseEvent<HTMLElement>) => {
+    setLangAnchorEl(null)
+    const { code } = event.currentTarget.dataset
+    if (!code) {
+      return
+    }
+
+    const currentLang = UserService.getLanguage()
+    setLang(helper.getLanguage(code))
+    UserService.setLanguage(code)
+    if (code !== currentLang) {
+      navigate(0)
+    }
+  }
 
   const onSubmit = async ({ password }: FormFields) => {
     setSubmitError(false)
@@ -123,6 +151,25 @@ const AgencyActivate = () => {
       <div className="agency-signin-ambient" aria-hidden />
       <div className="agency-activate-shell">
         <Paper className="agency-signin-card agency-activate-form" elevation={0}>
+          <div className="agency-activate-lang">
+            <Button
+              variant="contained"
+              onClick={(event) => setLangAnchorEl(event.currentTarget)}
+              disableElevation
+              className="agency-lang-btn"
+              aria-label={strings.LANGUAGE}
+            >
+              <span className="language">
+                <CircleFlag
+                  countryCode={lang?.countryCode || 'fr'}
+                  height={FLAG_SIZE}
+                  className="flag"
+                  title={lang?.label}
+                />
+              </span>
+            </Button>
+          </div>
+
           <div className="agency-signin-brand">
             <img src={logo} alt="DRIVOO" />
             <h1>{strings.ACTIVATE_TITLE}</h1>
@@ -180,6 +227,27 @@ const AgencyActivate = () => {
           <img src={activateHero} alt="" />
         </aside>
       </div>
+
+      <Menu
+        anchorEl={langAnchorEl}
+        open={Boolean(langAnchorEl)}
+        onClose={() => setLangAnchorEl(null)}
+        className="menu agency-lang-menu"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: { className: 'agency-lang-menu-paper' },
+        }}
+      >
+        {env._LANGUAGES.map((languageOption) => (
+          <MenuItem onClick={onLanguageSelect} data-code={languageOption.code} key={languageOption.code}>
+            <div className="language">
+              <CircleFlag countryCode={languageOption.countryCode} height={FLAG_SIZE} className="flag" title={languageOption.label} />
+              <span>{languageOption.label}</span>
+            </div>
+          </MenuItem>
+        ))}
+      </Menu>
     </div>
   )
 }

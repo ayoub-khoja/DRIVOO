@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { UserContextType, useUserContext } from './UserContext'
 import * as NotificationService from '@/services/NotificationService'
 import * as UserService from '@/services/UserService'
@@ -21,7 +21,7 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider = ({ children, refreshKey }: NotificationProviderProps) => {
-  const { userLoaded } = useUserContext() as UserContextType
+  const { user, userLoaded } = useUserContext() as UserContextType
   const [notificationCount, setNotificationCount] = useState(0)
   const value = useMemo(() => ({ notificationCount, setNotificationCount }), [notificationCount])
 
@@ -31,25 +31,21 @@ export const NotificationProvider = ({ children, refreshKey }: NotificationProvi
     if (currentUser) {
       const notificationCounter = await NotificationService.getNotificationCounter(currentUser._id!)
       setNotificationCount(notificationCounter.count)
+    } else {
+      setNotificationCount(0)
     }
   }, [])
 
-  // Ref to track the previous refreshKey
-  const prevRefreshKey = useRef(refreshKey)
-
   useEffect(() => {
-    // Check if refreshKey has actually changed
-    if (userLoaded && prevRefreshKey.current !== refreshKey) {
-      checkNotifications()
-      prevRefreshKey.current = refreshKey // Update the ref to the current refreshKey
+    if (!userLoaded) {
+      return
     }
-  }, [userLoaded, refreshKey, checkNotifications])
-
-  useEffect(() => {
-    if (refreshKey === undefined) {
-      checkNotifications()
+    if (!user) {
+      setNotificationCount(0)
+      return
     }
-  }, [refreshKey, checkNotifications])
+    checkNotifications()
+  }, [userLoaded, user, refreshKey, checkNotifications])
 
   return (
     <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>

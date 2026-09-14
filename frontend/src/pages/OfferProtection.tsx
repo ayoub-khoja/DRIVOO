@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@mui/material'
 import { InfoOutlined as InfoIcon } from '@mui/icons-material'
@@ -68,7 +68,12 @@ const OfferProtection = () => {
     [protectionPrice, language],
   )
 
+  const loadStarted = useRef(false)
   const onLoad = async () => {
+    if (loadStarted.current) {
+      return
+    }
+    loadStarted.current = true
     setLanguage(UserService.getLanguage())
     const { state } = location
     if (!state) {

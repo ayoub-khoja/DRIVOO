@@ -57,7 +57,12 @@ const PlanCard = React.memo(({ plan, lang, current, busy, submitting, onSelect }
 
       <div className="agency-sub-price">
         <strong>{price}</strong>
-        {!plan.freePlan && !isFreeLabel ? <span>{strings.PLAN_PER_MONTH}</span> : null}
+        {!plan.freePlan && !isFreeLabel ? (
+          <>
+            <span>{strings.PLAN_PER_MONTH}</span>
+            <span className="agency-plan-price-ht">{strings.PLAN_PRICE_HT}</span>
+          </>
+        ) : null}
       </div>
 
       <div className="agency-sub-meta">

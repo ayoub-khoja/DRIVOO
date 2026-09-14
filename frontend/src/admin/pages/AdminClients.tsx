@@ -21,6 +21,7 @@ import {
   ArrowBackIosNew as PrevIcon,
   ArrowForwardIos as NextIcon,
 } from '@mui/icons-material'
+import { toast } from 'react-toastify'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/admin/lang/admin'
 import * as AdminApiService from '@/admin/services/AdminApiService'
@@ -43,6 +44,8 @@ const AdminClients = () => {
   const [page, setPage] = useState(1)
   const [totalRecords, setTotalRecords] = useState(0)
   const [selected, setSelected] = useState<ClientRow | null>(null)
+  const [deleting, setDeleting] = useState<ClientRow | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = useCallback(async (search = '', nextPage = 1) => {
     setLoading(true)
@@ -69,6 +72,34 @@ const AdminClients = () => {
   useEffect(() => {
     load()
   }, [load])
+
+  const openDelete = (row: ClientRow) => {
+    setSelected(null)
+    setDeleting(row)
+  }
+
+  const onDelete = async () => {
+    if (!deleting?._id) {
+      return
+    }
+    setBusyId(deleting._id)
+    try {
+      const status = await AdminApiService.deleteUser(deleting._id)
+      if (status === 200 || status === 204) {
+        toast.info(strings.CLIENT_DELETED)
+        setDeleting(null)
+        const nextPage = rows.length === 1 && page > 1 ? page - 1 : page
+        await load(keyword, nextPage)
+      } else {
+        toast.error(strings.ERROR)
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error(strings.ERROR)
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   const formatDate = (value?: Date | string) => {
     if (!value) {
@@ -159,6 +190,15 @@ const AdminClients = () => {
                   <TableCell>{formatDate(row.createdAt)}</TableCell>
                   <TableCell align="right">
                     <div className="admin-row-actions">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        disabled={busyId === row._id}
+                        onClick={() => openDelete(row)}
+                      >
+                        {strings.DELETE}
+                      </Button>
                       <Button size="small" variant="outlined" color="primary" onClick={() => setSelected(row)}>
                         {strings.DETAILS}
                       </Button>
@@ -230,8 +270,64 @@ const AdminClients = () => {
             </DialogContent>
 
             <DialogActions className="admin-request-actions">
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => {
+                  if (selected) {
+                    openDelete(selected)
+                  }
+                }}
+              >
+                {strings.DELETE}
+              </Button>
               <Button variant="outlined" color="primary" onClick={() => setSelected(null)}>
                 {strings.CLOSE}
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
+      <Dialog
+        open={!!deleting}
+        onClose={() => !busyId && setDeleting(null)}
+        fullWidth
+        maxWidth="xs"
+        className="admin-request-dialog"
+        PaperProps={{ className: 'admin-request-paper' }}
+      >
+        {deleting && (
+          <>
+            <div className="admin-request-header">
+              <div>
+                <span className="admin-request-badge">{strings.DELETE}</span>
+                <h2>{strings.CONFIRM_DELETE_CLIENT}</h2>
+                <p>{deleting.fullName}</p>
+              </div>
+              <IconButton
+                aria-label={strings.CLOSE}
+                onClick={() => setDeleting(null)}
+                className="admin-request-close"
+                disabled={!!busyId}
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+            <DialogContent className="admin-request-content">
+              <p className="admin-delete-warning">{strings.CONFIRM_DELETE_CLIENT_TEXT}</p>
+            </DialogContent>
+            <DialogActions className="admin-request-actions">
+              <Button variant="outlined" color="primary" onClick={() => setDeleting(null)} disabled={!!busyId}>
+                {strings.CANCEL}
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={onDelete}
+                disabled={busyId === deleting._id}
+              >
+                {strings.DELETE}
               </Button>
             </DialogActions>
           </>

@@ -29,6 +29,7 @@ import * as AgencyInvoiceService from '@/agency/services/AgencyInvoiceService'
 import type { AgencyInvoice, AgencyInvoiceStats } from '@/agency/types/invoice'
 import { formatInvoiceDate } from '@/agency/utils/invoiceFormat'
 import { formatMoney } from '@/agency/utils/invoiceMath'
+import { getInvoiceLinkedContractNumbers } from '@/agency/utils/contractToInvoice'
 import { defaultRecapPeriod, periodPresetRange } from '@/agency/utils/periodRecap'
 import env from '@/config/env.config'
 import * as helper from '@/utils/helper'
@@ -396,7 +397,14 @@ const AgencyInvoices = () => {
                     {rows.map((row) => (
                       <tr key={row._id}>
                         <td>
-                          <span className="agency-receipt-number">{row.number}</span>
+                          <div className="agency-doc-ref-cell">
+                            <span className="agency-receipt-number">{row.number}</span>
+                            {getInvoiceLinkedContractNumbers(row).map((contractNumber) => (
+                              <span key={contractNumber} className="agency-doc-link-tag">
+                                {strings.INVOICE_TAG_LINKED.replace('{0}', contractNumber)}
+                              </span>
+                            ))}
+                          </div>
                         </td>
                         <td>{formatInvoiceDate(row.issueDate)}</td>
                         <td>
@@ -555,7 +563,14 @@ const AgencyInvoices = () => {
                   {recapRows.map((row) => (
                     <tr key={row._id}>
                       <td>
-                        <span className="agency-receipt-number">{row.number}</span>
+                        <div className="agency-doc-ref-cell">
+                          <span className="agency-receipt-number">{row.number}</span>
+                          {getInvoiceLinkedContractNumbers(row).map((contractNumber) => (
+                            <span key={contractNumber} className="agency-doc-link-tag">
+                              {strings.INVOICE_TAG_LINKED.replace('{0}', contractNumber)}
+                            </span>
+                          ))}
+                        </div>
                       </td>
                       <td>{formatInvoiceDate(row.issueDate)}</td>
                       <td>

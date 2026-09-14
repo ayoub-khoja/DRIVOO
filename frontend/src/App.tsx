@@ -1,5 +1,5 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react'
-import { createBrowserRouter, RouterProvider, Outlet, useLocation, Navigate } from 'react-router-dom'
+import React, { lazy, Suspense, useEffect } from 'react'
+import { createBrowserRouter, RouterProvider, Outlet, Navigate, useLocation } from 'react-router-dom'
 import env from '@/config/env.config'
 import { NotificationProvider } from '@/context/NotificationContext'
 import { UserContextType, UserProvider, useUserContext } from '@/context/UserContext'
@@ -10,17 +10,21 @@ import { init as initGA } from '@/utils/ga4'
 import ScrollToTop from '@/components/ScrollToTop'
 import ScrollTopButton from '@/components/ScrollTopButton'
 import NProgressIndicator from '@/components/NProgressIndicator'
+import RouteProgress from '@/components/RouteProgress'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import FirebaseMessagingBridge from '@/components/FirebaseMessagingBridge'
+import Header from '@/components/Header'
 import axiosInstance from '@/services/axiosInstance'
+// Auth + agency vitrine are eager: React Router 7 navigates inside startTransition + Suspense
+// would keep showing the previous page with no loader until the chunk loads.
+import SignIn from '@/pages/SignIn'
+import SignUp from '@/pages/SignUp'
+import AgencyShowcase from '@/pages/AgencyShowcase'
 
 if (env.GOOGLE_ANALYTICS_ENABLED) {
   initGA()
 }
 
-const Header = lazy(() => import('@/components/Header'))
-const SignIn = lazy(() => import('@/pages/SignIn'))
-const SignUp = lazy(() => import('@/pages/SignUp'))
 const Activate = lazy(() => import('@/pages/Activate'))
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'))
@@ -46,7 +50,6 @@ const Locations = lazy(() => import('@/pages/Locations'))
 const Suppliers = lazy(() => import('@/pages/Suppliers'))
 const Faq = lazy(() => import('@/pages/Faq'))
 const CookiePolicy = lazy(() => import('@/pages/CookiePolicy'))
-const AgencyShowcase = lazy(() => import('@/pages/AgencyShowcase'))
 const AgencyPublicProfile = lazy(() => import('@/pages/AgencyPublicProfile'))
 const VerifyDocument = lazy(() => import('@/pages/VerifyDocument'))
 
@@ -86,25 +89,39 @@ const AppMessaging = () => {
 
 const AppLayout = () => {
   const location = useLocation()
-  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
-    setRefreshKey((prev) => prev + 1)
-  }, [location.pathname])
+    const warm = () => {
+      void import('@/pages/Search')
+      void import('@/pages/Offer')
+      void import('@/pages/OfferExtras')
+    }
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(warm)
+      return () => w.cancelIdleCallback?.(id)
+    }
+    const t = window.setTimeout(warm, 1200)
+    return () => window.clearTimeout(t)
+  }, [])
 
   return (
     <ErrorBoundary>
       <SettingProvider>
-        <UserProvider refreshKey={refreshKey}>
-          <NotificationProvider refreshKey={refreshKey}>
+        <UserProvider>
+          <NotificationProvider>
             <RecaptchaProvider>
               <PayPalProvider>
                 <ScrollToTop />
+                <RouteProgress />
                 <div className="app">
                   <AppMessaging />
+                  <Header />
                   <Suspense fallback={<NProgressIndicator />}>
-                    <Header />
-                    <Outlet />
+                    <Outlet key={location.pathname} />
                   </Suspense>
                   <ScrollTopButton />
                 </div>

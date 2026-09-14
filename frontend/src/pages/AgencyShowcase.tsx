@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '@mui/material'
+import { appNavigate } from '@/utils/appNavigate'
 import {
   ArrowForward,
   AssignmentOutlined,
@@ -28,7 +28,6 @@ import homeAgenceRtl from '@/assets/img/home-agence-rtl.png'
 import '@/assets/css/agency-showcase.css'
 
 const AgencyShowcase = () => {
-  const navigate = useNavigate()
   const rootRef = useRef<HTMLDivElement>(null)
 
   const values = [
@@ -78,8 +77,12 @@ const AgencyShowcase = () => {
     return () => observer.disconnect()
   }, [])
 
-  const goJoin = () => navigate('/sign-up?role=agency')
-  const goLogin = () => navigate('/sign-in')
+  const goJoin = () => {
+    appNavigate('/sign-up?role=agency')
+  }
+  const goLogin = () => {
+    appNavigate('/sign-in')
+  }
   const isAr = langHelper.getLanguage() === 'ar'
 
   return (

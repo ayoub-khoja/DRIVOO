@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   OutlinedInput,
   InputLabel,
@@ -17,6 +17,7 @@ import {
   StorefrontOutlined as StorefrontOutlinedIcon,
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
+import { appNavigate } from '@/utils/appNavigate'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
@@ -51,16 +52,29 @@ const supplierStepLabels = () => [
 const SignUp = () => {
   const navigate = useNavigate()
 
-  const { setUser, setUserLoaded } = useUserContext() as UserContextType
+  const { user, userLoaded, setUser, setUserLoaded } = useUserContext() as UserContextType
   const { reCaptchaLoaded, generateReCaptchaToken } = useRecaptchaContext() as RecaptchaContextType
 
   const [language, setLanguage] = useState(env.DEFAULT_LANGUAGE)
   const [recaptchaError, setRecaptchaError] = useState(false)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(true)
   const [activeStep, setActiveStep] = useState(0)
   const [role, setRole] = useState<SignUpRole | null>(null)
   const [supplierDone, setSupplierDone] = useState(false)
   const [supplierWizardStep, setSupplierWizardStep] = useState(0)
+
+  // Redirect away only once auth is known; never keep the form hidden while waiting.
+  useEffect(() => {
+    setLanguage(UserService.getLanguage())
+    const roleParam = new URLSearchParams(window.location.search).get('role')
+    if (roleParam === 'agency') {
+      setRole(bookcarsTypes.UserType.Supplier)
+      setActiveStep(1)
+    }
+    if (userLoaded && user) {
+      navigate('/', { replace: true })
+    }
+  }, [userLoaded, user, navigate])
 
   const clientForm = useForm<FormFields>({
     resolver: zodResolver(schema),
@@ -147,18 +161,8 @@ const SignUp = () => {
     }
   }
 
-  const onLoad = (user?: bookcarsTypes.User) => {
-    if (user) {
-      navigate('/')
-    } else {
-      setLanguage(UserService.getLanguage())
-      setVisible(true)
-      const roleParam = new URLSearchParams(window.location.search).get('role')
-      if (roleParam === 'agency') {
-        setRole(bookcarsTypes.UserType.Supplier)
-        setActiveStep(1)
-      }
-    }
+  const onLoad = (_user?: bookcarsTypes.User) => {
+    // Visibility / redirect handled in useEffect for reliable SPA navigation
   }
 
   const selectRole = (nextRole: SignUpRole) => {
@@ -279,7 +283,7 @@ const SignUp = () => {
                 >
                   {strings.CONTINUE}
                 </Button>
-                <Button variant="outlined" color="primary" onClick={() => navigate('/')}>
+                <Button variant="outlined" color="primary" onClick={() => appNavigate('/')}>
                   {commonStrings.CANCEL}
                 </Button>
               </div>

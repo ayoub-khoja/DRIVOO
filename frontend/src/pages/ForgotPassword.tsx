@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { appNavigate } from '@/utils/appNavigate'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -122,7 +123,7 @@ const ForgotPassword = () => {
                   variant="outlined"
                   className="btn-forgot-secondary"
                   startIcon={<ArrowBack />}
-                  onClick={() => navigate('/sign-in')}
+                  onClick={() => appNavigate('/sign-in')}
                   disabled={isSubmitting}
                 >
                   {strings.BACK_TO_SIGN_IN}
@@ -173,7 +174,7 @@ const ForgotPassword = () => {
                   type="button"
                   variant="contained"
                   className="btn-primary"
-                  onClick={() => navigate('/sign-in')}
+                  onClick={() => appNavigate('/sign-in')}
                 >
                   {strings.BACK_TO_SIGN_IN}
                 </Button>

@@ -183,7 +183,12 @@ const OfferPayment = () => {
     pricing: (location.state as { pricing?: unknown } | null)?.pricing,
   })
 
+  const loadStarted = useRef(false)
   const onLoad = async (_user?: bookcarsTypes.User) => {
+    if (loadStarted.current) {
+      return
+    }
+    loadStarted.current = true
     setUser(_user)
     setAuthenticated(!!_user)
     setLanguage(UserService.getLanguage())

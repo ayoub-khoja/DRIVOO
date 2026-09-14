@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react'
+import React, { useEffect, useRef, ReactNode } from 'react'
 import { Button } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/lang/master'
@@ -22,21 +22,28 @@ const Layout = ({
   useAnalytics()
 
   const { user, userLoaded, unauthorized } = useUserContext() as UserContextType
-  const [loading, setLoading] = useState(true)
+  const onLoadRef = useRef(onLoad)
+  const didCallOnLoad = useRef(false)
+
+  onLoadRef.current = onLoad
 
   useEffect(() => {
     const currentUser = UserService.getCurrentUser()
 
     if (!currentUser && strict) {
       UserService.signout(true, false)
-    } else if (userLoaded) {
-      setLoading(false)
-
-      if (onLoad) {
-        onLoad(user || undefined)
-      }
+      return
     }
-  }, [user, userLoaded, strict]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (!userLoaded) {
+      return
+    }
+
+    if (onLoadRef.current && !didCallOnLoad.current) {
+      didCallOnLoad.current = true
+      onLoadRef.current(user || undefined)
+    }
+  }, [user, userLoaded, strict])
 
   const handleResend = async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault()
@@ -57,24 +64,26 @@ const Layout = ({
     }
   }
 
+  // Never blank the whole page while auth is resolving (that looked like a frozen SPA).
+  // Guests / non-strict pages see content as soon as the session check finishes.
+  const showContent = !userLoaded
+    ? !strict
+    : ((!user) || !!user.verified || !strict)
+  const showVerifyEmail = userLoaded && !!user && !user.verified && !!strict
+
   return (
     <>
-      {
-        !(unauthorized && strict) && (
-          (!user && !loading) || (user && user.verified) ? (
-            <div className="content">{children}</div>
-          ) : (
-            !loading && (
-              <div className="validate-email">
-                <span>{strings.VALIDATE_EMAIL}</span>
-                <Button type="button" variant="contained" className="btn-primary btn-resend" onClick={handleResend}>
-                  {strings.RESEND}
-                </Button>
-              </div>
-            )
-          )
-        )
-      }
+      {!(unauthorized && strict) && showContent && (
+        <div className="content">{children}</div>
+      )}
+      {!(unauthorized && strict) && showVerifyEmail && (
+        <div className="validate-email">
+          <span>{strings.VALIDATE_EMAIL}</span>
+          <Button type="button" variant="contained" className="btn-primary btn-resend" onClick={handleResend}>
+            {strings.RESEND}
+          </Button>
+        </div>
+      )}
       {unauthorized && strict && <Unauthorized />}
     </>
   )
