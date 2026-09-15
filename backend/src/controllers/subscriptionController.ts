@@ -15,6 +15,8 @@ type PlanPayload = {
   subtitle?: LocalizedText | Record<string, unknown>
   tokens?: number
   freeTokens?: number
+  trialDays?: number
+  /** @deprecated Prefer trialDays. Accepted for older clients/documents. */
   trialMonths?: number
   carLimitMin?: number
   carLimitMax?: number
@@ -98,6 +100,17 @@ const sanitizeServices = (value: unknown) => {
   return [...new Set(value.map((item) => clip(item, 64)).filter(Boolean))].slice(0, MAX_SERVICES)
 }
 
+/** Map legacy trialMonths documents to trialDays for API responses. */
+const withTrialDays = <T extends Record<string, unknown>>(plan: T) => {
+  const legacy = Number(plan.trialMonths)
+  const days = Number(plan.trialDays)
+  const trialDays = Number.isFinite(days) && days > 0
+    ? days
+    : (Number.isFinite(legacy) ? Math.max(0, legacy) : 0)
+  const { trialMonths: _legacyTrialMonths, ...rest } = plan
+  return { ...rest, trialDays }
+}
+
 const sanitizePlan = (body: PlanPayload) => {
   const name = toLocalized(body.name)
   if (
@@ -129,7 +142,7 @@ const sanitizePlan = (body: PlanPayload) => {
     subtitle: toLocalized(body.subtitle, 180),
     tokens: toNumber(body.tokens, 0, 1_000_000),
     freeTokens: toNumber(body.freeTokens, 0, 1_000_000),
-    trialMonths: toNumber(body.trialMonths, 0, 36),
+    trialDays: toNumber(body.trialDays ?? body.trialMonths, 0, 365),
     carLimitMin,
     carLimitMax,
     carLimit: carLimitMax,
@@ -159,6 +172,7 @@ export const getPublicPlans = async (_req: Request, res: Response) => {
         subtitle: 1,
         tokens: 1,
         freeTokens: 1,
+        trialDays: 1,
         trialMonths: 1,
         carLimitMin: 1,
         carLimitMax: 1,
@@ -176,7 +190,7 @@ export const getPublicPlans = async (_req: Request, res: Response) => {
     )
       .sort({ priceHt: 1, carLimitMin: 1, carLimitMax: 1, createdAt: 1 })
       .lean()
-    res.json(plans)
+    res.json(plans.map((plan) => withTrialDays(plan as unknown as Record<string, unknown>)))
   } catch (err) {
     logger.error(`[subscription.getPublicPlans] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
@@ -186,7 +200,7 @@ export const getPublicPlans = async (_req: Request, res: Response) => {
 export const getPlans = async (_req: Request, res: Response) => {
   try {
     const plans = await SubscriptionPlan.find().sort({ priceHt: 1, carLimitMin: 1, carLimitMax: 1, createdAt: 1 }).lean()
-    res.json(plans)
+    res.json(plans.map((plan) => withTrialDays(plan as unknown as Record<string, unknown>)))
   } catch (err) {
     logger.error(`[subscription.getPlans] ${i18n.t('ERROR')}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
@@ -221,12 +235,16 @@ export const updatePlan = async (req: Request, res: Response) => {
       res.status(400).send('Invalid plan name')
       return
     }
-    const plan = await SubscriptionPlan.findByIdAndUpdate(id, payload, { new: true })
+    const plan = await SubscriptionPlan.findByIdAndUpdate(
+      id,
+      { $set: payload, $unset: { trialMonths: 1 } },
+      { new: true },
+    )
     if (!plan) {
       res.sendStatus(204)
       return
     }
-    res.status(200).json(plan)
+    res.status(200).json(withTrialDays(plan.toObject() as unknown as Record<string, unknown>))
   } catch (err) {
     logger.error(`[subscription.updatePlan] ${i18n.t('ERROR')} ${id}`, err)
     res.status(400).send(i18n.t('ERROR') + err)

@@ -39,7 +39,7 @@ const subscriptionPlanSchema = new Schema<env.SubscriptionPlan>(
     subtitle: { type: localizedTextSchema, default: () => ({ fr: '', en: '', ar: '' }) },
     tokens: { type: Number, default: 0, min: 0 },
     freeTokens: { type: Number, default: 0, min: 0 },
-    trialMonths: { type: Number, default: 0, min: 0, max: 36 },
+    trialDays: { type: Number, default: 0, min: 0, max: 365 },
     carLimitMin: { type: Number, default: 0, min: 0 },
     carLimitMax: { type: Number, default: 0, min: 0 },
     carLimit: { type: Number, default: 0, min: 0 },

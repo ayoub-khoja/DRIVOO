@@ -1321,7 +1321,8 @@ export interface SubscriptionPlan extends Document {
   subtitle: LocalizedText
   tokens: number
   freeTokens: number
-  trialMonths: number
+  /** Free trial duration in days (0 = no trial). */
+  trialDays: number
   carLimitMin: number
   carLimitMax: number
   /** @deprecated Use carLimitMax */

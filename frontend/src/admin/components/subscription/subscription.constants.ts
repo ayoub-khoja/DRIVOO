@@ -120,6 +120,28 @@ export const AGENCY_ACCESS_POINTS: { key: string, label: bookcarsTypes.Localized
 /** @deprecated Prefer AGENCY_ACCESS_POINTS — kept for existing plan cards. */
 export const SERVICE_CATALOG = AGENCY_ACCESS_POINTS
 
+/** Display order for the 10 access points shown on plan cards (admin + agency). */
+export const PRIORITY_ACCESS_KEYS = [
+  'dashboard',
+  'fleet',
+  'bookings',
+  'agenda',
+  'invoices',
+  'receipts',
+  'contracts',
+  'clients',
+  'branches',
+  'reviews',
+] as const
+
+/** Resolve access points for plan cards — same list/order as agency subscription UI. */
+export const getPlanAccessItems = (_plan?: bookcarsTypes.SubscriptionPlan | null) => {
+  const byKey = new Map(AGENCY_ACCESS_POINTS.map((item) => [item.key, item]))
+  return PRIORITY_ACCESS_KEYS
+    .map((key) => byKey.get(key))
+    .filter((item): item is (typeof AGENCY_ACCESS_POINTS)[number] => !!item)
+}
+
 export const emptyLocalized = (): bookcarsTypes.LocalizedText => ({
   fr: '',
   en: '',
@@ -171,7 +193,7 @@ export const emptyPlanForm = (): bookcarsTypes.UpsertSubscriptionPlanPayload => 
   subtitle: emptyLocalized(),
   tokens: 0,
   freeTokens: 0,
-  trialMonths: 0,
+  trialDays: 0,
   carLimitMin: 0,
   carLimitMax: 0,
   priceHt: 0,

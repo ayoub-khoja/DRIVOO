@@ -50,3 +50,14 @@ export const verifyDocument = (
   axiosInstance
     .get(`/api/public/document/${encodeURIComponent(kind)}/${encodeURIComponent(id)}`)
     .then((res) => res.data)
+
+/** Same PDF as agency print (contracts include both pages). Blob for same-origin embed. */
+export const getDocumentPdfBlob = (
+  kind: string,
+  id: string,
+): Promise<Blob> =>
+  axiosInstance
+    .get(`/api/public/document/${encodeURIComponent(kind)}/${encodeURIComponent(id)}/pdf`, {
+      responseType: 'blob',
+    })
+    .then((res) => res.data)

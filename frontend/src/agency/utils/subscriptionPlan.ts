@@ -99,6 +99,31 @@ export const SERVICE_CATALOG: { key: string, label: bookcarsTypes.LocalizedText 
   },
 ]
 
+/** Same priority order as admin subscription plan cards (10 accès affichés). */
+export const PRIORITY_ACCESS_KEYS = [
+  'dashboard',
+  'fleet',
+  'bookings',
+  'agenda',
+  'invoices',
+  'receipts',
+  'contracts',
+  'clients',
+  'branches',
+  'reviews',
+] as const
+
+/**
+ * Resolve access points for agency plan cards — mirrors admin PlanCard.
+ * Always returns the 10 fixed agency workspace access points in display order.
+ */
+export const getPlanAccessItems = (_plan?: bookcarsTypes.SubscriptionPlan | null) => {
+  const byKey = new Map(SERVICE_CATALOG.map((item) => [item.key, item]))
+  return PRIORITY_ACCESS_KEYS
+    .map((key) => byKey.get(key))
+    .filter((item): item is (typeof SERVICE_CATALOG)[number] => !!item)
+}
+
 export const pickLabel = (text: bookcarsTypes.LocalizedText | undefined, lang: string) => {
   if (!text) {
     return ''

@@ -11,8 +11,8 @@ import * as bookcarsTypes from ':bookcars-types'
 import { strings as common } from '@/admin/lang/admin'
 import { subStrings } from '@/admin/lang/subscription'
 import {
-  AGENCY_ACCESS_POINTS,
   computePlanTaxBreakdown,
+  getPlanAccessItems,
   pickLabel,
 } from './subscription.constants'
 
@@ -22,19 +22,6 @@ type PlanCardProps = {
   onEdit: (plan: bookcarsTypes.SubscriptionPlan) => void
   onDelete: (plan: bookcarsTypes.SubscriptionPlan) => void
 }
-
-const PRIORITY_ACCESS_KEYS = [
-  'dashboard',
-  'fleet',
-  'bookings',
-  'agenda',
-  'invoices',
-  'receipts',
-  'contracts',
-  'clients',
-  'branches',
-  'reviews',
-]
 
 const getTierClass = (plan: bookcarsTypes.SubscriptionPlan) => {
   const max = plan.carLimitMax || plan.carLimit || 0
@@ -57,16 +44,7 @@ const PlanCard = ({ plan, lang, onEdit, onDelete }: PlanCardProps) => {
   const carMax = plan.carLimitMax || plan.carLimit || 0
   const isFree = plan.freePlan || tax.totalTtc <= 0
 
-  const access = useMemo(() => {
-    const catalog = plan.services?.length
-      ? AGENCY_ACCESS_POINTS.filter((item) => plan.services.includes(item.key))
-      : AGENCY_ACCESS_POINTS
-    const prioritized = PRIORITY_ACCESS_KEYS
-      .map((key) => catalog.find((item) => item.key === key))
-      .filter(Boolean) as typeof AGENCY_ACCESS_POINTS
-    const rest = catalog.filter((item) => !PRIORITY_ACCESS_KEYS.includes(item.key))
-    return [...prioritized, ...rest].slice(0, 10)
-  }, [plan.services])
+  const access = useMemo(() => getPlanAccessItems(plan), [plan])
 
   return (
     <article className={`sub-plan-card ${getTierClass(plan)}${plan.active ? '' : ' is-inactive-card'}`}>
@@ -124,10 +102,10 @@ const PlanCard = ({ plan, lang, onEdit, onDelete }: PlanCardProps) => {
         </div>
       </div>
 
-      {plan.trialMonths > 0 && (
+      {plan.trialDays > 0 && (
         <div className="sub-plan-trial">
           <HourglassEmptyOutlined />
-          <span>{subStrings.TRIAL_META.replace('{0}', String(plan.trialMonths))}</span>
+          <span>{subStrings.TRIAL_META.replace('{0}', String(plan.trialDays))}</span>
         </div>
       )}
 
