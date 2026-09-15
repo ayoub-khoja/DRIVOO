@@ -50,13 +50,22 @@ export const loadArabicFonts = (): Record<string, Buffer> | null => {
 export const ARABIC_TEXT_FEATURES: ('rtla')[] = ['rtla']
 
 /**
- * `rtla` also mirrors digit runs (110 → 011) and parentheses (() → )).
- * Pre-adjust those in logical source so the visual result stays correct after shaping.
+ * `rtla` also mirrors digit runs (110 → 011), parentheses (() → )),
+ * and Latin runs ("Ayoub" → "buoyA"). Pre-adjust those in logical source
+ * so the visual result stays correct after shaping.
+ *
+ * Latin phrases use NBSP so PDFKit does not wrap mid-name; a line that
+ * starts with Latin leaves the following Arabic unshaped/reversed.
  */
 export const prepareArabicForPdf = (text: string): string =>
   (text || '')
     .replace(/\d+/g, (digits) => digits.split('').reverse().join(''))
     .replace(/[()]/g, (ch) => (ch === '(' ? ')' : '('))
+    .replace(/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[\s'’.-]*[A-Za-zÀ-ÖØ-öø-ÿ]+)*/g, (latin) =>
+      latin.replace(/ /g, '\u00A0').split('').reverse().join(''),
+    )
+    // Keep Latin on the same line as the preceding Arabic word.
+    .replace(/(\S)\s+(?=[A-Za-zÀ-ÖØ-öø-ÿ])/g, '$1\u00A0')
 
 /** Shared PDFKit options for Arabic paragraphs (whole-string layout, no LTR word splitting). */
 export const arabicTextOptions = (
