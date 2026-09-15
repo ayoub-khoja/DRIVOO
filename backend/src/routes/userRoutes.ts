@@ -50,5 +50,9 @@ routes.route(routeNames.approveAccountRequest).post(authJwt.verifyToken, authJwt
 routes.route(routeNames.rejectAccountRequest).post(authJwt.verifyToken, authJwt.authAdmin, userController.rejectAccountRequest)
 routes.route(routeNames.getAccountRequests).post(authJwt.verifyToken, authJwt.authAdmin, userController.getAccountRequests)
 routes.route(routeNames.updateAgency).put(authJwt.verifyToken, authJwt.authAdmin, userController.updateAgency)
+routes.route(routeNames.getAgencyLogins).post(authJwt.verifyToken, authJwt.authAdmin, userController.getAgencyLogins)
+routes.route(routeNames.updateAgencyLogin).put(authJwt.verifyToken, authJwt.authAdmin, userController.updateAgencyLogin)
+routes.route(routeNames.getAgencyPayments).post(authJwt.verifyToken, authJwt.authAdmin, userController.getAgencyPayments)
+routes.route(routeNames.updateAgencyPayment).put(authJwt.verifyToken, authJwt.authAdmin, userController.updateAgencyPayment)
 
 export default routes

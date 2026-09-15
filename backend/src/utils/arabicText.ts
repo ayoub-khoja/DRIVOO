@@ -46,8 +46,21 @@ export const loadArabicFonts = (): Record<string, Buffer> | null => {
   return cachedFonts
 }
 
-/** True when the clause is a "- …" list item (logical source form). */
-export const isArabicBullet = (text: string): boolean => /^-\s+/.test(text || '')
+/** OpenType feature that keeps Arabic words in visual RTL order in PDFKit. */
+export const ARABIC_TEXT_FEATURES: ('rtla')[] = ['rtla']
 
-/** Body of a list item without the leading ASCII dash. */
-export const arabicBulletBody = (text: string): string => (text || '').replace(/^-\s+/, '')
+/** Shared PDFKit options for Arabic paragraphs (whole-string layout, no LTR word splitting). */
+export const arabicTextOptions = (
+  width: number,
+  extra?: { lineBreak?: boolean },
+): {
+  width: number
+  align: 'right'
+  features: ('rtla')[]
+  lineBreak?: boolean
+} => ({
+  width,
+  align: 'right',
+  features: ARABIC_TEXT_FEATURES,
+  ...extra,
+})

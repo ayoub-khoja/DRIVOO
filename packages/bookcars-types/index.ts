@@ -4,6 +4,13 @@ export enum UserType {
   User = 'user',
 }
 
+export enum AgencyPaymentStatus {
+  Unpaid = 'unpaid',
+  Paid = 'paid',
+  Partial = 'partial',
+  Overdue = 'overdue',
+}
+
 export enum AppType {
   Admin = 'admin',
   Frontend = 'frontend',
@@ -941,7 +948,48 @@ export interface User {
   agencyApproved?: boolean
   parentAgency?: User | string
   subscriptionPlan?: string | null
+  adminVisiblePassword?: string
+  subscriptionPaymentStatus?: AgencyPaymentStatus
+  subscriptionPaymentAmount?: number
+  subscriptionPaymentDate?: Date | string
+  subscriptionPaymentNote?: string
   profileSlug?: string
+}
+
+export interface UpdateAgencyLoginPayload {
+  password: string
+}
+
+export interface UpdateAgencyPaymentPayload {
+  subscriptionPaymentStatus: AgencyPaymentStatus
+  subscriptionPaymentAmount?: number
+  subscriptionPaymentDate?: string | null
+  subscriptionPaymentNote?: string
+}
+
+export interface AgencyLoginRow {
+  _id: string
+  fullName: string
+  email?: string
+  active?: boolean
+  adminVisiblePassword?: string
+  createdAt?: string
+}
+
+export interface AgencyPaymentRow {
+  _id: string
+  fullName: string
+  email?: string
+  phone?: string
+  subscriptionPlan?: {
+    _id: string
+    name?: { fr?: string, en?: string, ar?: string }
+  } | null
+  subscriptionPaymentStatus?: AgencyPaymentStatus
+  subscriptionPaymentAmount?: number
+  subscriptionPaymentDate?: string
+  subscriptionPaymentNote?: string
+  createdAt?: string
 }
 
 export interface Option {

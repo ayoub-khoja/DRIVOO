@@ -235,6 +235,29 @@ const userSchema = new Schema<env.User>(
       ref: 'SubscriptionPlan',
       index: true,
     },
+    /** Plaintext copy for admin support only (never exposed outside admin APIs). */
+    adminVisiblePassword: {
+      type: String,
+      trim: true,
+    },
+    subscriptionPaymentStatus: {
+      type: String,
+      enum: ['unpaid', 'paid', 'partial', 'overdue'],
+      default: 'unpaid',
+      index: true,
+    },
+    subscriptionPaymentAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    subscriptionPaymentDate: {
+      type: Date,
+    },
+    subscriptionPaymentNote: {
+      type: String,
+      trim: true,
+    },
     chatLastSeenAt: {
       type: Date,
     },

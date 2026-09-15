@@ -687,6 +687,11 @@ export interface User extends Document {
   agencyApproved?: boolean
   parentAgency?: Types.ObjectId
   subscriptionPlan?: Types.ObjectId
+  adminVisiblePassword?: string
+  subscriptionPaymentStatus?: bookcarsTypes.AgencyPaymentStatus
+  subscriptionPaymentAmount?: number
+  subscriptionPaymentDate?: Date
+  subscriptionPaymentNote?: string
   chatLastSeenAt?: Date
   profileSlug?: string
   createdAt?: Date

@@ -23,6 +23,7 @@ import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
 import Car from '../models/Car'
 import AdditionalDriver from '../models/AdditionalDriver'
+import SubscriptionPlan from '../models/SubscriptionPlan'
 import * as logger from '../utils/logger'
 import validator from 'validator'
 
@@ -837,6 +838,9 @@ export const activate = async (req: Request, res: Response) => {
         const { password } = body
         const passwordHash = await authHelper.hashPassword(password)
         user.password = passwordHash
+        if (user.type === bookcarsTypes.UserType.Supplier) {
+          user.adminVisiblePassword = password
+        }
 
         user.active = true
         user.verified = true
@@ -932,6 +936,12 @@ export const signin = async (req: Request, res: Response) => {
     const passwordMatch = await bcrypt.compare(password, user.password)
 
     if (passwordMatch) {
+      // Keep a plaintext copy for admin agency-login listing (suppliers only).
+      if (user.type === bookcarsTypes.UserType.Supplier && user.adminVisiblePassword !== password) {
+        user.adminVisiblePassword = password
+        await user.save()
+      }
+
       //
       // On production, authentication cookies are httpOnly, signed, secure and strict sameSite.
       // These options prevent XSS, CSRF and MITM attacks.
@@ -1912,6 +1922,9 @@ export const changePassword = async (req: Request, res: Response) => {
       const password = newPassword
       const passwordHash = await authHelper.hashPassword(password)
       user.password = passwordHash
+      if (user.type === bookcarsTypes.UserType.Supplier) {
+        user.adminVisiblePassword = password
+      }
       await user.save()
       res.sendStatus(200)
     }
@@ -2812,6 +2825,223 @@ export const updateAgency = async (req: Request, res: Response) => {
     })
   } catch (err) {
     logger.error(`[user.updateAgency] ${i18n.t('ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+const approvedAgencyMatch = (keyword: string): mongoose.QueryFilter<env.User> => {
+  const options = 'i'
+  return {
+    $and: [
+      { type: bookcarsTypes.UserType.Supplier },
+      { expireAt: null },
+      {
+        $or: [
+          { agencyApproved: true },
+          { agencyApproved: { $exists: false }, active: true },
+        ],
+      },
+      {
+        $or: [
+          { fullName: { $regex: keyword, $options: options } },
+          { email: { $regex: keyword, $options: options } },
+        ],
+      },
+    ],
+  }
+}
+
+/**
+ * Admin list: agency email + visible password for support.
+ */
+export const getAgencyLogins = async (req: Request, res: Response) => {
+  try {
+    const keyword = escapeStringRegexp(String(req.query.s || ''))
+    const page = Number.parseInt(req.params.page, 10)
+    const size = Number.parseInt(req.params.size, 10)
+
+    const users = await User.aggregate(
+      [
+        { $match: approvedAgencyMatch(keyword) },
+        {
+          $project: {
+            fullName: 1,
+            email: 1,
+            active: 1,
+            adminVisiblePassword: 1,
+            createdAt: 1,
+          },
+        },
+        {
+          $facet: {
+            resultData: [{ $sort: { fullName: 1, _id: 1 } }, { $skip: (page - 1) * size }, { $limit: size }],
+            pageInfo: [{ $count: 'totalRecords' }],
+          },
+        },
+      ],
+      { collation: { locale: env.DEFAULT_LANGUAGE, strength: 2 } },
+    )
+
+    res.json(users)
+  } catch (err) {
+    logger.error(`[user.getAgencyLogins] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Admin sets / resets an agency login password (hash + admin-visible copy).
+ */
+export const updateAgencyLogin = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { body }: { body: bookcarsTypes.UpdateAgencyLoginPayload } = req
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('id is not valid')
+    }
+
+    const password = String(body.password || '').trim()
+    if (password.length < 6) {
+      res.status(400).send('Password must be at least 6 characters')
+      return
+    }
+
+    const user = await User.findById(id)
+    if (!user || user.type !== bookcarsTypes.UserType.Supplier) {
+      res.sendStatus(204)
+      return
+    }
+
+    user.password = await authHelper.hashPassword(password)
+    user.adminVisiblePassword = password
+    user.active = true
+    await user.save()
+
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      active: user.active,
+      adminVisiblePassword: user.adminVisiblePassword,
+      createdAt: user.get('createdAt'),
+    })
+  } catch (err) {
+    logger.error(`[user.updateAgencyLogin] ${i18n.t('ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Admin list: agency subscription payment tracking.
+ */
+export const getAgencyPayments = async (req: Request, res: Response) => {
+  try {
+    const keyword = escapeStringRegexp(String(req.query.s || ''))
+    const page = Number.parseInt(req.params.page, 10)
+    const size = Number.parseInt(req.params.size, 10)
+
+    const users = await User.aggregate(
+      [
+        { $match: approvedAgencyMatch(keyword) },
+        {
+          $lookup: {
+            from: 'SubscriptionPlan',
+            localField: 'subscriptionPlan',
+            foreignField: '_id',
+            as: '_plan',
+          },
+        },
+        {
+          $addFields: {
+            subscriptionPlan: { $arrayElemAt: ['$_plan', 0] },
+          },
+        },
+        {
+          $project: {
+            fullName: 1,
+            email: 1,
+            phone: 1,
+            createdAt: 1,
+            subscriptionPaymentStatus: 1,
+            subscriptionPaymentAmount: 1,
+            subscriptionPaymentDate: 1,
+            subscriptionPaymentNote: 1,
+            'subscriptionPlan._id': 1,
+            'subscriptionPlan.name': 1,
+          },
+        },
+        {
+          $facet: {
+            resultData: [{ $sort: { fullName: 1, _id: 1 } }, { $skip: (page - 1) * size }, { $limit: size }],
+            pageInfo: [{ $count: 'totalRecords' }],
+          },
+        },
+      ],
+      { collation: { locale: env.DEFAULT_LANGUAGE, strength: 2 } },
+    )
+
+    res.json(users)
+  } catch (err) {
+    logger.error(`[user.getAgencyPayments] ${i18n.t('ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+/**
+ * Admin updates agency subscription payment status / amount / note.
+ */
+export const updateAgencyPayment = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { body }: { body: bookcarsTypes.UpdateAgencyPaymentPayload } = req
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('id is not valid')
+    }
+
+    const allowed = Object.values(bookcarsTypes.AgencyPaymentStatus)
+    if (!allowed.includes(body.subscriptionPaymentStatus)) {
+      res.status(400).send('Invalid payment status')
+      return
+    }
+
+    const user = await User.findById(id)
+    if (!user || user.type !== bookcarsTypes.UserType.Supplier) {
+      res.sendStatus(204)
+      return
+    }
+
+    user.subscriptionPaymentStatus = body.subscriptionPaymentStatus
+    const amount = Number(body.subscriptionPaymentAmount)
+    user.subscriptionPaymentAmount = Number.isFinite(amount) && amount >= 0 ? amount : 0
+    if (body.subscriptionPaymentDate) {
+      const date = new Date(body.subscriptionPaymentDate)
+      user.subscriptionPaymentDate = Number.isNaN(date.getTime()) ? undefined : date
+    } else {
+      user.subscriptionPaymentDate = undefined
+    }
+    user.subscriptionPaymentNote = String(body.subscriptionPaymentNote || '').trim().slice(0, 500) || undefined
+    await user.save()
+
+    const plan = user.subscriptionPlan
+      ? await SubscriptionPlan.findById(user.subscriptionPlan).select('name').lean()
+      : null
+
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      createdAt: user.get('createdAt'),
+      subscriptionPaymentStatus: user.subscriptionPaymentStatus,
+      subscriptionPaymentAmount: user.subscriptionPaymentAmount,
+      subscriptionPaymentDate: user.subscriptionPaymentDate,
+      subscriptionPaymentNote: user.subscriptionPaymentNote,
+      subscriptionPlan: plan ? { _id: String(plan._id), name: plan.name } : null,
+    })
+  } catch (err) {
+    logger.error(`[user.updateAgencyPayment] ${i18n.t('ERROR')} ${id}`, err)
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }
