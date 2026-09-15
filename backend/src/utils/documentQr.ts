@@ -5,31 +5,31 @@ import { NAVY_DARK, WHITE } from './pdfShared'
 
 /**
  * Unique, stable QR payload for agency printable documents.
- * Encodes a public frontend URL; the verify page embeds the same multi-page PDF
- * as the agency download (contract = page 1 + CGV page 2).
+ * Encodes the public PDF URL so scanners open the full document directly
+ * (contract = page 1 + CGV page 2) instead of an intermediate HTML page.
  */
 export type AgencyDocumentKind = 'contract' | 'invoice' | 'receipt'
 
 export const DOCUMENT_QR_SIZE = 56
 
-/** Frontend route opened when the QR is scanned. */
+/** Frontend route (kept for legacy links / optional branded viewer). */
 export const buildAgencyDocumentPath = (
   kind: AgencyDocumentKind,
   id: string,
 ): string => `verify/document/${kind}/${encodeURIComponent(id)}`
+
+/** Direct public API PDF path (inline Content-Disposition). */
+export const buildAgencyDocumentPdfPath = (
+  kind: AgencyDocumentKind,
+  id: string,
+): string => `api/public/document/${kind}/${encodeURIComponent(id)}/pdf`
 
 /** Public absolute URL embedded in the QR code (phone cameras open this). */
 export const buildAgencyDocumentQrValue = (
   kind: AgencyDocumentKind,
   id: string,
   _number?: string,
-): string => helper.joinURL(env.FRONTEND_HOST, buildAgencyDocumentPath(kind, id))
-
-/** Direct public API PDF path (used by the verify page iframe / download). */
-export const buildAgencyDocumentPdfPath = (
-  kind: AgencyDocumentKind,
-  id: string,
-): string => `api/public/document/${kind}/${encodeURIComponent(id)}/pdf`
+): string => helper.joinURL(env.BACKEND_HOST, buildAgencyDocumentPdfPath(kind, id))
 
 /** PNG buffer sized for crisp embedding in PDFKit. */
 export const renderDocumentQrPng = async (
