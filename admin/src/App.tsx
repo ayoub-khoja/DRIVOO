@@ -1,49 +1,50 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom'
 import { NotificationProvider } from '@/context/NotificationContext'
 import { UserProvider } from '@/context/UserContext'
 import { RecaptchaProvider } from '@/context/RecaptchaContext'
+import { lazyWithRetry } from '@/utils/lazyWithRetry'
 import ScrollToTop from '@/components/ScrollToTop'
 import NProgressIndicator from '@/components/NProgressIndicator'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import RouteError from '@/components/RouteError'
 
-const Header = lazy(() => import('@/components/Header'))
-const SignIn = lazy(() => import('@/pages/SignIn'))
-const Activate = lazy(() => import('@/pages/Activate'))
-const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'))
-const ResetPassword = lazy(() => import('@/pages/ResetPassword'))
-const SignUp = lazy(() => import('@/pages/SignUp'))
-const Suppliers = lazy(() => import('@/pages/Suppliers'))
-const Supplier = lazy(() => import('@/pages/Supplier'))
-const CreateSupplier = lazy(() => import('@/pages/CreateSupplier'))
-const UpdateSupplier = lazy(() => import('@/pages/UpdateSupplier'))
-const Locations = lazy(() => import('@/pages/Locations'))
-const CreateLocation = lazy(() => import('@/pages/CreateLocation'))
-const UpdateLocation = lazy(() => import('@/pages/UpdateLocation'))
-const Cars = lazy(() => import('@/pages/Cars'))
-const Car = lazy(() => import('@/pages/Car'))
-const CreateCar = lazy(() => import('@/pages/CreateCar'))
-const UpdateCar = lazy(() => import('@/pages/UpdateCar'))
-const Bookings = lazy(() => import('@/pages/Bookings'))
-const UpdateBooking = lazy(() => import('@/pages/UpdateBooking'))
-const CreateBooking = lazy(() => import('@/pages/CreateBooking'))
-const Users = lazy(() => import('@/pages/Users'))
-const User = lazy(() => import('@/pages/User'))
-const CreateUser = lazy(() => import('@/pages/CreateUser'))
-const UpdateUser = lazy(() => import('@/pages/UpdateUser'))
-const Settings = lazy(() => import('@/pages/Settings'))
-const Notifications = lazy(() => import('@/pages/Notifications'))
-const ToS = lazy(() => import('@/pages/ToS'))
-const About = lazy(() => import('@/pages/About'))
-const ChangePassword = lazy(() => import('@/pages/ChangePassword'))
-const Contact = lazy(() => import('@/pages/Contact'))
-const NoMatch = lazy(() => import('@/pages/NoMatch'))
-const Countries = lazy(() => import('@/pages/Countries'))
-const CreateCountry = lazy(() => import('@/pages/CreateCountry'))
-const UpdateCountry = lazy(() => import('@/pages/UpdateCountry'))
-const Scheduler = lazy(() => import('@/pages/Scheduler'))
-const BankDetails = lazy(() => import('@/pages/BankDetails'))
-const Pricing = lazy(() => import('@/pages/Pricing'))
+const Header = lazyWithRetry(() => import('@/components/Header'))
+const SignIn = lazyWithRetry(() => import('@/pages/SignIn'))
+const Activate = lazyWithRetry(() => import('@/pages/Activate'))
+const ForgotPassword = lazyWithRetry(() => import('@/pages/ForgotPassword'))
+const ResetPassword = lazyWithRetry(() => import('@/pages/ResetPassword'))
+const Suppliers = lazyWithRetry(() => import('@/pages/Suppliers'))
+const Supplier = lazyWithRetry(() => import('@/pages/Supplier'))
+const CreateSupplier = lazyWithRetry(() => import('@/pages/CreateSupplier'))
+const UpdateSupplier = lazyWithRetry(() => import('@/pages/UpdateSupplier'))
+const Locations = lazyWithRetry(() => import('@/pages/Locations'))
+const CreateLocation = lazyWithRetry(() => import('@/pages/CreateLocation'))
+const UpdateLocation = lazyWithRetry(() => import('@/pages/UpdateLocation'))
+const Cars = lazyWithRetry(() => import('@/pages/Cars'))
+const Car = lazyWithRetry(() => import('@/pages/Car'))
+const CreateCar = lazyWithRetry(() => import('@/pages/CreateCar'))
+const UpdateCar = lazyWithRetry(() => import('@/pages/UpdateCar'))
+const Bookings = lazyWithRetry(() => import('@/pages/Bookings'))
+const UpdateBooking = lazyWithRetry(() => import('@/pages/UpdateBooking'))
+const CreateBooking = lazyWithRetry(() => import('@/pages/CreateBooking'))
+const Users = lazyWithRetry(() => import('@/pages/Users'))
+const User = lazyWithRetry(() => import('@/pages/User'))
+const CreateUser = lazyWithRetry(() => import('@/pages/CreateUser'))
+const UpdateUser = lazyWithRetry(() => import('@/pages/UpdateUser'))
+const Settings = lazyWithRetry(() => import('@/pages/Settings'))
+const Notifications = lazyWithRetry(() => import('@/pages/Notifications'))
+const ToS = lazyWithRetry(() => import('@/pages/ToS'))
+const About = lazyWithRetry(() => import('@/pages/About'))
+const ChangePassword = lazyWithRetry(() => import('@/pages/ChangePassword'))
+const Contact = lazyWithRetry(() => import('@/pages/Contact'))
+const NoMatch = lazyWithRetry(() => import('@/pages/NoMatch'))
+const Countries = lazyWithRetry(() => import('@/pages/Countries'))
+const CreateCountry = lazyWithRetry(() => import('@/pages/CreateCountry'))
+const UpdateCountry = lazyWithRetry(() => import('@/pages/UpdateCountry'))
+const Scheduler = lazyWithRetry(() => import('@/pages/Scheduler'))
+const BankDetails = lazyWithRetry(() => import('@/pages/BankDetails'))
+const Pricing = lazyWithRetry(() => import('@/pages/Pricing'))
 
 const AppLayout = () => {
   const location = useLocation()
@@ -76,13 +77,13 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <AppLayout />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <Bookings /> },
       { path: 'sign-in', element: <SignIn /> },
       { path: 'activate', element: <Activate /> },
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'reset-password', element: <ResetPassword /> },
-      // { path: 'sign-up', element: <SignUp /> },
       { path: 'suppliers', element: <Suppliers /> },
       { path: 'supplier', element: <Supplier /> },
       { path: 'create-supplier', element: <CreateSupplier /> },

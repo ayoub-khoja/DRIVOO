@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { isChunkLoadError, reloadForFreshAssets } from '@/utils/lazyWithRetry'
 
 interface Props {
   children?: ReactNode;
@@ -25,6 +26,9 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo)
+    if (isChunkLoadError(error) && reloadForFreshAssets()) {
+      return
+    }
     this.setState({
       componentStack: errorInfo?.componentStack || undefined,
     })
@@ -32,13 +36,21 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      if (isChunkLoadError(this.state.errorMessage)) {
+        return (
+          <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', textAlign: 'center' }}>
+            <p>Mise à jour en cours…</p>
+          </div>
+        )
+      }
+
       if (this.props.fallback) {
         return this.props.fallback
       }
 
       return (
         <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', maxWidth: 900 }}>
-          <h2 style={{ marginTop: 0 }}>Something went wrong.</h2>
+          <h2 style={{ marginTop: 0 }}>Une erreur est survenue</h2>
           {this.state.errorMessage ? (
             <pre
               style={{

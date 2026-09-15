@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, Outlet, Navigate, useLocation } from 'react-router-dom'
 import env from '@/config/env.config'
 import { NotificationProvider } from '@/context/NotificationContext'
@@ -7,11 +7,13 @@ import { RecaptchaProvider } from '@/context/RecaptchaContext'
 import { PayPalProvider } from '@/context/PayPalContext'
 import { SettingProvider } from '@/context/SettingContext'
 import { init as initGA } from '@/utils/ga4'
+import { lazyWithRetry } from '@/utils/lazyWithRetry'
 import ScrollToTop from '@/components/ScrollToTop'
 import ScrollTopButton from '@/components/ScrollTopButton'
 import NProgressIndicator from '@/components/NProgressIndicator'
 import RouteProgress from '@/components/RouteProgress'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import RouteError from '@/components/RouteError'
 import FirebaseMessagingBridge from '@/components/FirebaseMessagingBridge'
 import Header from '@/components/Header'
 import axiosInstance from '@/services/axiosInstance'
@@ -25,64 +27,64 @@ if (env.GOOGLE_ANALYTICS_ENABLED) {
   initGA()
 }
 
-const Activate = lazy(() => import('@/pages/Activate'))
-const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'))
-const ResetPassword = lazy(() => import('@/pages/ResetPassword'))
-const Home = lazy(() => import('@/pages/Home'))
-const Search = lazy(() => import('@/pages/Search'))
-const Offer = lazy(() => import('@/pages/Offer'))
-const OfferExtras = lazy(() => import('@/pages/OfferExtras'))
-const OfferProtection = lazy(() => import('@/pages/OfferProtection'))
-const OfferPayment = lazy(() => import('@/pages/OfferPayment'))
-const Checkout = lazy(() => import('@/pages/Checkout'))
-const CheckoutSession = lazy(() => import('@/pages/CheckoutSession'))
-const Bookings = lazy(() => import('@/pages/Bookings'))
-const Booking = lazy(() => import('@/pages/Booking'))
-const Settings = lazy(() => import('@/pages/Settings'))
-const Notifications = lazy(() => import('@/pages/Notifications'))
-const ToS = lazy(() => import('@/pages/ToS'))
-const Privacy = lazy(() => import('@/pages/Privacy'))
-const About = lazy(() => import('@/pages/About'))
-const ChangePassword = lazy(() => import('@/pages/ChangePassword'))
-const Contact = lazy(() => import('@/pages/Contact'))
-const NoMatch = lazy(() => import('@/pages/NoMatch'))
-const Locations = lazy(() => import('@/pages/Locations'))
-const Suppliers = lazy(() => import('@/pages/Suppliers'))
-const Faq = lazy(() => import('@/pages/Faq'))
-const CookiePolicy = lazy(() => import('@/pages/CookiePolicy'))
-const AgencyPublicProfile = lazy(() => import('@/pages/AgencyPublicProfile'))
-const VerifyDocument = lazy(() => import('@/pages/VerifyDocument'))
+const Activate = lazyWithRetry(() => import('@/pages/Activate'))
+const ForgotPassword = lazyWithRetry(() => import('@/pages/ForgotPassword'))
+const ResetPassword = lazyWithRetry(() => import('@/pages/ResetPassword'))
+const Home = lazyWithRetry(() => import('@/pages/Home'))
+const Search = lazyWithRetry(() => import('@/pages/Search'))
+const Offer = lazyWithRetry(() => import('@/pages/Offer'))
+const OfferExtras = lazyWithRetry(() => import('@/pages/OfferExtras'))
+const OfferProtection = lazyWithRetry(() => import('@/pages/OfferProtection'))
+const OfferPayment = lazyWithRetry(() => import('@/pages/OfferPayment'))
+const Checkout = lazyWithRetry(() => import('@/pages/Checkout'))
+const CheckoutSession = lazyWithRetry(() => import('@/pages/CheckoutSession'))
+const Bookings = lazyWithRetry(() => import('@/pages/Bookings'))
+const Booking = lazyWithRetry(() => import('@/pages/Booking'))
+const Settings = lazyWithRetry(() => import('@/pages/Settings'))
+const Notifications = lazyWithRetry(() => import('@/pages/Notifications'))
+const ToS = lazyWithRetry(() => import('@/pages/ToS'))
+const Privacy = lazyWithRetry(() => import('@/pages/Privacy'))
+const About = lazyWithRetry(() => import('@/pages/About'))
+const ChangePassword = lazyWithRetry(() => import('@/pages/ChangePassword'))
+const Contact = lazyWithRetry(() => import('@/pages/Contact'))
+const NoMatch = lazyWithRetry(() => import('@/pages/NoMatch'))
+const Locations = lazyWithRetry(() => import('@/pages/Locations'))
+const Suppliers = lazyWithRetry(() => import('@/pages/Suppliers'))
+const Faq = lazyWithRetry(() => import('@/pages/Faq'))
+const CookiePolicy = lazyWithRetry(() => import('@/pages/CookiePolicy'))
+const AgencyPublicProfile = lazyWithRetry(() => import('@/pages/AgencyPublicProfile'))
+const VerifyDocument = lazyWithRetry(() => import('@/pages/VerifyDocument'))
 
-const AdminProvider = lazy(() => import('@/admin/context/AdminContext').then((m) => ({ default: m.AdminProvider })))
-const AdminLayout = lazy(() => import('@/admin/components/AdminLayout'))
-const AdminSignIn = lazy(() => import('@/admin/pages/AdminSignIn'))
-const AdminDashboard = lazy(() => import('@/admin/pages/AdminDashboard'))
-const AccountRequests = lazy(() => import('@/admin/pages/AccountRequests'))
-const AdminAgencies = lazy(() => import('@/admin/pages/AdminAgencies'))
-const AdminClients = lazy(() => import('@/admin/pages/AdminClients'))
-const AdminSubscription = lazy(() => import('@/admin/pages/AdminSubscription'))
-const AdminAgencyPayments = lazy(() => import('@/admin/pages/AdminAgencyPayments'))
-const AdminAgencyLogins = lazy(() => import('@/admin/pages/AdminAgencyLogins'))
+const AdminProvider = lazyWithRetry(() => import('@/admin/context/AdminContext').then((m) => ({ default: m.AdminProvider })))
+const AdminLayout = lazyWithRetry(() => import('@/admin/components/AdminLayout'))
+const AdminSignIn = lazyWithRetry(() => import('@/admin/pages/AdminSignIn'))
+const AdminDashboard = lazyWithRetry(() => import('@/admin/pages/AdminDashboard'))
+const AccountRequests = lazyWithRetry(() => import('@/admin/pages/AccountRequests'))
+const AdminAgencies = lazyWithRetry(() => import('@/admin/pages/AdminAgencies'))
+const AdminClients = lazyWithRetry(() => import('@/admin/pages/AdminClients'))
+const AdminSubscription = lazyWithRetry(() => import('@/admin/pages/AdminSubscription'))
+const AdminAgencyPayments = lazyWithRetry(() => import('@/admin/pages/AdminAgencyPayments'))
+const AdminAgencyLogins = lazyWithRetry(() => import('@/admin/pages/AdminAgencyLogins'))
 
-const AgencyProvider = lazy(() => import('@/agency/context/AgencyContext').then((m) => ({ default: m.AgencyProvider })))
-const AgencyLayout = lazy(() => import('@/agency/components/AgencyLayout'))
-const AgencySignIn = lazy(() => import('@/agency/pages/AgencySignIn'))
-const AgencyActivate = lazy(() => import('@/agency/pages/AgencyActivate'))
-const AgencyChoosePlan = lazy(() => import('@/agency/pages/AgencyChoosePlan'))
-const AgencyDashboard = lazy(() => import('@/agency/pages/AgencyDashboard'))
-const AgencyFleet = lazy(() => import('@/agency/pages/AgencyFleet'))
-const AgencyBranches = lazy(() => import('@/agency/pages/AgencyBranches'))
-const AgencyBookings = lazy(() => import('@/agency/pages/AgencyBookings'))
-const AgencyAgenda = lazy(() => import('@/agency/pages/AgencyAgenda'))
-const AgencyInvoices = lazy(() => import('@/agency/pages/AgencyInvoices'))
-const AgencyContracts = lazy(() => import('@/agency/pages/AgencyContracts'))
-const AgencyReceipts = lazy(() => import('@/agency/pages/AgencyReceipts'))
-const AgencySubscription = lazy(() => import('@/agency/pages/AgencySubscription'))
-const AgencyMaintenance = lazy(() => import('@/agency/pages/AgencyMaintenance'))
-const AgencyProfile = lazy(() => import('@/agency/pages/AgencyProfile'))
-const AgencyReviews = lazy(() => import('@/agency/pages/AgencyReviews'))
-const AgencyClients = lazy(() => import('@/agency/pages/AgencyClients'))
-const AgencyNotifications = lazy(() => import('@/agency/pages/AgencyNotifications'))
+const AgencyProvider = lazyWithRetry(() => import('@/agency/context/AgencyContext').then((m) => ({ default: m.AgencyProvider })))
+const AgencyLayout = lazyWithRetry(() => import('@/agency/components/AgencyLayout'))
+const AgencySignIn = lazyWithRetry(() => import('@/agency/pages/AgencySignIn'))
+const AgencyActivate = lazyWithRetry(() => import('@/agency/pages/AgencyActivate'))
+const AgencyChoosePlan = lazyWithRetry(() => import('@/agency/pages/AgencyChoosePlan'))
+const AgencyDashboard = lazyWithRetry(() => import('@/agency/pages/AgencyDashboard'))
+const AgencyFleet = lazyWithRetry(() => import('@/agency/pages/AgencyFleet'))
+const AgencyBranches = lazyWithRetry(() => import('@/agency/pages/AgencyBranches'))
+const AgencyBookings = lazyWithRetry(() => import('@/agency/pages/AgencyBookings'))
+const AgencyAgenda = lazyWithRetry(() => import('@/agency/pages/AgencyAgenda'))
+const AgencyInvoices = lazyWithRetry(() => import('@/agency/pages/AgencyInvoices'))
+const AgencyContracts = lazyWithRetry(() => import('@/agency/pages/AgencyContracts'))
+const AgencyReceipts = lazyWithRetry(() => import('@/agency/pages/AgencyReceipts'))
+const AgencySubscription = lazyWithRetry(() => import('@/agency/pages/AgencySubscription'))
+const AgencyMaintenance = lazyWithRetry(() => import('@/agency/pages/AgencyMaintenance'))
+const AgencyProfile = lazyWithRetry(() => import('@/agency/pages/AgencyProfile'))
+const AgencyReviews = lazyWithRetry(() => import('@/agency/pages/AgencyReviews'))
+const AgencyClients = lazyWithRetry(() => import('@/agency/pages/AgencyClients'))
+const AgencyNotifications = lazyWithRetry(() => import('@/agency/pages/AgencyNotifications'))
 
 const AppMessaging = () => {
   const { user } = useUserContext() as UserContextType
@@ -156,6 +158,7 @@ const router = createBrowserRouter([
   {
     path: '/admin',
     element: <AdminRoot />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'sign-in', element: <AdminSignIn /> },
@@ -172,6 +175,7 @@ const router = createBrowserRouter([
   {
     path: '/agency',
     element: <AgencyRoot />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'sign-in', element: <AgencySignIn /> },
@@ -197,6 +201,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <AppLayout />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <Home /> },
       { path: 'sign-in', element: <SignIn /> },

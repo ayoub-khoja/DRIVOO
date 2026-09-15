@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { isChunkLoadError, reloadForFreshAssets } from '@/utils/lazyWithRetry'
 
 interface Props {
   children?: ReactNode;
@@ -7,6 +8,7 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  errorMessage?: string;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -14,19 +16,37 @@ class ErrorBoundary extends Component<Props, State> {
     hasError: false
   }
 
-  // Update state so the next render shows the fallback UI.
-  public static getDerivedStateFromError(): State {
-    return { hasError: true }
+  public static getDerivedStateFromError(error: Error): State {
+    return {
+      hasError: true,
+      errorMessage: error?.message || String(error),
+    }
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // You can log the error to an external service here (like Sentry)
     console.error('Uncaught error:', error, errorInfo)
+    if (isChunkLoadError(error) && reloadForFreshAssets()) {
+      return
+    }
   }
 
   public render() {
     if (this.state.hasError) {
-      return this.props.fallback || <h2>Something went wrong.</h2>
+      if (isChunkLoadError(this.state.errorMessage)) {
+        return (
+          <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', textAlign: 'center' }}>
+            <p>Updating…</p>
+          </div>
+        )
+      }
+      return this.props.fallback || (
+        <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+          <h2>Something went wrong.</h2>
+          <button type="button" onClick={() => window.location.reload()}>
+            Reload
+          </button>
+        </div>
+      )
     }
 
     return this.props.children
