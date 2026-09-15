@@ -49,6 +49,15 @@ export const loadArabicFonts = (): Record<string, Buffer> | null => {
 /** OpenType feature that keeps Arabic words in visual RTL order in PDFKit. */
 export const ARABIC_TEXT_FEATURES: ('rtla')[] = ['rtla']
 
+/**
+ * `rtla` also mirrors digit runs (110 → 011) and parentheses (() → )).
+ * Pre-adjust those in logical source so the visual result stays correct after shaping.
+ */
+export const prepareArabicForPdf = (text: string): string =>
+  (text || '')
+    .replace(/\d+/g, (digits) => digits.split('').reverse().join(''))
+    .replace(/[()]/g, (ch) => (ch === '(' ? ')' : '('))
+
 /** Shared PDFKit options for Arabic paragraphs (whole-string layout, no LTR word splitting). */
 export const arabicTextOptions = (
   width: number,

@@ -33,7 +33,7 @@ import {
   CONTRACT_TERMS_TITLE_FR,
   withAgencyName,
 } from './contractTerms'
-import { ARABIC_FONT, ARABIC_FONT_BOLD, arabicTextOptions, loadArabicFonts } from './arabicText'
+import { ARABIC_FONT, ARABIC_FONT_BOLD, arabicTextOptions, loadArabicFonts, prepareArabicForPdf } from './arabicText'
 import { computeContractTotals, CONTRACT_DAILY_LEVY_RATE } from './contractHelper'
 
 /**
@@ -573,14 +573,21 @@ export const buildContractPdf = async (
       : { width: termColW, align: 'justify' as const }
 
     doc.font(regular).fontSize(size)
-    let h = doc.heightOfString(withAgencyName(intro, agency.fullName), options) + (arabic ? 2 : 3)
+    let h = doc.heightOfString(
+      arabic ? prepareArabicForPdf(withAgencyName(intro, agency.fullName)) : withAgencyName(intro, agency.fullName),
+      options,
+    ) + (arabic ? 2 : 3)
 
     for (const article of articles) {
       doc.font(bold).fontSize(size)
-      h += doc.heightOfString(withAgencyName(article.title, agency.fullName), options) + (arabic ? 0.25 : 0.5)
+      h += doc.heightOfString(
+        arabic ? prepareArabicForPdf(withAgencyName(article.title, agency.fullName)) : withAgencyName(article.title, agency.fullName),
+        options,
+      ) + (arabic ? 0.25 : 0.5)
       doc.font(regular).fontSize(size)
       for (const paragraph of article.paragraphs) {
-        h += doc.heightOfString(withAgencyName(paragraph, agency.fullName), options) + (arabic ? 0.25 : 0.5)
+        const raw = withAgencyName(paragraph, agency.fullName)
+        h += doc.heightOfString(arabic ? prepareArabicForPdf(raw) : raw, options) + (arabic ? 0.25 : 0.5)
       }
       h += arabic ? 1 : 1.5
     }
@@ -589,7 +596,7 @@ export const buildContractPdf = async (
 
   /** Draw one Arabic paragraph; rtla keeps list dashes on the right edge. */
   const drawArabicParagraph = (raw: string, x: number, cy: number, size: number): number => {
-    doc.fontSize(size).text(raw, x, cy, arabicTextOptions(termColW))
+    doc.fontSize(size).text(prepareArabicForPdf(raw), x, cy, arabicTextOptions(termColW))
     return doc.y
   }
 
@@ -677,27 +684,35 @@ export const buildContractPdf = async (
   doc.text(CONTRACT_TERMS_IMPORTANT_FR, termsLeft + 8, y + 4, { width: termsContentW - 16 })
   y += warnH + 4
 
-  // Auto-fit: French column size, then a slightly larger Arabic size when there is room below.
+  // Auto-fit: French column size, then a larger Arabic size when there is room below.
+  // Binary search keeps the same visual result with far fewer expensive heightOfString calls
+  // (Arabic + rtla bypasses PDFKit's layout cache and was slow in production).
   const available = A4_HEIGHT - termsMargin - termsFooterReserve - y
-  let termSize = 5
-  for (let candidate = 10; candidate >= 5; candidate -= 0.25) {
-    const needed = columnHeight(CONTRACT_TERMS_FR, CONTRACT_TERMS_INTRO_FR, candidate, false)
-    if (needed <= available) {
-      termSize = candidate
-      break
-    }
-  }
 
-  let arTermSize = termSize
-  if (arabicEnabled) {
-    for (let candidate = 18; candidate >= termSize; candidate -= 0.25) {
-      const needed = columnHeight(CONTRACT_TERMS_AR, CONTRACT_TERMS_INTRO_AR, candidate, true)
-      if (needed <= available) {
-        arTermSize = candidate
-        break
+  const fitSize = (min: number, max: number, arabic: boolean): number => {
+    const articles = arabic ? CONTRACT_TERMS_AR : CONTRACT_TERMS_FR
+    const intro = arabic ? CONTRACT_TERMS_INTRO_AR : CONTRACT_TERMS_INTRO_FR
+    const steps: number[] = []
+    for (let s = min; s <= max + 1e-9; s += 0.25) {
+      steps.push(Math.round(s * 100) / 100)
+    }
+    let lo = 0
+    let hi = steps.length - 1
+    let best = steps[0]
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1
+      if (columnHeight(articles, intro, steps[mid], arabic) <= available) {
+        best = steps[mid]
+        lo = mid + 1
+      } else {
+        hi = mid - 1
       }
     }
+    return best
   }
+
+  const termSize = fitSize(5, 10, false)
+  const arTermSize = arabicEnabled ? fitSize(termSize, 18, true) : termSize
 
   drawColumn(CONTRACT_TERMS_FR, CONTRACT_TERMS_INTRO_FR, y, termSize, false)
   if (arabicEnabled) {
