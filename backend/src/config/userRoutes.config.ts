@@ -42,6 +42,10 @@ const routes = {
   approveAccountRequest: '/api/account-request/:id/approve',
   rejectAccountRequest: '/api/account-request/:id/reject',
   updateAgency: '/api/admin/agency/:id',
+  getAgencyLogins: '/api/admin/agency-logins/:page/:size',
+  updateAgencyLogin: '/api/admin/agency/:id/login',
+  getAgencyPayments: '/api/admin/agency-payments/:page/:size',
+  updateAgencyPayment: '/api/admin/agency/:id/payment',
 }
 
 export default routes

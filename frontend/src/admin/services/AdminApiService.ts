@@ -81,3 +81,37 @@ export const deleteUser = (id: string): Promise<number> =>
   adminAxiosInstance
     .post('/api/delete-users', [id])
     .then((res) => res.status)
+
+export const getAgencyLogins = (
+  page: number,
+  size: number,
+  keyword = '',
+): Promise<{ resultData: bookcarsTypes.AgencyLoginRow[], pageInfo: { totalRecords: number }[] }[]> =>
+  adminAxiosInstance
+    .post(`/api/admin/agency-logins/${page}/${size}/?s=${encodeURIComponent(keyword)}`, {})
+    .then((res) => res.data)
+
+export const updateAgencyLogin = (
+  id: string,
+  data: bookcarsTypes.UpdateAgencyLoginPayload,
+): Promise<{ status: number, data: bookcarsTypes.AgencyLoginRow }> =>
+  adminAxiosInstance
+    .put(`/api/admin/agency/${encodeURIComponent(id)}/login`, data)
+    .then((res) => ({ status: res.status, data: res.data }))
+
+export const getAgencyPayments = (
+  page: number,
+  size: number,
+  keyword = '',
+): Promise<{ resultData: bookcarsTypes.AgencyPaymentRow[], pageInfo: { totalRecords: number }[] }[]> =>
+  adminAxiosInstance
+    .post(`/api/admin/agency-payments/${page}/${size}/?s=${encodeURIComponent(keyword)}`, {})
+    .then((res) => res.data)
+
+export const updateAgencyPayment = (
+  id: string,
+  data: bookcarsTypes.UpdateAgencyPaymentPayload,
+): Promise<{ status: number, data: bookcarsTypes.AgencyPaymentRow }> =>
+  adminAxiosInstance
+    .put(`/api/admin/agency/${encodeURIComponent(id)}/payment`, data)
+    .then((res) => ({ status: res.status, data: res.data }))

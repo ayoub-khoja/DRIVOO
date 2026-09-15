@@ -7,6 +7,8 @@ import {
   StorefrontOutlined,
   PeopleOutline,
   CardMembershipOutlined,
+  PaymentsOutlined,
+  VpnKeyOutlined,
 } from '@mui/icons-material'
 import { Button, CircularProgress, Menu, MenuItem } from '@mui/material'
 import { toast } from 'react-toastify'
@@ -135,6 +137,14 @@ const AdminShell = () => {
           <NavLink to="/admin/subscription" className={({ isActive }) => (isActive ? 'active' : '')}>
             <CardMembershipOutlined />
             <span>{strings.SUBSCRIPTION}</span>
+          </NavLink>
+          <NavLink to="/admin/agency-payments" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <PaymentsOutlined />
+            <span>{strings.AGENCY_PAYMENTS}</span>
+          </NavLink>
+          <NavLink to="/admin/agency-logins" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <VpnKeyOutlined />
+            <span>{strings.AGENCY_LOGINS}</span>
           </NavLink>
         </nav>
 

@@ -61,6 +61,8 @@ const AccountRequests = lazy(() => import('@/admin/pages/AccountRequests'))
 const AdminAgencies = lazy(() => import('@/admin/pages/AdminAgencies'))
 const AdminClients = lazy(() => import('@/admin/pages/AdminClients'))
 const AdminSubscription = lazy(() => import('@/admin/pages/AdminSubscription'))
+const AdminAgencyPayments = lazy(() => import('@/admin/pages/AdminAgencyPayments'))
+const AdminAgencyLogins = lazy(() => import('@/admin/pages/AdminAgencyLogins'))
 
 const AgencyProvider = lazy(() => import('@/agency/context/AgencyContext').then((m) => ({ default: m.AgencyProvider })))
 const AgencyLayout = lazy(() => import('@/agency/components/AgencyLayout'))
@@ -162,6 +164,8 @@ const router = createBrowserRouter([
       { path: 'agencies', element: <AdminAgencies /> },
       { path: 'clients', element: <AdminClients /> },
       { path: 'subscription', element: <AdminSubscription /> },
+      { path: 'agency-payments', element: <AdminAgencyPayments /> },
+      { path: 'agency-logins', element: <AdminAgencyLogins /> },
       { path: '*', element: <NoMatch /> },
     ],
   },
