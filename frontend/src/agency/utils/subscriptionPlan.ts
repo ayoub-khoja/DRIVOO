@@ -137,3 +137,52 @@ export const needsAgencyPlan = (agency: bookcarsTypes.User | null | undefined) =
   && agency.type === bookcarsTypes.UserType.Supplier
   && !agency.parentAgency
   && !agency.subscriptionPlan
+
+export const getPlanCarMax = (plan: bookcarsTypes.SubscriptionPlan | null | undefined) =>
+  (plan?.carLimitMax || plan?.carLimit || 0)
+
+export const getPlanCarMin = (plan: bookcarsTypes.SubscriptionPlan | null | undefined) =>
+  plan?.carLimitMin || 0
+
+export const resolvePlanId = (raw: bookcarsTypes.User['subscriptionPlan'] | undefined) => {
+  if (!raw) {
+    return ''
+  }
+  if (typeof raw === 'object' && raw !== null && '_id' in raw) {
+    return String((raw as { _id?: string })._id || '')
+  }
+  return String(raw)
+}
+
+export const findPlanById = (
+  plans: bookcarsTypes.SubscriptionPlan[],
+  planId: string,
+) => plans.find((plan) => plan._id === planId) || null
+
+/** Effective fleet cap for the agency (supplierCarLimit or current plan max). 0 = unlimited. */
+export const getAgencyCarLimit = (
+  agency: bookcarsTypes.User | null | undefined,
+  currentPlan?: bookcarsTypes.SubscriptionPlan | null,
+) => {
+  const fromAgency = agency?.supplierCarLimit
+  if (typeof fromAgency === 'number' && fromAgency > 0) {
+    return fromAgency
+  }
+  return getPlanCarMax(currentPlan)
+}
+
+/** Next higher plan by carLimitMax (for upgrade prompts). */
+export const findNextPlan = (
+  plans: bookcarsTypes.SubscriptionPlan[],
+  currentMax: number,
+) => {
+  const sorted = plans
+    .filter((plan) => plan.active !== false)
+    .slice()
+    .sort((a, b) => getPlanCarMax(a) - getPlanCarMax(b) || getPlanCarMin(a) - getPlanCarMin(b))
+
+  if (currentMax <= 0) {
+    return sorted[0] || null
+  }
+  return sorted.find((plan) => getPlanCarMax(plan) > currentMax) || null
+}

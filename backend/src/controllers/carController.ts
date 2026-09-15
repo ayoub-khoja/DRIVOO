@@ -14,6 +14,7 @@ import * as helper from '../utils/helper'
 import * as logger from '../utils/logger'
 import DateBasedPrice from '../models/DateBasedPrice'
 import User from '../models/User'
+import SubscriptionPlan from '../models/SubscriptionPlan'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
 import * as mailHelper from '../utils/mailHelper'
@@ -39,6 +40,40 @@ export const create = async (req: Request, res: Response) => {
     const hasImages = (Array.isArray(body.images) && body.images.length > 0) || !!body.image
     if (!hasImages) {
       throw new Error('Image not found in payload')
+    }
+
+    // Enforce subscription fleet limit before creating the car
+    if (body.supplier && helper.isValidObjectId(String(body.supplier))) {
+      const supplier = await User.findById(body.supplier)
+        .select('type supplierCarLimit subscriptionPlan')
+        .lean()
+
+      if (supplier?.type === bookcarsTypes.UserType.Supplier) {
+        let maxCars = typeof supplier.supplierCarLimit === 'number' && supplier.supplierCarLimit > 0
+          ? supplier.supplierCarLimit
+          : 0
+
+        if (!maxCars && supplier.subscriptionPlan) {
+          const plan = await SubscriptionPlan.findById(supplier.subscriptionPlan)
+            .select('carLimitMax carLimit')
+            .lean()
+          maxCars = (typeof plan?.carLimitMax === 'number' && plan.carLimitMax > 0)
+            ? plan.carLimitMax
+            : (typeof plan?.carLimit === 'number' && plan.carLimit > 0 ? plan.carLimit : 0)
+        }
+
+        if (maxCars > 0) {
+          const count = await Car.countDocuments({ supplier: body.supplier })
+          if (count >= maxCars) {
+            res.status(403).json({
+              code: 'CAR_LIMIT_REACHED',
+              limit: maxCars,
+              count,
+            })
+            return
+          }
+        }
+      }
     }
 
     // date based price

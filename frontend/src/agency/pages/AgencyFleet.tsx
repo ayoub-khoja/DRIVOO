@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Button,
   CircularProgress,
@@ -23,8 +24,16 @@ import env from '@/config/env.config'
 import { strings } from '@/agency/lang/agency'
 import { useAgencyContext } from '@/agency/context/AgencyContext'
 import * as AgencyCarService from '@/agency/services/AgencyCarService'
+import * as AgencySubscriptionService from '@/agency/services/AgencySubscriptionService'
 import AgencyAddCarStepper from '@/agency/pages/AgencyAddCarStepper'
 import AgencyEditCarDialog from '@/agency/pages/AgencyEditCarDialog'
+import AgencyFleetLimitDialog, { FleetLimitMode } from '@/agency/components/AgencyFleetLimitDialog'
+import {
+  findNextPlan,
+  findPlanById,
+  getAgencyCarLimit,
+  resolvePlanId,
+} from '@/agency/utils/subscriptionPlan'
 import * as helper from '@/utils/helper'
 
 const PAGE_SIZE = 8
@@ -140,6 +149,7 @@ const AgencyFleetCardMedia = ({
 }
 
 const AgencyFleet = () => {
+  const navigate = useNavigate()
   const { agency, agencyLoaded } = useAgencyContext()
   const language = agency?.language || 'fr'
 
@@ -153,6 +163,54 @@ const AgencyFleet = () => {
   const [openStepper, setOpenStepper] = useState(false)
   const [editCar, setEditCar] = useState<bookcarsTypes.Car | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [plans, setPlans] = useState<bookcarsTypes.SubscriptionPlan[]>([])
+  const [limitDialog, setLimitDialog] = useState<{ open: boolean, mode: FleetLimitMode }>({
+    open: false,
+    mode: 'blocked',
+  })
+
+  const currentPlanId = useMemo(() => resolvePlanId(agency?.subscriptionPlan), [agency?.subscriptionPlan])
+  const currentPlan = useMemo(() => findPlanById(plans, currentPlanId), [plans, currentPlanId])
+  const carLimit = useMemo(() => getAgencyCarLimit(agency, currentPlan), [agency, currentPlan])
+  const nextPlan = useMemo(() => findNextPlan(plans, carLimit), [plans, carLimit])
+  const atLimit = carLimit > 0 && totalRecords >= carLimit
+
+  useEffect(() => {
+    let cancelled = false
+    const loadPlans = async () => {
+      try {
+        const data = await AgencySubscriptionService.getPublicPlans()
+        if (!cancelled) {
+          setPlans(data)
+        }
+      } catch {
+        if (!cancelled) {
+          setPlans([])
+        }
+      }
+    }
+    void loadPlans()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const openAddCar = useCallback(() => {
+    if (atLimit) {
+      setLimitDialog({ open: true, mode: 'blocked' })
+      return
+    }
+    setOpenStepper(true)
+  }, [atLimit])
+
+  const closeLimitDialog = useCallback(() => {
+    setLimitDialog((prev) => ({ ...prev, open: false }))
+  }, [])
+
+  const goToPlans = useCallback(() => {
+    setLimitDialog((prev) => ({ ...prev, open: false }))
+    navigate('/agency/subscription')
+  }, [navigate])
 
   const loadCars = useCallback(async (search = '', nextPage = 1) => {
     if (!agency?._id) {
@@ -253,7 +311,7 @@ const AgencyFleet = () => {
           variant="contained"
           className="btn-primary"
           startIcon={<AddRounded />}
-          onClick={() => setOpenStepper(true)}
+          onClick={openAddCar}
         >
           {strings.ACTION_ADD_CAR}
         </Button>
@@ -314,7 +372,7 @@ const AgencyFleet = () => {
           <DirectionsCarFilledOutlined className="agency-empty-icon" />
           <p>{query ? strings.FLEET_EMPTY_SEARCH : strings.FLEET_EMPTY}</p>
           {!query && (
-            <Button variant="contained" className="btn-primary" startIcon={<AddRounded />} onClick={() => setOpenStepper(true)}>
+            <Button variant="contained" className="btn-primary" startIcon={<AddRounded />} onClick={openAddCar}>
               {strings.ACTION_ADD_CAR}
             </Button>
           )}
@@ -435,12 +493,17 @@ const AgencyFleet = () => {
         open={openStepper}
         agencyId={agency._id!}
         onClose={() => setOpenStepper(false)}
+        onLimitReached={() => setLimitDialog({ open: true, mode: 'blocked' })}
         onCreated={() => {
+          const nextCount = totalRecords + 1
           setOpenStepper(false)
           setQuery('')
           setKeyword('')
           void loadCars('', 1)
           helper.info(strings.CAR_CREATED)
+          if (carLimit > 0 && nextCount >= carLimit) {
+            setLimitDialog({ open: true, mode: 'last' })
+          }
         }}
       />
 
@@ -454,6 +517,18 @@ const AgencyFleet = () => {
           setEditCar(null)
           helper.info(strings.CAR_UPDATED)
         }}
+      />
+
+      <AgencyFleetLimitDialog
+        open={limitDialog.open}
+        mode={limitDialog.mode}
+        lang={language}
+        carCount={limitDialog.mode === 'last' ? carLimit : totalRecords}
+        carLimit={carLimit}
+        currentPlan={currentPlan}
+        nextPlan={nextPlan}
+        onClose={closeLimitDialog}
+        onUpgrade={goToPlans}
       />
     </div>
   )

@@ -5697,3 +5697,117 @@
   }
 }
 
+/* —— Fleet subscription limit dialog —— */
+.agency-fleet-limit-dialog .MuiDialog-paper {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.agency-fleet-limit-content {
+  padding: 28px 28px 8px !important;
+  text-align: center;
+}
+
+.agency-fleet-limit-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+}
+
+.agency-fleet-limit-icon svg {
+  font-size: 28px;
+}
+
+.agency-fleet-limit-icon.is-last {
+  background: #fff4e8;
+  color: #d97706;
+}
+
+.agency-fleet-limit-icon.is-blocked {
+  background: #fdecec;
+  color: #c2410c;
+}
+
+.agency-fleet-limit-content h3 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0b1626;
+}
+
+.agency-fleet-limit-body {
+  margin: 0 auto;
+  max-width: 36ch;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #3d4f66;
+}
+
+.agency-fleet-limit-usage {
+  margin: 14px 0 0;
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.agency-fleet-limit-next {
+  margin: 20px 0 4px;
+  padding: 16px 18px;
+  border: 1px solid #e6ebf2;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  text-align: left;
+}
+
+.agency-fleet-limit-next-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #d97706;
+}
+
+.agency-fleet-limit-next strong {
+  display: block;
+  font-size: 1.05rem;
+  color: #0b1626;
+}
+
+.agency-fleet-limit-next-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 10px;
+  font-size: 0.88rem;
+  color: #475569;
+}
+
+.agency-fleet-limit-next-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.agency-fleet-limit-top {
+  margin: 18px 0 4px;
+  font-size: 0.9rem;
+  color: #5b6b80;
+}
+
+.agency-fleet-limit-actions {
+  padding: 12px 28px 24px !important;
+  gap: 10px;
+  justify-content: center !important;
+}
+
