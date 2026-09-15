@@ -29,14 +29,16 @@ const PlanCard = React.memo(({ plan, lang, current, busy, submitting, onSelect }
   const name = pickLabel(plan.name, lang) || '—'
   const subtitle = pickLabel(plan.subtitle, lang)
   const price = formatPlanPrice(plan, lang)
-  const features = plan.features.filter((f) => f.included).slice(0, 6)
-  const services = useMemo(
-    () => {
-      const matched = SERVICE_CATALOG.filter((item) => plan.services.includes(item.key))
-      return (matched.length > 0 ? matched : SERVICE_CATALOG).slice(0, 6)
-    },
-    [plan.services],
-  )
+  const accessItems = useMemo(() => {
+    const fromServices = SERVICE_CATALOG.filter((item) => plan.services?.includes(item.key))
+    if (fromServices.length > 0) {
+      return fromServices.slice(0, 8).map((item) => ({ key: item.key, label: item.label }))
+    }
+    return plan.features
+      .filter((feature) => feature.included)
+      .slice(0, 8)
+      .map((feature) => ({ key: feature.id, label: feature.label }))
+  }, [plan.features, plan.services])
   const isFreeLabel = price === 'Gratuit' || price === 'Free' || price === 'مجاني'
 
   return (
@@ -83,16 +85,10 @@ const PlanCard = React.memo(({ plan, lang, current, busy, submitting, onSelect }
       </div>
 
       <ul className="agency-sub-features">
-        {features.map((feature) => (
-          <li key={feature.id}>
+        {accessItems.map((item) => (
+          <li key={item.key}>
             <CheckCircle className="is-on" />
-            <span>{pickLabel(feature.label, lang) || '—'}</span>
-          </li>
-        ))}
-        {services.map((service) => (
-          <li key={service.key}>
-            <CheckCircle className="is-on" />
-            <span>{pickLabel(service.label, lang)}</span>
+            <span>{pickLabel(item.label, lang) || '—'}</span>
           </li>
         ))}
       </ul>

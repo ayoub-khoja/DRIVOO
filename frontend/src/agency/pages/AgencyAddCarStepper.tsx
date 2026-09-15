@@ -21,6 +21,7 @@ import {
 import { CloudUploadOutlined, CloseRounded } from '@mui/icons-material'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import axios from 'axios'
 import * as bookcarsTypes from ':bookcars-types'
 import env from '@/config/env.config'
 import { strings } from '@/agency/lang/agency'
@@ -52,11 +53,12 @@ interface AgencyAddCarStepperProps {
   agencyId: string
   onClose: () => void
   onCreated: (car: bookcarsTypes.Car) => void
+  onLimitReached?: () => void
 }
 
 const currentYear = new Date().getFullYear()
 
-const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCarStepperProps) => {
+const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated, onLimitReached }: AgencyAddCarStepperProps) => {
   const [activeStep, setActiveStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -318,7 +320,13 @@ const AgencyAddCarStepper = ({ open, agencyId, onClose, onCreated }: AgencyAddCa
       reset()
       setActiveStep(0)
       onClose()
-    } catch {
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 403
+        && (err.response.data as { code?: string } | undefined)?.code === 'CAR_LIMIT_REACHED') {
+        onClose()
+        onLimitReached?.()
+        return
+      }
       setSubmitError(strings.CAR_SAVE_ERROR)
     } finally {
       setSubmitting(false)
