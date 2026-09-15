@@ -11,8 +11,8 @@ import { useAgencyContext } from '@/agency/context/AgencyContext'
 import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
 import * as AgencySubscriptionService from '@/agency/services/AgencySubscriptionService'
 import {
-  SERVICE_CATALOG,
   formatPlanPrice,
+  getPlanAccessItems,
   pickLabel,
 } from '@/agency/utils/subscriptionPlan'
 
@@ -29,16 +29,7 @@ const PlanCard = React.memo(({ plan, lang, current, busy, submitting, onSelect }
   const name = pickLabel(plan.name, lang) || '—'
   const subtitle = pickLabel(plan.subtitle, lang)
   const price = formatPlanPrice(plan, lang)
-  const accessItems = useMemo(() => {
-    const fromServices = SERVICE_CATALOG.filter((item) => plan.services?.includes(item.key))
-    if (fromServices.length > 0) {
-      return fromServices.slice(0, 8).map((item) => ({ key: item.key, label: item.label }))
-    }
-    return plan.features
-      .filter((feature) => feature.included)
-      .slice(0, 8)
-      .map((feature) => ({ key: feature.id, label: feature.label }))
-  }, [plan.features, plan.services])
+  const accessItems = useMemo(() => getPlanAccessItems(plan), [plan])
   const isFreeLabel = price === 'Gratuit' || price === 'Free' || price === 'مجاني'
 
   return (
@@ -76,9 +67,9 @@ const PlanCard = React.memo(({ plan, lang, current, busy, submitting, onSelect }
               .replace('{1}', String(plan.carLimitMax || plan.carLimit || 0))}
           </span>
         ) : null}
-        {plan.trialMonths > 0 ? (
+        {plan.trialDays > 0 ? (
           <span className="agency-sub-trial">
-            {strings.PLAN_TRIAL.replace('{0}', String(plan.trialMonths))}
+            {strings.PLAN_TRIAL.replace('{0}', String(plan.trialDays))}
           </span>
         ) : null}
         {plan.firstTrialFree ? <span className="agency-sub-trial">{strings.PLAN_FIRST_TRIAL_FREE}</span> : null}

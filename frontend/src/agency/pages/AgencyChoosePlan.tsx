@@ -19,8 +19,8 @@ import * as AgencyAuthService from '@/agency/services/AgencyAuthService'
 import * as AgencySubscriptionService from '@/agency/services/AgencySubscriptionService'
 import * as UserService from '@/services/UserService'
 import {
-  SERVICE_CATALOG,
   formatPlanPrice,
+  getPlanAccessItems,
   needsAgencyPlan,
   pickLabel,
 } from '@/agency/utils/subscriptionPlan'
@@ -46,8 +46,6 @@ const persistAgencySession = (user: bookcarsTypes.User) => {
     subscriptionPlan: user.subscriptionPlan || null,
   })
 }
-
-type AccessItem = { key: string, label: bookcarsTypes.LocalizedText }
 
 type PlanTag = {
   key: string
@@ -77,10 +75,10 @@ const buildPlanTags = (plan: bookcarsTypes.SubscriptionPlan): PlanTag[] => {
   if (plan.firstTrialFree) {
     tags.push({ key: 'first-trial', label: strings.PLAN_FIRST_TRIAL_FREE, tone: 'trial', icon: 'offer' })
   }
-  if (plan.trialMonths > 0) {
+  if (plan.trialDays > 0) {
     tags.push({
       key: 'trial',
-      label: strings.PLAN_TRIAL.replace('{0}', String(plan.trialMonths)),
+      label: strings.PLAN_TRIAL.replace('{0}', String(plan.trialDays)),
       tone: 'trial',
       icon: 'hourglass',
     })
@@ -118,16 +116,7 @@ const PlanCard = React.memo(({ plan, lang, selected, busy, onSelect }: PlanCardP
   const carMin = plan.carLimitMin || 0
   const carMax = plan.carLimitMax || plan.carLimit || 0
   const tags = useMemo(() => buildPlanTags(plan), [plan])
-  const accessItems = useMemo((): AccessItem[] => {
-    const fromServices = SERVICE_CATALOG.filter((item) => plan.services?.includes(item.key))
-    if (fromServices.length > 0) {
-      return fromServices.slice(0, 8)
-    }
-    return plan.features
-      .filter((feature) => feature.included)
-      .slice(0, 8)
-      .map((feature) => ({ key: feature.id, label: feature.label }))
-  }, [plan.features, plan.services])
+  const accessItems = useMemo(() => getPlanAccessItems(plan), [plan])
   const isFreeLabel = price === 'Gratuit' || price === 'Free' || price === 'مجاني'
 
   return (

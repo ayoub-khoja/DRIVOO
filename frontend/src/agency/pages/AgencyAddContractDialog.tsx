@@ -28,6 +28,7 @@ import {
 } from '@/agency/models/AgencyContractForm'
 import * as AgencyContractService from '@/agency/services/AgencyContractService'
 import * as AgencyInvoiceService from '@/agency/services/AgencyInvoiceService'
+import * as AgencyCarService from '@/agency/services/AgencyCarService'
 import PhoneInputField from '@/components/PhoneInputField'
 import {
   CONTRACT_CHECKLIST,
@@ -37,10 +38,15 @@ import {
   type AgencyContract,
 } from '@/agency/types/contract'
 import {
-  CAR_MAKES,
   getModelsForMake,
   resolveMakeKey,
 } from '@/agency/data/carMakesModels'
+import {
+  applyFleetVehicleSelection,
+  buildFleetVehicleOptions,
+  filterFleetVehicleOption,
+  type FleetVehicleOption,
+} from '@/agency/utils/fleetVehiclePicker'
 import { computeContractTotals, CONTRACT_DAILY_LEVY_RATE } from '@/agency/utils/contractMath'
 import { buildInvoicePayloadFromContract } from '@/agency/utils/contractToInvoice'
 import { formatMoney } from '@/agency/utils/invoiceMath'
@@ -109,6 +115,9 @@ const AgencyAddContractDialog = ({
   const [submitting, setSubmitting] = React.useState(false)
   const [submitError, setSubmitError] = React.useState('')
   const [withSecondDriver, setWithSecondDriver] = React.useState(false)
+  const [fleetOptions, setFleetOptions] = React.useState<FleetVehicleOption[]>([])
+  const [loadingFleet, setLoadingFleet] = React.useState(false)
+  const [selectedFleetCarId, setSelectedFleetCarId] = React.useState<string | null>(null)
 
   const defaults = React.useCallback((): AgencyContractFormFields => ({
     issueCity: agency.city || '',
@@ -165,11 +174,49 @@ const AgencyAddContractDialog = ({
       reset(defaults())
       setWithSecondDriver(false)
       setSubmitError('')
+      setSelectedFleetCarId(null)
     }
   }, [open, reset, defaults])
 
+  React.useEffect(() => {
+    if (!open || !agency._id) {
+      return
+    }
+
+    let cancelled = false
+    const loadFleet = async () => {
+      setLoadingFleet(true)
+      try {
+        const result = await AgencyCarService.getCars('', { suppliers: [agency._id!] }, 1, 200)
+        if (cancelled) {
+          return
+        }
+        setFleetOptions(buildFleetVehicleOptions(result?.[0]?.resultData || []))
+      } catch {
+        if (!cancelled) {
+          setFleetOptions([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingFleet(false)
+        }
+      }
+    }
+
+    void loadFleet()
+    return () => {
+      cancelled = true
+    }
+  }, [open, agency._id])
+
   const vehicleBrand = useWatch({ control, name: 'vehicleBrand' })
   const modelOptions = useMemo(() => getModelsForMake(vehicleBrand || ''), [vehicleBrand])
+  const selectedFleetOption = useMemo(
+    () => (selectedFleetCarId
+      ? fleetOptions.find((item) => item.id === selectedFleetCarId) || null
+      : null),
+    [fleetOptions, selectedFleetCarId],
+  )
 
   // Live totals, mirroring what the server recomputes on save
   const watched = useWatch({ control })
@@ -328,33 +375,85 @@ const AgencyAddContractDialog = ({
               render={({ field }) => (
                 <Autocomplete
                   freeSolo
-                  options={CAR_MAKES}
-                  filterOptions={filterCarOption}
-                  value={field.value || ''}
+                  options={fleetOptions}
+                  loading={loadingFleet}
+                  filterOptions={filterFleetVehicleOption}
+                  getOptionLabel={(option) => (
+                    typeof option === 'string' ? option : option.brand
+                  )}
+                  isOptionEqualToValue={(option, value) => (
+                    typeof value === 'string'
+                      ? option.brand === value || option.id === value
+                      : option.id === value.id
+                  )}
+                  value={selectedFleetOption}
+                  inputValue={field.value || ''}
                   onChange={(_event, next) => {
-                    const nextBrand = typeof next === 'string' ? next : next || ''
+                    if (next && typeof next !== 'string') {
+                      applyFleetVehicleSelection(next, setValue)
+                      setSelectedFleetCarId(next.id)
+                      return
+                    }
+                    const nextBrand = typeof next === 'string' ? next : ''
                     const catalogMake = resolveMakeKey(nextBrand)
                     field.onChange(catalogMake || nextBrand)
-                    setValue('vehicleModel', '', { shouldValidate: true, shouldDirty: true })
+                    setSelectedFleetCarId(null)
+                    if (!nextBrand) {
+                      setValue('vehicleModel', '', { shouldValidate: true, shouldDirty: true })
+                      setValue('vehiclePlate', '', { shouldValidate: true, shouldDirty: true })
+                      setValue('vehicleFuel', '', { shouldValidate: true, shouldDirty: true })
+                    }
                   }}
                   onInputChange={(_event, next, reason) => {
-                    if (reason === 'input' || reason === 'clear') {
-                      const previousMake = resolveMakeKey(field.value || '')
-                      const nextMake = resolveMakeKey(next)
-                      field.onChange(next)
-                      if (reason === 'clear' || previousMake !== nextMake) {
-                        setValue('vehicleModel', '', { shouldValidate: true, shouldDirty: true })
+                    if (reason !== 'input' && reason !== 'clear') {
+                      return
+                    }
+                    const previousMake = resolveMakeKey(field.value || '')
+                    const nextMake = resolveMakeKey(next)
+                    field.onChange(next)
+                    if (selectedFleetCarId) {
+                      const selected = fleetOptions.find((item) => item.id === selectedFleetCarId)
+                      if (!selected || next !== selected.brand) {
+                        setSelectedFleetCarId(null)
                       }
+                    }
+                    if (reason === 'clear' || (previousMake !== nextMake && !selectedFleetCarId)) {
+                      setValue('vehicleModel', '', { shouldValidate: true, shouldDirty: true })
                     }
                   }}
                   onBlur={field.onBlur}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id} className={`${props.className || ''} agency-fleet-vehicle-option`}>
+                      <span className="agency-fleet-vehicle-option-main">
+                        <strong>{option.label}</strong>
+                        {option.plate ? <em>{option.plate}</em> : null}
+                      </span>
+                      <span className="agency-fleet-vehicle-option-meta">
+                        {[categoryLabel(option.range), option.fuel].filter(Boolean).join(' · ')}
+                      </span>
+                    </li>
+                  )}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label={strings.CAR_BRAND}
+                      placeholder={fleetOptions.length ? strings.CONTRACT_VEHICLE_FLEET_HINT : undefined}
                       error={!!errors.vehicleBrand}
                       helperText={errors.vehicleBrand?.message}
                       fullWidth
+                      InputLabelProps={{
+                        ...params.InputLabelProps,
+                        shrink: true,
+                      }}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {loadingFleet ? <CircularProgress color="inherit" size={18} /> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
                     />
                   )}
                 />
@@ -371,10 +470,12 @@ const AgencyAddContractDialog = ({
                   value={field.value || ''}
                   onChange={(_event, next) => {
                     field.onChange(typeof next === 'string' ? next : next || '')
+                    setSelectedFleetCarId(null)
                   }}
                   onInputChange={(_event, next, reason) => {
                     if (reason === 'input' || reason === 'clear') {
                       field.onChange(next)
+                      setSelectedFleetCarId(null)
                     }
                   }}
                   onBlur={field.onBlur}
@@ -385,24 +486,48 @@ const AgencyAddContractDialog = ({
                       error={!!errors.vehicleModel}
                       helperText={errors.vehicleModel?.message}
                       fullWidth
+                      InputLabelProps={{
+                        ...params.InputLabelProps,
+                        shrink: true,
+                      }}
                     />
                   )}
                 />
               )}
             />
-            <TextField
-              label={strings.CONTRACT_VEHICLE_PLATE}
-              {...register('vehiclePlate')}
-              error={!!errors.vehiclePlate}
-              helperText={errors.vehiclePlate?.message}
+            <Controller
+              name="vehiclePlate"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value || ''}
+                  label={strings.CONTRACT_VEHICLE_PLATE}
+                  error={!!errors.vehiclePlate}
+                  helperText={errors.vehiclePlate?.message}
+                  InputLabelProps={{ shrink: Boolean(field.value) || undefined }}
+                  onChange={(event) => {
+                    field.onChange(event)
+                    setSelectedFleetCarId(null)
+                  }}
+                />
+              )}
             />
             <FormControl fullWidth error={!!errors.vehicleCategory}>
-              <InputLabel>{strings.CONTRACT_VEHICLE_CATEGORY}</InputLabel>
+              <InputLabel shrink>{strings.CONTRACT_VEHICLE_CATEGORY}</InputLabel>
               <Controller
                 name="vehicleCategory"
                 control={control}
                 render={({ field }) => (
-                  <Select {...field} label={strings.CONTRACT_VEHICLE_CATEGORY}>
+                  <Select
+                    {...field}
+                    label={strings.CONTRACT_VEHICLE_CATEGORY}
+                    notched
+                    onChange={(event) => {
+                      field.onChange(event)
+                      setSelectedFleetCarId(null)
+                    }}
+                  >
                     <MenuItem value={bookcarsTypes.CarRange.Mini}>{strings.CAR_CAT_MINI}</MenuItem>
                     <MenuItem value={bookcarsTypes.CarRange.Midi}>{strings.CAR_CAT_MIDI}</MenuItem>
                     <MenuItem value={bookcarsTypes.CarRange.Maxi}>{strings.CAR_CAT_MAXI}</MenuItem>
@@ -415,8 +540,34 @@ const AgencyAddContractDialog = ({
               />
               {errors.vehicleCategory && <FormHelperText>{errors.vehicleCategory.message}</FormHelperText>}
             </FormControl>
-            <TextField label={strings.CONTRACT_VEHICLE_FUEL} {...register('vehicleFuel')} />
-            <TextField label={strings.CONTRACT_ISSUE_CITY} {...register('issueCity')} />
+            <Controller
+              name="vehicleFuel"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value || ''}
+                  label={strings.CONTRACT_VEHICLE_FUEL}
+                  InputLabelProps={{ shrink: Boolean(field.value) || undefined }}
+                  onChange={(event) => {
+                    field.onChange(event)
+                    setSelectedFleetCarId(null)
+                  }}
+                />
+              )}
+            />
+            <Controller
+              name="issueCity"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value || ''}
+                  label={strings.CONTRACT_ISSUE_CITY}
+                  InputLabelProps={{ shrink: Boolean(field.value) || undefined }}
+                />
+              )}
+            />
             <TextField
               label={strings.CONTRACT_ISSUE_DATE}
               type="date"

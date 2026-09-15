@@ -45,7 +45,7 @@ const toForm = (plan: bookcarsTypes.SubscriptionPlan | null): bookcarsTypes.Upse
     subtitle: { ...emptyLocalized(), ...plan.subtitle },
     tokens: plan.tokens || 0,
     freeTokens: plan.freeTokens || 0,
-    trialMonths: plan.trialMonths || 0,
+    trialDays: plan.trialDays || 0,
     carLimitMin: plan.carLimitMin || 0,
     carLimitMax: plan.carLimitMax || plan.carLimit || 0,
     priceHt,
@@ -96,7 +96,7 @@ const PlanFormDialog = ({ open, plan, onClose, onSaved }: PlanFormDialogProps) =
     if (open) {
       const next = toForm(plan)
       setForm(next)
-      setHasTrial((next.trialMonths || 0) > 0 || !!next.firstTrialFree)
+      setHasTrial((next.trialDays || 0) > 0 || !!next.firstTrialFree)
       setNameLang('fr')
     }
   }, [open, plan])
@@ -120,7 +120,7 @@ const PlanFormDialog = ({ open, plan, onClose, onSaved }: PlanFormDialogProps) =
       toast.error(subStrings.PLAN_NAME_REQUIRED)
       return
     }
-    if (hasTrial && (!form.trialMonths || form.trialMonths < 1)) {
+    if (hasTrial && (!form.trialDays || form.trialDays < 1)) {
       toast.error(subStrings.TRIAL_REQUIRED)
       return
     }
@@ -136,7 +136,7 @@ const PlanFormDialog = ({ open, plan, onClose, onSaved }: PlanFormDialogProps) =
     const payload: bookcarsTypes.UpsertSubscriptionPlanPayload = {
       ...form,
       visible: true,
-      trialMonths: hasTrial ? form.trialMonths : 0,
+      trialDays: hasTrial ? form.trialDays : 0,
       firstTrialFree: hasTrial,
       features: buildAccessFeatures(),
       services: buildAccessServices(),
@@ -215,11 +215,11 @@ const PlanFormDialog = ({ open, plan, onClose, onSaved }: PlanFormDialogProps) =
           onChange={(enabled) => {
             setHasTrial(enabled)
             if (!enabled) {
-              setForm((prev) => ({ ...prev, trialMonths: 0, firstTrialFree: false }))
+              setForm((prev) => ({ ...prev, trialDays: 0, firstTrialFree: false }))
             } else {
               setForm((prev) => ({
                 ...prev,
-                trialMonths: prev.trialMonths > 0 ? prev.trialMonths : 1,
+                trialDays: prev.trialDays > 0 ? prev.trialDays : 1,
                 firstTrialFree: true,
               }))
             }
@@ -230,12 +230,12 @@ const PlanFormDialog = ({ open, plan, onClose, onSaved }: PlanFormDialogProps) =
             size="small"
             type="number"
             fullWidth
-            label={subStrings.TRIAL_MONTHS}
-            inputProps={{ min: 1, max: 36 }}
-            value={form.trialMonths || ''}
+            label={subStrings.TRIAL_DAYS}
+            inputProps={{ min: 1, max: 365 }}
+            value={form.trialDays || ''}
             onChange={(e) => setForm((prev) => ({
               ...prev,
-              trialMonths: Math.max(0, Number(e.target.value) || 0),
+              trialDays: Math.max(0, Number(e.target.value) || 0),
             }))}
           />
         )}

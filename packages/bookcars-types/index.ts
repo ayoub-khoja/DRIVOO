@@ -1292,7 +1292,8 @@ export interface SubscriptionPlan {
   subtitle: LocalizedText
   tokens: number
   freeTokens: number
-  trialMonths: number
+  /** Free trial duration in days (0 = no trial). */
+  trialDays: number
   /** Min cars allowed in agency fleet (parc auto). */
   carLimitMin: number
   /** Max cars allowed in agency fleet (parc auto). */
