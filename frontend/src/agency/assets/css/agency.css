@@ -2585,7 +2585,7 @@
 }
 
 .agency-receipt-stats strong {
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 1.35rem;
   color: #0b1626;
   letter-spacing: -0.02em;
@@ -2728,7 +2728,7 @@
 .agency-receipt-preview-toolbar h3 {
   margin: 0;
   color: #0b1626;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
 }
 
 .agency-receipt-preview-toolbar p {
@@ -2756,7 +2756,7 @@
   max-width: 860px;
   margin: 0 auto;
   color: #12233a;
-  font-family: var(--drivoo-font-body, Outfit, sans-serif);
+  font-family: var(--drivoo-font-body, Inter, sans-serif);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
@@ -2829,7 +2829,7 @@
   place-items: center;
   background: linear-gradient(135deg, #f5a623, #ff7a18);
   color: #fff;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-weight: 800;
   font-size: 1.3rem;
 }
@@ -2844,7 +2844,7 @@
 
 .agency-receipt-hero-brand h3 {
   margin: 0 0 4px;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 1.15rem;
   letter-spacing: -0.02em;
   color: #fff;
@@ -2910,7 +2910,7 @@
 
 .agency-receipt-doc-number {
   display: block;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 1.15rem;
   letter-spacing: -0.02em;
   color: #fff;
@@ -2963,7 +2963,7 @@
 
 .agency-receipt-party-card > strong {
   display: block;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 0.98rem;
   color: #0b1626;
   margin-bottom: 2px;
@@ -3047,7 +3047,7 @@
 .agency-receipt-total-bar span {
   display: block;
   color: #0b1626;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 0.88rem;
   font-weight: 800;
 }
@@ -3059,7 +3059,7 @@
 }
 
 .agency-receipt-total-bar > strong {
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 1.25rem;
   letter-spacing: -0.02em;
   color: #0b1626;
@@ -3377,7 +3377,7 @@
 }
 
 .agency-rem-stats strong {
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 1.35rem;
   color: #0b1626;
 }
@@ -3462,7 +3462,7 @@
 }
 
 .agency-rem-module-count {
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-weight: 800;
   font-size: 0.95rem;
   color: #0b1626;
@@ -3529,7 +3529,7 @@
 
 .agency-rem-card h3 {
   margin: 0 0 6px;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 1.05rem;
   color: #0b1626;
 }
@@ -4765,7 +4765,7 @@
 }
 
 .agency-clients-stats strong {
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 1.55rem;
   font-weight: 800;
   color: #12233a;
@@ -4814,7 +4814,7 @@
   border-radius: 14px;
   background: linear-gradient(135deg, #243853, #3d5c80);
   color: #fff;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -4830,7 +4830,7 @@
 
 .agency-client-identity h3 {
   margin: 0;
-  font-family: var(--drivoo-font-display, Syne, sans-serif);
+  font-family: var(--drivoo-font-display, Inter, sans-serif);
   font-size: 1.05rem;
   font-weight: 800;
   color: #12233a;

@@ -13,6 +13,8 @@ import {
   LocalOfferOutlined,
   AccessTimeOutlined,
   DirectionsCarOutlined,
+  CompareArrows,
+  SavingsOutlined,
 } from '@mui/icons-material'
 import L from 'leaflet'
 import * as bookcarsTypes from ':bookcars-types'
@@ -39,6 +41,7 @@ import HomeSections from '@/components/HomeSections'
 import Mini from '@/assets/img/mini.png'
 import Midi from '@/assets/img/midi.png'
 import Maxi from '@/assets/img/maxi.png'
+import clientBackgroundImg from '@/assets/img/client-background-img.png'
 import * as CarService from '@/services/CarService'
 import type { ShowcaseCar } from '@/services/CarService'
 
@@ -77,7 +80,6 @@ const Home = () => {
   const [locations, setLocations] = useState<bookcarsTypes.Location[]>([])
   const [ranges, setRanges] = useState([bookcarsTypes.CarRange.Mini, bookcarsTypes.CarRange.Midi])
   const [openRangeSearchFormDialog, setOpenRangeSearchFormDialog] = useState(false)
-  const [videoLoaded, setVideoLoaded] = useState(false)
   const [miniPricePhr, setMiniPricePhr] = useState(2.5)
   const [miniPricePday, setMiniPricePday] = useState(40)
   const [midiPricePhr, setMidiPricePhr] = useState(3.5)
@@ -159,18 +161,6 @@ const Home = () => {
     setTabValue(newValue)
   }
 
-  const handleIntersection = (entries: IntersectionObserverEntry[]) => {
-    entries.forEach((entry) => {
-      const video = entry.target as HTMLVideoElement
-      if (entry.isIntersecting) {
-        video.muted = true
-        video.play()
-      } else {
-        video.pause()
-      }
-    })
-  }
-
   const scrollToSearch = () => {
     document.getElementById('drivoo-search')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
@@ -187,14 +177,6 @@ const Home = () => {
     setCountries(_countries)
     const _locations = await LocationService.getLocationsWithPosition()
     setLocations(_locations)
-
-    const observer = new IntersectionObserver(handleIntersection)
-    const video = document.getElementById('cover') as HTMLVideoElement
-    if (video) {
-      observer.observe(video)
-    } else {
-      console.error('Cover video not found')
-    }
   }
 
   const language = UserService.getLanguage()
@@ -230,30 +212,34 @@ const Home = () => {
         <div className="home-content">
 
           <div className="video">
-            <video
+            <img
               id="cover"
-              muted={!env.isSafari}
-              autoPlay={!env.isSafari}
-              loop
-              playsInline
-              disablePictureInPicture
-              onLoadedData={async () => {
-                setVideoLoaded(true)
-              }}
-            >
-              <source src="cover.mp4" type="video/mp4" />
-              <track kind="captions" />
-            </video>
-            {!videoLoaded && (
-              <div className="video-background" />
-            )}
+              className="home-hero-bg"
+              src={clientBackgroundImg}
+              alt=""
+            />
           </div>
 
           <div className="home-hero-stack">
             <div className="search drivoo-book-banner drivoo-book-banner--hero" id="drivoo-search">
               <div className="drivoo-book-banner-content">
                 <div className="drivoo-book-banner-intro">
-                  <span className="drivoo-hero-eyebrow">{strings.BOOK_FORM_HEAD}</span>
+                  <div className="drivoo-hero-eyebrow" role="list">
+                    <span className="drivoo-hero-eyebrow-item" role="listitem">
+                      <CompareArrows className="drivoo-hero-eyebrow-icon" aria-hidden />
+                      {strings.BOOK_FORM_HEAD_COMPARE}
+                    </span>
+                    <span className="drivoo-hero-eyebrow-sep" aria-hidden />
+                    <span className="drivoo-hero-eyebrow-item" role="listitem">
+                      <DirectionsCarOutlined className="drivoo-hero-eyebrow-icon" aria-hidden />
+                      {strings.BOOK_FORM_HEAD_RENT}
+                    </span>
+                    <span className="drivoo-hero-eyebrow-sep" aria-hidden />
+                    <span className="drivoo-hero-eyebrow-item" role="listitem">
+                      <SavingsOutlined className="drivoo-hero-eyebrow-icon" aria-hidden />
+                      {strings.BOOK_FORM_HEAD_SAVE}
+                    </span>
+                  </div>
                   <h2>{strings.BOOK_HERO_TITLE}</h2>
                   <p>{strings.BOOK_HERO_TEXT}</p>
                 </div>

@@ -12,7 +12,7 @@ const PRINT_STYLES = `
     overflow: hidden;
     background: #fff;
     color: #12233a;
-    font-family: Outfit, Cairo, sans-serif;
+    font-family: Inter, Cairo, sans-serif;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -79,7 +79,7 @@ const PRINT_STYLES = `
     place-items: center;
     background: linear-gradient(135deg, #f5a623, #ff7a18);
     color: #fff;
-    font-family: Syne, Cairo, sans-serif;
+    font-family: Inter, Cairo, sans-serif;
     font-weight: 800;
     font-size: 1.1rem;
   }
@@ -92,7 +92,7 @@ const PRINT_STYLES = `
   }
   .agency-receipt-hero-brand h3 {
     margin: 0 0 2px;
-    font-family: Syne, Cairo, sans-serif;
+    font-family: Inter, Cairo, sans-serif;
     font-size: 0.95rem;
     color: #fff;
   }
@@ -145,7 +145,7 @@ const PRINT_STYLES = `
   }
   .agency-receipt-doc-number {
     display: block;
-    font-family: Syne, Cairo, sans-serif;
+    font-family: Inter, Cairo, sans-serif;
     font-size: 0.95rem;
     color: #fff;
   }
@@ -190,7 +190,7 @@ const PRINT_STYLES = `
   }
   .agency-receipt-party-card > strong {
     display: block;
-    font-family: Syne, Cairo, sans-serif;
+    font-family: Inter, Cairo, sans-serif;
     font-size: 0.88rem;
     color: #0b1626;
     margin-bottom: 1px;
@@ -245,7 +245,7 @@ const PRINT_STYLES = `
   .agency-receipt-total-bar span {
     display: block;
     color: #0b1626;
-    font-family: Syne, Cairo, sans-serif;
+    font-family: Inter, Cairo, sans-serif;
     font-size: 0.8rem;
     font-weight: 800;
   }
@@ -255,7 +255,7 @@ const PRINT_STYLES = `
     font-size: 0.65rem;
   }
   .agency-receipt-total-bar > strong {
-    font-family: Syne, Cairo, sans-serif;
+    font-family: Inter, Cairo, sans-serif;
     font-size: 1.05rem;
     color: #0b1626;
   }
@@ -367,7 +367,7 @@ export const printReceiptElement = (elementId = 'agency-receipt-print', title = 
   <title>${safeTitle}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>${PRINT_STYLES}</style>
 </head>
 <body>${source.outerHTML}</body>
