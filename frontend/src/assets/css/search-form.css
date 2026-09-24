@@ -43,6 +43,10 @@ form.home-search-form .chk-same-location label {
   vertical-align: top;
 }
 
+form.home-search-form .chk-same-location .MuiFormControlLabel-label {
+  white-space: nowrap;
+}
+
 form.home-search-form .chk-same-location input[type='checkbox'] {
   cursor: pointer;
 }
@@ -77,6 +81,10 @@ form.home-search-form .chk-same-location .Mui-checked {
     margin: 4px 0 8px;
   }
 
+  form.home-search-form .chk-same-location .MuiFormControlLabel-label {
+    white-space: normal;
+  }
+
   form.home-search-form .btn-search,
   form.home-search-form .btn-cancel {
     width: 100%;
@@ -93,7 +101,7 @@ form.home-search-form .chk-same-location .Mui-checked {
     grid-template-columns: 1.4fr 1fr 1fr auto;
     grid-template-areas:
       'pickup from to action'
-      'same from to action';
+      'same same same action';
     gap: 10px 12px;
     align-items: start;
     width: 100%;

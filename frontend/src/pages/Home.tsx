@@ -10,11 +10,12 @@ import {
 import {
   CheckBox,
   LockOutlined,
-  LocalOfferOutlined,
-  AccessTimeOutlined,
   DirectionsCarOutlined,
   CompareArrows,
   SavingsOutlined,
+  VerifiedOutlined,
+  VerifiedUserOutlined,
+  SupportAgentOutlined,
 } from '@mui/icons-material'
 import L from 'leaflet'
 import * as bookcarsTypes from ':bookcars-types'
@@ -28,12 +29,13 @@ import * as SupplierService from '@/services/SupplierService'
 import * as CountryService from '@/services/CountryService'
 import * as LocationService from '@/services/LocationService'
 import * as PaymentService from '@/services/PaymentService'
+import * as GeoService from '@/services/GeoService'
 import Layout from '@/components/Layout'
 import SupplierCarrousel from '@/components/SupplierCarrousel'
 import TabPanel, { a11yProps } from '@/components/TabPanel'
 import LocationCarrousel from '@/components/LocationCarrousel'
 import SearchForm from '@/components/SearchForm'
-import Map from '@/components/Map'
+import Map, { MapGeoPoint } from '@/components/Map'
 import Footer from '@/components/Footer'
 import FaqList from '@/components/FaqList'
 import HomeSections from '@/components/HomeSections'
@@ -78,6 +80,8 @@ const Home = () => {
   const [tabValue, setTabValue] = useState(0)
   const [openLocationSearchFormDialog, setOpenLocationSearchFormDialog] = useState(false)
   const [locations, setLocations] = useState<bookcarsTypes.Location[]>([])
+  const [mapCities, setMapCities] = useState<MapGeoPoint[]>([])
+  const [mapMunicipalities, setMapMunicipalities] = useState<MapGeoPoint[]>([])
   const [ranges, setRanges] = useState([bookcarsTypes.CarRange.Mini, bookcarsTypes.CarRange.Midi])
   const [openRangeSearchFormDialog, setOpenRangeSearchFormDialog] = useState(false)
   const [miniPricePhr, setMiniPricePhr] = useState(2.5)
@@ -177,6 +181,30 @@ const Home = () => {
     setCountries(_countries)
     const _locations = await LocationService.getLocationsWithPosition()
     setLocations(_locations)
+
+    try {
+      const catalog = await GeoService.getTunisiaCatalog()
+      const language = UserService.getLanguage()
+      setMapCities(
+        (catalog.cities || []).map((city) => ({
+          id: city.id,
+          name: GeoService.getGeoLabel(city.names, language),
+          latitude: city.latitude,
+          longitude: city.longitude,
+        })),
+      )
+      setMapMunicipalities(
+        (catalog.municipalities || []).map((mun) => ({
+          id: mun.id,
+          name: GeoService.getGeoLabel(mun.names, language),
+          latitude: mun.latitude,
+          longitude: mun.longitude,
+        })),
+      )
+    } catch {
+      setMapCities([])
+      setMapMunicipalities([])
+    }
   }
 
   const language = UserService.getLanguage()
@@ -241,7 +269,25 @@ const Home = () => {
                     </span>
                   </div>
                   <h2>{strings.BOOK_HERO_TITLE}</h2>
-                  <p>{strings.BOOK_HERO_TEXT}</p>
+                  <p className="drivoo-hero-hook">{strings.BOOK_HERO_TEXT}</p>
+                  <ul className="drivoo-hero-values">
+                    <li className="drivoo-hero-value">
+                      <VerifiedOutlined className="drivoo-hero-value-icon" aria-hidden />
+                      <span>{strings.HERO_VALUE_PRICE}</span>
+                    </li>
+                    <li className="drivoo-hero-value">
+                      <VerifiedUserOutlined className="drivoo-hero-value-icon" aria-hidden />
+                      <span>{strings.HERO_VALUE_FLEET}</span>
+                    </li>
+                    <li className="drivoo-hero-value">
+                      <LockOutlined className="drivoo-hero-value-icon" aria-hidden />
+                      <span>{strings.HERO_VALUE_AIRPORT}</span>
+                    </li>
+                    <li className="drivoo-hero-value">
+                      <SupportAgentOutlined className="drivoo-hero-value-icon" aria-hidden />
+                      <span>{strings.HERO_VALUE_SUPPORT}</span>
+                    </li>
+                  </ul>
                 </div>
 
                 <div className="drivoo-hero-panel">
@@ -250,30 +296,30 @@ const Home = () => {
                     <SearchForm />
                   </div>
 
-                  <div className="drivoo-trust-bar">
-                    <div className="drivoo-trust-item">
-                      <span className="drivoo-trust-icon-wrap">
+                  <div className="drivoo-trust-bar" role="list">
+                    <div className="drivoo-trust-item drivoo-trust-item--lock" role="listitem">
+                      <span className="drivoo-trust-icon-wrap" aria-hidden>
                         <LockOutlined className="drivoo-trust-icon" />
                       </span>
-                      <span>{strings.TRUST_SECURE}</span>
+                      <span className="drivoo-trust-label">{strings.TRUST_SECURE}</span>
                     </div>
-                    <div className="drivoo-trust-item">
-                      <span className="drivoo-trust-icon-wrap">
-                        <LocalOfferOutlined className="drivoo-trust-icon" />
+                    <div className="drivoo-trust-item drivoo-trust-item--tag" role="listitem">
+                      <span className="drivoo-trust-icon-wrap" aria-hidden>
+                        <VerifiedOutlined className="drivoo-trust-icon" />
                       </span>
-                      <span>{strings.TRUST_PRICE}</span>
+                      <span className="drivoo-trust-label">{strings.TRUST_PRICE}</span>
                     </div>
-                    <div className="drivoo-trust-item">
-                      <span className="drivoo-trust-icon-wrap">
-                        <AccessTimeOutlined className="drivoo-trust-icon" />
+                    <div className="drivoo-trust-item drivoo-trust-item--clock" role="listitem">
+                      <span className="drivoo-trust-icon-wrap" aria-hidden>
+                        <SupportAgentOutlined className="drivoo-trust-icon" />
                       </span>
-                      <span>{strings.TRUST_SUPPORT}</span>
+                      <span className="drivoo-trust-label">{strings.TRUST_SUPPORT}</span>
                     </div>
-                    <div className="drivoo-trust-item">
-                      <span className="drivoo-trust-icon-wrap">
-                        <DirectionsCarOutlined className="drivoo-trust-icon" />
+                    <div className="drivoo-trust-item drivoo-trust-item--car" role="listitem">
+                      <span className="drivoo-trust-icon-wrap" aria-hidden>
+                        <VerifiedUserOutlined className="drivoo-trust-icon" />
                       </span>
-                      <span>{strings.TRUST_FLEET}</span>
+                      <span className="drivoo-trust-label">{strings.TRUST_FLEET}</span>
                     </div>
                   </div>
                 </div>
@@ -436,9 +482,12 @@ const Home = () => {
         <div className="home-map drivoo-reveal">
           <Map
             title={strings.MAP_TITLE}
-            position={new L.LatLng(env.MAP_LATITUDE, env.MAP_LONGITUDE)}
-            initialZoom={env.MAP_ZOOM}
+            position={new L.LatLng(34.0, 9.5)}
+            initialZoom={7}
             locations={locations}
+            geoPoints={mapCities}
+            geoPointsDetail={mapMunicipalities}
+            fitToMarkers
             onSelelectPickUpLocation={async (locationId) => {
               setPickupLocation(locationId)
               if (sameLocation) {
