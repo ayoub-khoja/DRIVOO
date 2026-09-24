@@ -1,38 +1,60 @@
-import React, { Dispatch, ReactNode, SetStateAction, useEffect, useRef, useState } from 'react'
-import { MapContainer, Marker, Popup, useMapEvents } from 'react-leaflet'
+import React, { Dispatch, ReactNode, SetStateAction, useEffect, useMemo, useRef, useState } from 'react'
+import { MapContainer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L, { LatLngExpression } from 'leaflet'
-import icon from 'leaflet/dist/images/marker-icon.png'
-import iconShadow from 'leaflet/dist/images/marker-shadow.png'
 import * as bookcarsTypes from ':bookcars-types'
-// import * as UserService from '@/services/UserService'
 import { strings } from '@/lang/map'
 import * as LocationService from '@/services/LocationService'
 import * as helper from '@/utils/helper'
 import MapTileLayer from '@/components/MapTileLayer'
+import drivooLogo from '@/assets/img/drivoo-logo.png'
 
 import 'leaflet-boundary-canvas'
 import 'leaflet/dist/leaflet.css'
 import '@/assets/css/map.css'
 
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow
-})
-
-L.Marker.prototype.options.icon = DefaultIcon
-
-interface Marker {
-  name: string,
-  position: L.LatLng
+export interface MapGeoPoint {
+  id: string | number
+  name: string
+  latitude: number
+  longitude: number
 }
 
-const markers: Marker[] = [
-  // { name: 'Athens (ATH)', position: new L.LatLng(37.983810, 23.727539) },
-]
-const zoomMarkers: Marker[] = [
-  // { name: 'Athens Airport (ATH)', position: new L.LatLng(37.937225, 23.945238) },
-  // { name: 'Athens Port Piraeus (ATH)', position: new L.LatLng(37.9495811, 23.6121006) },
-]
+interface MapMarker {
+  key: string
+  name: string
+  position: L.LatLng
+  locationId?: string
+  selectable?: boolean
+}
+
+const escapeAttr = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+
+const buildDrivooIcon = (label: string, size: 'md' | 'sm' = 'md') => {
+  const dim = size === 'sm' ? 36 : 46
+  const tip = size === 'sm' ? 10 : 12
+  const anchorY = dim + tip - 4
+
+  return L.divIcon({
+    className: `drivoo-map-marker drivoo-map-marker--${size}`,
+    html: `
+      <div class="drivoo-map-pin" title="${escapeAttr(label)}">
+        <div class="drivoo-map-pin-face">
+          <img src="${drivooLogo}" alt="" />
+        </div>
+        <span class="drivoo-map-pin-tip" aria-hidden="true"></span>
+        <span class="drivoo-map-pin-pulse" aria-hidden="true"></span>
+      </div>
+    `,
+    iconSize: [dim, anchorY],
+    iconAnchor: [dim / 2, anchorY],
+    popupAnchor: [0, -(anchorY - 4)],
+  })
+}
 
 interface ZoomTrackerProps {
   setZoom: Dispatch<SetStateAction<number>>
@@ -42,8 +64,36 @@ const ZoomTracker = ({ setZoom }: ZoomTrackerProps) => {
   const mapEvents = useMapEvents({
     zoom() {
       setZoom(mapEvents.getZoom())
-    }
+    },
   })
+
+  return null
+}
+
+interface FitBoundsProps {
+  points: L.LatLngExpression[]
+  enabled?: boolean
+}
+
+const FitBounds = ({ points, enabled = true }: FitBoundsProps) => {
+  const map = useMap()
+  const fittedRef = useRef(false)
+
+  useEffect(() => {
+    if (!enabled || points.length === 0 || fittedRef.current) {
+      return
+    }
+
+    fittedRef.current = true
+
+    if (points.length === 1) {
+      map.setView(points[0], Math.max(map.getZoom(), 10), { animate: true })
+      return
+    }
+
+    const bounds = L.latLngBounds(points)
+    map.fitBounds(bounds, { padding: [48, 48], maxZoom: 9, animate: true })
+  }, [map, points, enabled])
 
   return null
 }
@@ -56,11 +106,7 @@ interface ZoomControlledLayerProps {
 
 const ZoomControlledLayer = ({ zoom, minZoom, children }: ZoomControlledLayerProps) => {
   if (zoom >= minZoom) {
-    return (
-      <>
-        {children}
-      </>
-    )
+    return <>{children}</>
   }
   return null
 }
@@ -70,27 +116,35 @@ interface MapProps {
   position?: LatLngExpression
   initialZoom?: number
   locations?: bookcarsTypes.Location[]
+  /** Cities / municipalities to show with Drivoo pins */
+  geoPoints?: MapGeoPoint[]
+  /** Extra points shown only when zoomed in (e.g. municipalities) */
+  geoPointsDetail?: MapGeoPoint[]
   parkingSpots?: bookcarsTypes.ParkingSpot[]
   className?: string
   children?: ReactNode
+  fitToMarkers?: boolean
   onSelelectPickUpLocation?: (locationId: string) => void
-  // onSelelectDropOffLocation?: (locationId: string) => void
 }
 
 const Map = ({
   title,
-  position = new L.LatLng(31.792305849269, -7.080168000000015),
+  position = new L.LatLng(34.0, 9.5),
   initialZoom,
   locations,
+  geoPoints,
+  geoPointsDetail,
   parkingSpots,
   className,
   children,
+  fitToMarkers = true,
   onSelelectPickUpLocation,
-  // onSelelectDropOffLocation,
 }: MapProps) => {
-  const _initialZoom = initialZoom || 5.5
+  const _initialZoom = initialZoom || 6.5
   const [zoom, setZoom] = useState(_initialZoom)
   const map = useRef<L.Map | null>(null)
+  const iconMd = useMemo(() => buildDrivooIcon('DRIVOO', 'md'), [])
+  const iconSm = useMemo(() => buildDrivooIcon('DRIVOO', 'sm'), [])
 
   useEffect(() => {
     if (map.current) {
@@ -99,40 +153,77 @@ const Map = ({
     }
   }, [map])
 
-  useEffect(() => {
-    if (map.current && position) {
-      map.current.setView(position, _initialZoom)
-    }
-  }, [position, _initialZoom, map])
-
-  const getLocationMarkers = (): Marker[] => (
+  const locationMarkers = useMemo((): MapMarker[] => (
     (locations
       && locations
         .filter((l) => l.latitude && l.longitude)
-        .map((l) => ({ name: l.name!, position: new L.LatLng(l.latitude!, l.longitude!) }))
+        .map((l) => ({
+          key: `loc-${l._id}`,
+          name: l.name || 'DRIVOO',
+          position: new L.LatLng(l.latitude!, l.longitude!),
+          locationId: l._id,
+          selectable: true,
+        }))
     ) || []
-  )
+  ), [locations])
 
-  const getMarkers = (__markers: Marker[]) =>
-    __markers.map((marker) => (
-      <Marker key={marker.name} position={marker.position}>
-        <Popup className="marker">
+  const cityMarkers = useMemo((): MapMarker[] => (
+    (geoPoints
+      && geoPoints
+        .filter((p) => p.latitude && p.longitude)
+        .map((p) => ({
+          key: `geo-${p.id}`,
+          name: p.name,
+          position: new L.LatLng(p.latitude, p.longitude),
+          selectable: false,
+        }))
+    ) || []
+  ), [geoPoints])
+
+  const municipalityMarkers = useMemo((): MapMarker[] => (
+    (geoPointsDetail
+      && geoPointsDetail
+        .filter((p) => p.latitude && p.longitude)
+        .map((p) => ({
+          key: `mun-${p.id}`,
+          name: p.name,
+          position: new L.LatLng(p.latitude, p.longitude),
+          selectable: false,
+        }))
+    ) || []
+  ), [geoPointsDetail])
+
+  const fitPoints = useMemo(() => {
+    const primary = locationMarkers.length > 0 ? locationMarkers : cityMarkers
+    return primary.map((m) => m.position)
+  }, [locationMarkers, cityMarkers])
+
+  const renderMarkers = (items: MapMarker[], size: 'md' | 'sm') =>
+    items.map((marker) => (
+      <Marker
+        key={marker.key}
+        position={marker.position}
+        icon={size === 'sm' ? iconSm : iconMd}
+        title={marker.name}
+      >
+        <Popup className="marker drivoo-map-popup">
           <div className="name">{marker.name}</div>
-          <div className="action">
-            {!!onSelelectPickUpLocation && (
+          {!!onSelelectPickUpLocation && marker.selectable && (
+            <div className="action">
               <button
                 type="button"
                 className="action-btn"
                 onClick={async () => {
                   try {
-                    if (onSelelectPickUpLocation) {
-                      const { status, data } = await LocationService.getLocationId(marker.name, 'en')
-
-                      if (status === 200) {
-                        onSelelectPickUpLocation(data)
-                      } else {
-                        helper.error()
-                      }
+                    if (marker.locationId) {
+                      onSelelectPickUpLocation(marker.locationId)
+                      return
+                    }
+                    const { status, data } = await LocationService.getLocationId(marker.name, 'en')
+                    if (status === 200) {
+                      onSelelectPickUpLocation(data)
+                    } else {
+                      helper.error()
                     }
                   } catch (err) {
                     helper.error(err)
@@ -141,43 +232,27 @@ const Map = ({
               >
                 {strings.SELECT_PICK_UP_LOCATION}
               </button>
-            )}
-            {/* {!!onSelelectDropOffLocation && (
-              <button
-                type="button"
-                className="action-btn"
-                onClick={async () => {
-                  try {
-                    if (onSelelectDropOffLocation) {
-                      const { status, data } = await LocationService.getLocationId(marker.name, 'en')
-
-                      if (status === 200) {
-                        onSelelectDropOffLocation(data)
-                      } else {
-                        helper.error()
-                      }
-                    }
-                  } catch (err) {
-                    helper.error(err)
-                  }
-                }}
-              >
-                {strings.SELECT_DROP_OFF_LOCATION}
-              </button>
-            )} */}
-          </div>
+            </div>
+          )}
         </Popup>
       </Marker>
     ))
 
   const getParkingSpots = () =>
     parkingSpots && parkingSpots.map((parkingSpot) => (
-      <Marker key={parkingSpot._id} position={[Number(parkingSpot.latitude), Number(parkingSpot.longitude)]}>
-        <Popup className="marker">
+      <Marker
+        key={parkingSpot._id}
+        position={[Number(parkingSpot.latitude), Number(parkingSpot.longitude)]}
+        icon={iconSm}
+      >
+        <Popup className="marker drivoo-map-popup">
           <div className="name">{parkingSpot.name}</div>
         </Popup>
       </Marker>
     ))
+
+  // Prefer rental locations; otherwise show cities. Municipalities appear when zoomed in.
+  const showCities = locationMarkers.length === 0 && cityMarkers.length > 0
 
   return (
     <>
@@ -190,24 +265,29 @@ const Map = ({
       >
         <MapTileLayer />
         <ZoomTracker setZoom={setZoom} />
-        <ZoomControlledLayer zoom={zoom} minZoom={7.5}>
-          {
-            getMarkers(zoomMarkers)
-          }
-        </ZoomControlledLayer>
-        <ZoomControlledLayer zoom={zoom} minZoom={5.5}>
-          {
-            getMarkers(markers)
-          }
-        </ZoomControlledLayer>
-        <ZoomControlledLayer zoom={zoom} minZoom={_initialZoom}>
-          {
-            getMarkers(getLocationMarkers())
-          }
-          {
-            getParkingSpots()
-          }
-        </ZoomControlledLayer>
+        <FitBounds points={fitPoints} enabled={fitToMarkers && fitPoints.length > 0} />
+
+        {locationMarkers.length > 0 && renderMarkers(locationMarkers, 'md')}
+
+        {showCities && (
+          <ZoomControlledLayer zoom={zoom} minZoom={0}>
+            {renderMarkers(cityMarkers, 'md')}
+          </ZoomControlledLayer>
+        )}
+
+        {!showCities && cityMarkers.length > 0 && (
+          <ZoomControlledLayer zoom={zoom} minZoom={6}>
+            {renderMarkers(cityMarkers, 'sm')}
+          </ZoomControlledLayer>
+        )}
+
+        {municipalityMarkers.length > 0 && (
+          <ZoomControlledLayer zoom={zoom} minZoom={9}>
+            {renderMarkers(municipalityMarkers, 'sm')}
+          </ZoomControlledLayer>
+        )}
+
+        {getParkingSpots()}
         {children}
       </MapContainer>
     </>
