@@ -15,8 +15,8 @@
   --drivoo-muted: #4a5568;
   --drivoo-on-blue: #ffffff;
   --drivoo-border: rgb(36 56 83 / 12%);
-  --drivoo-font-display: 'Syne', 'Cairo', sans-serif;
-  --drivoo-font-body: 'Outfit', 'Cairo', sans-serif;
+  --drivoo-font-display: 'Inter', 'Cairo', sans-serif;
+  --drivoo-font-body: 'Inter', 'Cairo', sans-serif;
   --drivoo-radius: 14px;
   --drivoo-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }

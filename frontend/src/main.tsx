@@ -223,15 +223,15 @@ const theme = createTheme(
     },
     typography: {
       fontFamily: [
-        isAr ? 'Cairo' : 'Outfit',
+        isAr ? 'Cairo' : 'Inter',
         'system-ui',
         'sans-serif',
       ].join(','),
       allVariants: {
         color: '#243853',
       },
-      h1: { fontFamily: isAr ? 'Cairo, sans-serif' : 'Syne, sans-serif', fontWeight: 800, color: '#243853' },
-      h2: { fontFamily: isAr ? 'Cairo, sans-serif' : 'Syne, sans-serif', fontWeight: 700, color: '#243853' },
+      h1: { fontFamily: isAr ? 'Cairo, sans-serif' : 'Inter, sans-serif', fontWeight: 800, color: '#243853' },
+      h2: { fontFamily: isAr ? 'Cairo, sans-serif' : 'Inter, sans-serif', fontWeight: 700, color: '#243853' },
     },
     components: {
       MuiCssBaseline: {
@@ -239,7 +239,7 @@ const theme = createTheme(
           body: {
             backgroundColor: '#ffffff',
             color: '#243853',
-            fontFamily: isAr ? 'Cairo, system-ui, sans-serif' : 'Outfit, system-ui, sans-serif',
+            fontFamily: isAr ? 'Cairo, system-ui, sans-serif' : 'Inter, system-ui, sans-serif',
           },
           'h1, h2, h3, h4, h5, h6, p, label, li, span, a': {
             color: 'inherit',
